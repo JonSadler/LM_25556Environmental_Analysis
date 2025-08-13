@@ -76,7 +76,7 @@ barplot(rain$Tokyo, names.arg=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
         cex.axis=0.8, # cex.axis=0.8 (same for axis labels)  
         ylim = (c(0, 220)))
 # London
-barplot(rain$London, names.arg=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov", "Dec"),
+l <- barplot(rain$London, names.arg=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov", "Dec"),
         xlab = "Month", 
         ylab = "PPT",
         main = "London",
@@ -111,7 +111,8 @@ rain_long # look at the new datafile
 # A lot easier.....!
 require(ggplot2)
 P <- ggplot(rain_long, aes(Month, Ppt)) + geom_bar(stat = "identity") + 
-  facet_wrap(~City)
+  facet_wrap(~City) +
+  labs(title = "Monthly ppt", x = "Month", y = "Rainfall (mm)")
 P # Display the plot
 
 # note you still have the ordering issue. The best fix for this is make sure that your month

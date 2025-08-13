@@ -1,7 +1,7 @@
 # ******************************************************************************
-# This is the source script for WEEK 9: Generalised Linear Modelling           *
+# This is the source script for WEEK 10: Heterogeneity and Mixed Modelling     *
 # ******************************************************************************
-# Jon Sadler March 2015 updated March 2022
+# Jon Sadler March 2021 updated April 27th 2021
 
 # Create a directory on your desktop called 'RWork' (or whatever you want) and download the data and script files from the Canvas website)
 
@@ -9,403 +9,501 @@
 
 # **************************
 # Setting the home directory
+setwd("~/Desktop/RWork")         # For Apple Macs
+setwd(c:\Desktop\Rwork)          # For Windows machines
+
 # **********************************************************************************************************************
 # Alternatively you can do this in RStudio by selecting "Session" then "Set Working Directory" then "Choose directory" *
 # **********************************************************************************************************************
 
-# PART ONE: Poisson Regression
-# We'll start with an example of poisson regression using multiple predictors that is not overdispersed!
+# This session is about what you can do if your data points are NOT independent of each other.
+# This is a tricky concept so we will take it slowly and work with one dataset and work through the 
+# permutations of the different models.
+# The data and code for this derive from Zuur et al. 2009 with limited modification by JPS.
+# You've seen the data before its the RIKZ marine benthic data. 
+# The data were sampled from 9 beaches (five samples per beach).
+# We're interested in the relationship between species richness of benthic species and the height of
+# the site from average sea level.
 
-# Load data file gotelli.csv
-
-# Gotelli and Everson (2002) investigated the biographical determinants of at species richness at a regional scale
-# We're going to replicate their poisson regression of ant species richness against latitude, elevation and habitat type
-# Code here is from Logan (2012) with some modification by JPS
-# call the file gotelli or the rest of the code won't work!!!
-
-# Look at the structure  - you kow the commands by now......
-
-# Check the data structure using the scatterplotMatrix function in the car library
-require(car)
-#scatterplotMatrix(~Srich+ ---------)
-
-# What does this show?!!!
-
-# Now check for inflation using VIFs. Run the model and look at the VIFs
-#gotelli.glm <- glm(Srich ~ ---------, family = poisson, data  = ------)
-
-# VIFs
-#vif(---------)
-
-# OUCH - big collinearity issues
-# The fix is to centre predictor variables. This is one of numerous ways of dealing with covariation.
-
-gotelli$cLatitude <- scale(gotelli$Latitude, scale = T)
-gotelli$cElevation <- scale(gotelli$Elevation, scale = T)
-
-# Rerun the VIF code with the new variables
-#gotelli.glm <- glm(Srich ~ Habitat * ------- * --------, family = poisson, data  = gotelli)
-vif(gotelli.glm)  # They are bit high but okay so we'll go with it....
-
-# Check for influential data points outliers
-# first we'll use influence measures to do it....
-
-influence.measures(gotelli.glm)    # There are a couple of large cook values but they are not near 1!
-
-# graphically plot the Cooks distances
-plot(gotelli.glm, which = 4)  # few biggies but not too worrying
-
-# check for over dispersion 
-# this is the model deviance / degrees of freedom of the residuals
-gotelli.glm$deviance/gotelli.glm$df.resid
-
-# Rule of thumb here is that it needs to be around 1!
-# So we see it's okay not over dispersed
-
-# so everything is okay so look at the results
-summary(gotelli.glm)
-# We can infer from this that ant species is greater in forest
-# habitats than bogs (see first line)
-# and that it varies latitudinally
-
-# Lots of variables here so go for some model averaging....
+# load in the packages - some are new so will need installing
+library(ggplot2)
+library(lme4)
+library(lattice)
+library(ggfortify)
+library(ggpubr)
+library(lmerTest)
 library(MuMIn)
+library(nlme)
 
-options(na.action=na.fail) # set options in Base R concerning missing values
+# load the data
+beach <- read_csv("RIKZ.csv")
+# look at the data 
+glimpse(beach)
 
-summary(model.avg(dredge(gotelli.glm), fit = TRUE, subset = TRUE))
 
-options(na.action = "na.omit") # reset base R options
+# force beach as a new factor variable called fbeach
+beach$fbeach <-as.factor(beach$Beach)
 
-# Best model includes latitude, elevation and habitat
-# recreate the best model
-gotelli.glm <- glm(Srich ~ Habitat + Latitude + Elevation, family=poisson, data=gotelli)
-summary(gotelli.glm)
+# We're are interested in Richness (the response) and NAP (explanatory) in the first instance
 
-# Check diagnostic plots
-op <- par(mfrow = c(2, 2))
-plot(gotelli.glm) # looking good
+# Draw a picture (scatterplot) and stick a linear model line through it...you've done this before
+plot(Richness ~ NAP, data = beach, 
+     xlab = "NAP", ylab = "Species richness", 
+     pch = 19, col = fbeach)
+# run a linear model and stick a line through it...
+beach.lm <- lm(Richness ~ NAP, data = beach)
+abline(beach.lm)
+
+# The linear model isn't a great fit because in part the data are nested
+# let's examine how this might influence the model by faceting the data by beach...
+require(lattice)
+# create lattice plot
+xyplot(Richness ~ NAP | fbeach, data = beach,
+       panel = function(x, y, ...) {
+         panel.xyplot(x, y, ..., col = 4,pch = 19)		# add the points
+         panel.lmline(x, y, ..., col = 4, lwd = 2)		# add regression lines for each beach....
+       })
+# You can see that the slopes and intercepts on each beach differ!
+# We deduce from this that each site on the same beach are more related to each other 
+# than to sites on other beaches.
+# NOTE: linear regression assumes the are the same!
+
+# It will mean the residuals are a mess - check by plotting them...
+op <- par(mfrow = c(2,2))
+plot(beach.lm)
 par(op)
+# YUK!
 
-# Then plot produce base plot (notice this is effectively and ANCOVA analysis)
-xs <- seq(40, 45, l = 1000)
-plot(Srich ~ Latitude, data = gotelli, xlab = "Latitude", ylab = "Ant Species Richness")
-# Plot the points and predicted trends
-points(Srich ~ Latitude, data = gotelli, subset = Habitat == "Forest", pch = 16)
-pred <- predict(gotelli.glm, type = "response", se = T, newdata = data.frame(Latitude = xs, Habitat = "Forest", Elevation = mean(gotelli$Elevation)))
-lines(pred$fit ~ xs)
-points(Srich ~ Latitude, data = gotelli, subset = Habitat == "Bog", pch = 21)
-pred <- predict(gotelli.glm, type = "response", se = T, newdata = data.frame(Latitude = xs, Habitat = "Bog", Elevation = mean(gotelli$Elevation)))
-lines(pred$fit ~ xs)
-legend("topright", legend = c("Forest", "Bog"), pch = c(16, 21), title = "Habitat", bty = "n")
-box(bty = "l")
+#repeat using ggplot
+ggplot(beach,aes(x=NAP, Richness)) + geom_point() + geom_smooth(aes(x=NAP,y=Richness), method = lm, se=FALSE) + 
+  facet_wrap(~fbeach) + coord_cartesian(ylim = c(0, 20))
 
-#EXERCISE: Recreate this plot using ggplot. 
-#This is trickier than you'd imagine. 
-#There is code to do this in the next example - but have a think first before you use it!
+# We could try to add a covariate in for beach as a form of ANCOVA
+beach.lm1 <- lm(Richness ~ NAP * fbeach, data = beach)
 
-#ggplot(-----------)
+# look at results
+summary(beach.lm1)
+# Factors for each beach are significant but not all of them
+# Note the first factor is used a baseline (remember our ANCOVA example)
+# The price paid for this term is 8 regression parameters (or dfs)
+# Add the interaction you have 19 parameters - Ouch.
+# We've only got 45 data points!
+# NOTE we also have some interaction effects
 
-# PART TWO: over dispersion, quasi-poisson and negative binomial models
-# Now what do we do if the model is overdispersed?
-# We’re going to use a dataset on amphibian roadkills (from Zuur et al. 2009). It has 17 explanatory 
-# variables. We’re going to use nine of them and the response variable is TOT.N (the total number of 
-# kills).
-# The dataset is called RoadKills.csv
+# If we extract the betas then we can see lots of different slopes
+Beta<-vector(length = 9)   # nine because there are nine beaches so nine slopes
+for (i in 1:9){			# create a little loop
+  tmpout <- summary(lm(Richness ~ NAP, subset = (fbeach == i), data = beach)) # subset by beach
+  Beta[i] <- tmpout$coefficients[2,1] # strip out the coefficients
+}
 
-# Load the data and do the normal run of look sees - i.e. exploration - call the file Road please!!
+# Look at the slopes
+Beta
+# They are quite different!!!
 
-# look at the structure
-#glimpse(--------)
+# Plot residual - it hasn't improved that either!
+par(mfrow = c(2,2))
+plot(beach.lm1)
+par(mfrow = c(1,1))
+# not much better.....
 
-# Plot......
-plot(Road$D.PARK,Road$TOT.N,xlab="Distance to park",
-     ylab="Road kills")
+# so let's try a random effects model - random intercept model
+# this will allow the intercepts for each beach to vary
+# and it only costs one df!
 
-# You can clearly see decreasing variability of kills with distance.
-# Highly likely they'll be hetergeneity in the residuals
+# we need a new library to run this (it'll probably need installing)
+# it is called nlme
+require(nlme)
+beach.lme1 <- lme(Richness ~ NAP, random = ~ 1 | fbeach, data = beach)
+summary(beach.lme1)
 
-Road.glm1<-glm(TOT.N~D.PARK,family=poisson,data=Road)
-summary(Road.glm1)
+# To understand what it means it is best to plot the fitted values
+# But which ones...? The main population one: 6.55 - 2.56 x NAP? or the beaches or both?
+# We opt for both
 
-MyData=data.frame(D.PARK=seq(from=0,to=25000,by=1000))
-G<-predict(Road.glm1,newdata=MyData,type="link",se=T)
-F<-exp(G$fit)
-FSEUP<-exp(G$fit+1.96*G$se.fit)
-FSELOW<-exp(G$fit-1.96*G$se.fit)
-lines(MyData$D.PARK,F,lty=1)
-lines(MyData$D.PARK,FSEUP,lty=2)
-lines(MyData$D.PARK,FSELOW,lty=2)
+F0 <- fitted(beach.lme1,level=0) # population slope
+F1 <- fitted(beach.lme1,level=1) # within beaches slopes
+I <- order(beach$NAP)
+NAPs <- sort(beach$NAP)
+plot(NAPs, F0[I], lwd=4, col = 4, type = "l", ylim = c(0,22), # plot population line
+     ylab = "Richness", xlab = "NAP")
+for (i in 1:9){
+  x1 <- beach$NAP[beach$fbeach==i]
+  y1 <- F1[beach$fbeach==i]
+  K <- order(x1)				# order and sort to avoid spaghetti plot!
+  lines(sort(x1), y1[K])}		# plot beach lines
+text(beach$NAP, beach$Richness, beach$Beach,cex = 0.9)
 
-#Recreate using ggplot
-ggplot(Road,aes(x=D.PARK,y=TOT.N)) + geom_point()+geom_smooth(se = FALSE, method = "glm", formula = y ~ x)
+# We can also add random slope to the model. BUT it is worth asking why we might want to.
+# The answer to that is that we slopes differ as well as intercepts. 
+# Recall our lattice plot and the interaction effects of slope and NAP in the ANCOVA
 
-# Now add in more covariable and see what happens
-Road.glm2 <- glm(TOT.N ~ OPEN.L + MONT.S + POLIC +
-                   SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
-                   D.WAT.COUR + D.PARK,family=poisson,data=Road)
-summary(Road.glm2)
+# create random intercept and slope model
+beach.lme2 <- lme(Richness ~ NAP, random = ~ 1 + NAP | fbeach, data = beach) 
+summary(beach.lme2)
 
-# Check for collinearity using VIFs
-vif(Road.glm2)			# Looks okay...... 
+# plot the graph....
+F0 <- fitted(beach.lme2,level=0) # population slope
+F1 <- fitted(beach.lme2,level=1) # within beaches slopes
+I <- order(beach$NAP)
+NAPs <- sort(beach$NAP)
+plot(NAPs, F0[I], lwd=4, col = 4, type = "l", ylim = c(0,22), # plot population line
+     ylab = "Richness", xlab = "NAP")
+for (i in 1:9){
+  x1 <- beach$NAP[beach$fbeach==i]
+  y1 <- F1[beach$fbeach==i]
+  K <- order(x1)				# order and sort to avoid spaghetti plot!
+  lines(sort(x1), y1[K])}		# plot beach lines
+text(beach$NAP, beach$Richness, beach$Beach,cex = 0.9)
+
+# As an aside we can create this plot more easily in ggplot. It is different because we are using a basic lm to fit the lines
+ggplot(beach,aes(x=NAP, Richness,col=fbeach)) + geom_point() + 
+  geom_smooth(aes(x=NAP,y=Richness), method = lm,se=FALSE)
+
+# BUT WHICH MODEL IS BEST?
+AIC(beach.lm, beach.lm1) 			# compare linear models
+AIC(beach.lme1, beach.lme2)			# compare mixed models
+
+# ANCOVA model appears the best but remember the residuals were a mess.
+# So we're left with the random intercept and slope model.
+# We need to validate that - we'll come to that in a while....
+
+# So far we’ve looked at models with one explanatory…what about when there are more….? 
+# A protocol from Zuur et al. 2009 (121-122):
+# 1. Start with a model where the fixed component has all the explanatory variables - the so called beyond optimal model;
+# 2. Using the beyond optimal model, find the optimal random structure and compare restricted maximum likelihood estimation (REML) 
+# 	 - it’s the default on out lmd models;
+# 3. Once this is done, find the optimal fixed structure. 
+# 	 To compare these models (as they all have the same random structure we use maximum likelihood (ML);
+# 4. Present the final model using REML estimation.
+
+# create a factor for the exposure variable with two levels not three:
+# The exposure variable gives an indication of the level of exposure the sites are subjected to at each beach.
+
+beach$fExp<-beach$Exposure
+beach$fExp[beach$fExp ==8 ] <- 10
+beach$fExp<-factor(beach$fExp, levels= c(10, 11))
+
+# STEP ONE: the best random structure
+M1 <- gls(Richness ~ 1 + NAP * fExp,				# linear model 
+          method = "REML", data = beach)			
+# NOTE: we are using GLS here because we need to use REML to compare the models. lm doesn't use REML            
+M2 <- lme(Richness ~1 + NAP * fExp, data = beach,	# Random intercept
+          random = ~1 | fbeach, method = "REML")
+M3 <- lme(Richness ~ 1 + NAP * fExp,data = beach,	# Random intercept and slope
+          random = ~1 + NAP | fbeach, method = "REML")
+
+AIC(M1, M2, M3)
+# The random intercept model is best
+
+# STEP TWO - the best fixed structure
+# We cannot use MuMIn for model selection with general linear mixed models
+# so we do it the hard way....
+summary(M2)
+
+# The interaction term is on the boundary of significance 0.0419 so we chuck it...
+M4 <- lme(Richness ~1 + NAP + fExp, data = beach,
+          random = ~1 | fbeach, method = "REML")
+summary(M4)
+# Exposure is at 0.02 so okay - far enough off the boundary
+# So our final model is a random intercept mixed model with two explanatory factors
+# NAP and Exposure. NAP has a strong influence and exposure a weaker one.
+
+# Or we refit using ML and use MuMIn
+M5 <- lme(Richness ~1 + NAP * fExp, data = beach,
+          random = ~1 | fbeach, method = "ML")
+
+require(MuMIn)
+summary(model.avg(dredge(M5), fit = TRUE, subset=TRUE))
+
+# And not too surprisingly we get the same result but MuMIn is okay with the interaction
+# sitting at 0.041! BUT as it is a 1.98 AIC improvement we can go for the simpler
+# model with two terms...
+
+# AS as bit of revision have a go at predicting and plotting NAP against Richness....
+
+# Now let's repeat this with a glm type model
+# Recall we need to select an error term - they are counts so we go for poisson.
+# We need a different package 
+
+require(lme4)
+# NOTICE that the code for the random terms is slighly different in this package
+# Truly infuriating I know!!!
+
+M6 <- glmer(Richness ~ NAP * fExp + (1 | fbeach), 
+            data = beach, family = "poisson")	# Random slope model
+# They'll be an error message - it's okay! 
+
+M7 <- glmer(Richness ~1 + NAP * fExp + (NAP | fbeach), 
+            data = beach, family = "poisson") # Random intercept and slope
+
+# Compare models
+AIC(M6,M7)
+
+# The Anova test confirms the difference is significant
+anova(M6, M7, test = "Chisq")
+
+# Now determine the best fixed structure.....instead of refitting using ML we tell MuMin
+# that the we used REML.
 
 options(na.action=na.fail) # set options in Base R concerning missing values
-summary(model.avg(dredge(Road.glm2), fit = TRUE, subset = TRUE)) # Be patient this might take a bit longer to process!!!
-# This indicates the full model is the best! A bit unlikely.....
+summary(model.avg(dredge(M7), fit = TRUE, subset = TRUE), method = "REML")
 options(na.action = "na.omit") # reset base R options
+# ignore error messages they are okay...
 
-# check for over dispersion - recall we are looking for values around 1 (i.e. certainly not over 2 nor under 0.5)
-# this is the model deviance / degrees of freedom of the residuals
-Road.glm2$deviance/Road.glm2$df.resid
-# This doesn't look good....way over 2!
+# MODEL VALIDATION IN GLMM
 
-# Check diagnostic plots
-op <- par(mfrow = c(2, 2))
-plot(Road.glm2) # There is a wedge shape in the fitted residuals and some high values....
-par(op)			# So we have some problems
-
-# if we ignore the over dispersion we get a lot of significant covariates....
-# So how do we deal with it. Adding lots of covariates didn't work....
-
-# try another error structure......
-Road.glm3 <- glm(TOT.N ~ OPEN.L + MONT.S + POLIC +
-                   SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
-                   D.WAT.COUR + D.PARK,family=quasipoisson,data=Road)
-summary(Road.glm3)
-
-# Notice we've accounted for the dispersion but it still sits a 5.9 or so and we've got fewer
-# significant covariables
-
-# so proceed to model selection - we cannot do this using MuMIn so we adopt the drop1 approach
-# we cannot use step because quasi-poisson models don't produce AIC values
-# We throw out the least significant term and repeat the model
-Road.glm4 <- update(Road.glm3, .~. -D.WAT.COUR)
-summary(Road.glm4) # still have terms that are not significant - drop POLIC
-
-Road.glm5 <- update(Road.glm4, .~. -POLIC)
-summary(Road.glm5) # still have terms that are not significant - drop L.P.ROAD 
-
-Road.glm6 <- update(Road.glm5, .~. -L.P.ROAD)
-summary(Road.glm6) # still have terms that are not significant - drop WAT.RES 
-
-Road.glm7 <- update(Road.glm6, .~. -WAT.RES)
-summary(Road.glm7) # still have terms that are not significant - drop OPEN.L 
-
-Road.glm8 <- update(Road.glm7, .~. -OPEN.L)
-summary(Road.glm8) # still have terms that are not significant - drop OPEN.L 
-
-# We finally end up with a model with way fewer significant terms
-
-# Check diagnostic plots
-op <- par(mfrow = c(2, 2))
-plot(Road.glm8) # There is a wedge shape in the fitted residuals 
-par(op)			# So we still have some problems
-
-# Last option...a negative binomial model....needs a different library
-require(MASS)
-Road.nb1 <- glm.nb(TOT.N ~ OPEN.L + MONT.S + POLIC +
-                     SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
-                     D.WAT.COUR + D.PARK, link = "log", data=Road)
-summary(Road.nb1)
-
-# We have a number of non-significant terms so start model selection
-# We have an AIC because we used a log link function so MuMIn should work
-
-options(na.action=na.fail) # set options in Base R concerning missing values
-summary(model.avg(dredge(Road.nb1), fit = TRUE, subset = TRUE))
-options(na.action = "na.omit") # reset base R options
-# our best model includes varaibles 1,3,4 and 6 or 1,4 and 6. We go for the latter
-# refit the model....
-Road.nb2 <- glm.nb(TOT.N ~ OPEN.L + L.WAT.C + D.PARK, link = "log", data=Road)
-summary(Road.nb2)
-
-# Check diagnostic plots
-op <- par(mfrow = c(2, 2))
-plot(Road.nb2) # no patterns....
-par(op)	
-
-#We can use ggfortify for glm objects too
-autoplot(Road.glm8, which = 1:6, ncol = 2, label.size = 3,
-         colour = "steelblue") + theme_bw()
-
-# Which model is best..... the negative binomial one because there are no patterns in the residuals
-
-# PART THREE: Logistic Regression
-# We are going to use a dataset on spiders for this analysis
-# Polis et al. (1998) recorded island characteristics in the Gulf of California
-# Quinn and Keough (2002) used those data to model presence/absence of a spider predator
-# against the perimeter to area ratio of the islands to illustrate logistic regression.
-# We're repeating this but using the code from Logan's book
-
-# Import the data call it spider / check structure etc
+# Validation of mixed models is the same as linear models but the plot command 
+# only gives you the fit v residuals
+plot(M7,xlab = "Fitted values", ylab = "Pearson residuals")
+# They look okay - the mixed model has sorted the heterogeneity issue
 
 
-# Visualise the data 
-table(spider$PA)
+##############################################################################################
+##############################################################################################
+#######################  GLMMS - INCORPORATING RANDOM TERMS INTO GLMS      ###################
+#######################  TO SORT OUT MESSY RESIDUALS.....STICK WITH IT...!!###################
+##############################################################################################
+##############################################################################################
 
-op <- par(mfrow = c(2, 1))
-boxplot(RATIO ~ PA, data = spider, 
-        col = "red", xlab = "Presence / Absence of Uta lizards",
-        ylab = "Island Ratio")
-plot(PA ~ RATIO, pch = 19, data = spider)
-par(op)	
+#### DATASET INFORMATION ####
 
-#Visualise the data in ggplot
-#ggplot(-------,aes(x=-------, y=-------)) + geom_boxplot + labs(x = "Presence / Absence of Uta lizards", y="Island Ratio")
+##            Personal data - Habitat use by bird communities in urban landscape            ##
+##        A range of bird species (recorded as richness) across Birmingham habitats         ##
+##  Bird communities recorded along singular transects during the same day at each habitat  ## 
+##                         Response variable (Y) - Species richness                         ##
+##     Predictor variables (X) - Distance from roads (Distance), Habitat type (Habitat)     ##
+##                        Random variable (XR) - Habitats (fHabitat)                        ##
 
-# run model
-spider.glm <- glm(PA~RATIO, family=binomial, data=spider)
+#### SET-UP ####
 
-# Establised wisdom indicates that you don't need to bother with over dispersion in logistic regression on presence/absence data (but see Zuur et al. 2013 for a fuller discussion). We'll look at it anyway...
+dframe1 <- read.csv("Habitat.csv")  
+summary(dframe1)
+names(dframe1)
 
-# check for over dispersion 
-# this is the model deviance / degrees of freedom of the residuals
-spider.glm$deviance/spider.glm$df.resid
-# It's okay but slight under dispersed. If it were near 0.5 we'd need to deal with that.
+dframe1$fHabitat <- factor(dframe1$Habitat) # treat "Habitat" as factorial (categoric)
 
-# we do need to worry about the linear fit of odds ratio though
-# we'll use a component+residual plot to look at this
+#### GENERAL LINEAR MIXED MODELS ####
 
-crPlots(spider.glm, ask = FALSE) # looks pretty good
+library(nlme)
 
-# Check for influential values
-influence.measures(spider.glm) # no issues
+## MODEL 1: FIXED FACTORS (NO RANDOM EFFECTS)
 
-# And Cooks distance
-plot(spider.glm, which = 4) 
-# This is dancing on the margin at (0.8). Logan is okay with it.
-# I'd remove it.....but we'll plough on.
+model1 <- gls(Richness ~ Distance,           # Using default GLM with fixed effect (Distance)
+              method = "REML",                         # Uses a Restricted Maximum Likelihood (REML)
+              na.action = na.exclude,                  # Exclude NA values 
+              data = dframe1)                          # Take data from dframe1 
 
-# And Cooks distance in ggplot using autoplot
-#autoplot(-----------, which = 4, ncol = 2, label.size = 3,
-         colour = "steelblue") + theme_bw()
+sresid <- resid(model1, type = "normalized") # Generate the standardised residuals
+hist(sresid)                                 # Check the normality of the SRs
 
-#look at it
-summary(spider.glm)
-# 
-# check residuals....
-op <- par(mfrow = c(2, 2))
-plot(spider.glm)   # yuk....almost impossible to interpret so one one bothers!!!
-dev.off()
+plot(model1)                                 # Check for homoscedasticity...
+plot(sresid ~ dframe1$Distance)              # SR vs. indpendent variable(s)
 
+# Things to report in academic publications: 
+# 1. Value for each variable (indicates directionality and actual change in dependent)
+# 2. P value for each variable (relevance is debatable)
+# 3. Degrees of freedom (total and residual)
 
-# plot and predict
-# Calculate predicted values based on fitted model
-xs<-seq(0,70,l=1000)
-spider.predict <- predict(spider.glm, type="response", se=T, newdata=data.frame(RATIO=xs))
-# Produce base plot
-plot(PA~RATIO, data=spider, xlab="", ylab="", axes=FALSE, pch=16)
-# Plot fitted model and 95% CI bands
-points(spider.predict$fit~xs, type="l", col="gray")
-lines(spider.predict$fit+spider.predict$se.fit ~ xs, col="gray", type="l", lty=2)
-lines(spider.predict$fit-spider.predict$se.fit ~ xs, col="gray", type="l", lty=2)
-# Axes titles
-mtext(expression(paste(italic(Uta), " presence/absence")), 2, line=3)
-axis(2,las=1)
-mtext("Perimeter to area ratio",1, line=3)
-axis(1)
-box(bty="l")
+anova(model1)                                # Multiple methods of attaining model info
+model1                                       # Useful info within each of the commands
+summary(model1)                              # Use all of these methods to get required info
+AIC (model1)                                 # Generates the model effectiveness in AIC
 
-# Check odds ratio to estimate probabilty of presence given unit increases in perimeter / area ratio
+# Distance does significantly improve the performance of the intercept only model 
+# Distance from the road provides a significant effect on the richness of birds
 
-## odds ratios only
-exp(coef(spider.glm))
+# BUT!!!!! 
 
-## odds ratios and 95% CI
-exp(cbind(OR = coef(spider.glm), confint(spider.glm)))
-# So we can conclude likelihood of lizard presence declines by approximately 20% (1-0.803)
-# for every unit increase in perimeter/area ratio on the islands
+# The model is extremeley poor! 
+# Not normal standard residual plots 
+# Extreme heteroscedasticity in the residuals (indicating poor performance at low distances)
 
-# Estimate R2 value
-1 - (spider.glm$dev / spider.glm$null)
-# So 45.9% of the variation in the data is captured by the regression equation
+# We need to look at alternative model structures for assessing this dataset (distance has a 
+# significant effect yet the model poorly represents the data)
 
-#Let's conclude with an example of multiple logistic regression
-#Data are derived from Bolger et al. (1997) study of habitat fragmentation on rodent pops
-#response = presence/absence of rodents
-#explanatories - area of canyon fragment, % cover of shrub, distance to nearest canyon
+## MODEL 2: RANDOM EFFECTS (NO FIXED EFFECTS)
 
-#Import the data
+model2 <- lme(Habitat ~ 1,                   # Default GLM with no fixed effects
+              random = ~1| fHabitat,         # Random effect (Habitat type) 
+              method = "REML",               # Again using REML
+              data = dframe1)                # Take data from dframe1
 
-#bolger <- ---------------
-  
-  # Look at it
-  glimspe(bolger)
+sresid <- resid(model2, type = "pearson")    # Generate standardised residuals (using pearson)
+hist(sresid)                                 # Assess the normality of SRs
 
-# Investigate collinearity with a scattermatrixlibrary(car)
-#scatterplotMatrix(--------)
-#No issues suggested
+fitted.glmm <- fitted(model2, level=1)       # Generate the fitted values from the model
+plot(sresid ~ fitted.glmm)                   # Plot the SRs vs. fitted values 
+plot(model2)                                 # Check for homoscedasticity...
+plot(sresid ~ dframe1$fHabitat)                # SR vs. indpendent variable(s). Yuk!
 
-#and some VIFs
-bolger.glm <- glm(RODENTSP ~ DISTX + AGE + PERSHRUB, family = binomial, data = bolger)
-vif(bolger.glm)
+anova(model2)                                # Derive the required outputs from the methods 
+model2                                       
+summary(model2)
+AIC (model2)                                 
 
-# All below 3 so fine
+# Model still not brilliant, and does not fit very well 
+# The influence of Habitat type on richness, however is significant 
+# Both Distance from the road and habitat type need to be included as terms in the model
 
-#Now estimate the dispersion parameter
-bolger.glm$deviance/bolger.glm$df.resid
-#No issue here either.....
+## MODEL 3: RANDOM AND FIXED EFFECTS (INVARIANT SLOPE FOR LEVELS OF FHabitat) ####
 
-#Confirm log odds ratio linearity
-crPlots(bolger.glm)
-#No significantly worrying problems - age not great. Note potential outliers on Distx and age. We could look more closely at those....
+model3 <- lme(Richness ~ Distance,            # Default model using a fixed effect (Distance)
+              random = ~1| fHabitat,          # Random effect (Habitat type)
+              method = "REML",                # Using REML method
+              data = dframe1)                 # Take data from dframe1
 
-#Check for influential sample points
-influence.measures(bolger.glm)
+sresid <- resid(model3, type = "normalized")  # Produce the standardised residuals
+hist(sresid)                                  # Check for normality using a histogram
 
-#graphically plot the Cooks distances
+fitted.glmm <- fitted(model3, level=1)        # Generate the fitted values from the model
+plot(sresid ~ fitted.glmm)                    # Plot the SRs vs. fitted values
+plot(model3)                                  # Check for homoscedasticity...
 
-#autoplot(-------) 
-#Remember to use the which=4 command to get the correct figure
-#Data point 19 is high but not 1. 
-#I'd still probably remove it but let's plough on
+plot(sresid ~ dframe1$Distance)               # SR vs. indpendent variable(s)
 
-#Run the model and interpret it...
-summary(bolger.glm)
-#So the probability of rodent occurrence increases 
-#with % shrub cover but not age since isolation or distance to nearest canyon 
-#fragment
+anova(model3)                                 # Derive the required outputs from the methods
+model3
+summary(model3)
+AIC(model3)
 
-#Check the log odds ratio and interpret that..
-#odds ratios and 95% CI
+# The model fits much better but there is still some remaining patterning in the residuals
+# A final change in the way that the model is structured may sort this patterning 
 
-exp(coef(bolger.glm))
-#the chances of rodent presences increases slightly (10%)
-# for every 1% increase in shrub cover. NOTE this is because 1.10 > 1.00
+## MODEL 4: RANDOM INTERCEPT + SLOPE (VARIABLE SLOPE FOR LEVELS OF FHabitat) ####
 
-#Do some model selection
-#We have an AIC because we used a log link function so MuMIn should work
+model4 <- lme(Richness ~  Distance,
+              random = ~ 1+Distance | fHabitat, 
+              method = "REML",
+              data = dframe1)
 
-options(na.action=na.fail) # set options in Base R concerning missing values
-summary(model.avg(dredge(bolger.glm), fit = TRUE, subset = TRUE))
-# Best model only includes percentage shrub cover
-options(na.action = "na.omit") # reset base R options
+sresid <- resid(model4, type = "normalized")  # Produce the standardised residuals
+hist(sresid)                                  # Check for normality using a histogram
 
-#Refit the best model 
-bolger.glm <- glm(RODENTSP ~ PERSHRUB, family = binomial, data = bolger)
-summary(bolger.glm)
+fitted.glmm <- fitted(model4, level=1)        # Generate the fitted values from the model
+plot(sresid ~ fitted.glmm)                    # Plot the SRs vs. fitted values 
+plot(model4)                                  # Check for homoscedasticity...
 
-#Create the plot to summarise the relationship - use the predict function
-#Calculate predicted values based on fitted model
+plot(sresid ~ dframe1$Distance)               # SR vs. indpendent variable(s)
 
-xs<-seq(0,100,l=1000)
-bolger.predict <- with(bolger, (predict(bolger.glm, type="response", se=T, newdata=data.frame(DISTX=mean(DISTX), AGE=mean(AGE), PERSHRUB=xs))))
-# The mean argument sets means for the non-significant terms as constant
-# The response argument plots on the original scale as the it is a log link function
-# Produce base plot
-plot(RODENTSP~PERSHRUB, data=bolger, xlab=NA, ylab=NA, axes = FALSE, pch=16)
+anova(model4)                                 # Derive the required outputs from the methods
+model4
+summary(model4)
+AIC(model4)
 
-# Plot fitted model and 95% CI bands
-points(bolger.predict$fit~xs, type="l", col="gray")
-lines(bolger.predict$fit+bolger.predict$se.fit ~ xs, col="gray", type="l", lty=2)
-lines(bolger.predict$fit-bolger.predict$se.fit ~ xs, col="gray", type="l", lty=2)
-# Axes titles
-mtext("Native rodent presence/absence", 2, line=3)
-axis(2,las=2)
-mtext("Percentage shrub cover",1, line=3)
-axis(1)
-box(bty="l")
+## R-SQUARED VALUES FOR GLMMS ####
 
-#Try repeating this plot with ggplot.....
-#you'll need to use geom_smooth with the following arguments 
-#(method = "glm", method.args = list(family = "binomial")
+# install.packages("MuMIn") if not present
+library(MuMIn)
+r.squaredGLMM(model4)
+# R2m = marginal R-squared (does not account for the random effects)
+# R2c = conditional R-squared (accounts for the random and fixed effects)
+
+## MODEL COMPARISON ####
+
+AIC (model1, model3, model4) # Compares the AIC for similar model structures 
+# Model 4 maintains the lowest AIC (the best performing model)
+# Note that Model 2 is not directly comparable as it has a different structure (no fixed)
+
+anova(model1, model3)  # Model 3 is significantly better than model 1
+anova(model1, model4)  # Model 4 is significantly better than model 1
+
+anova (model3, model4) # Model 4 is significantly better than model 3
+
+# In this instance we would preferentially use Model 4 (lower AIC and greater significance)
+# The model which provides the best explanatory power/performance (AIC) should always be used
+
+#### GENERALISED LINEAR MIXED MODELS ####
+
+# This section utilises a range of model error families and link functions to describe the data
+# Altering the error family and link function can increase or decrease the model performance
+# Error families should be selected based on the data structure
+
+# Options for families and link functions include:
+#   1. Gaussian (link = identity)
+#   2. Inverse-gaussian (link = 1/mu^2, )
+#   3. Poisson (link = log, identity, sqrt)
+#   4. Quasi-poisson (link = log)
+#   5. Binomial (link = logit, cloglog, probit)
+#   6. Quasi-binomial (link = logit)
+#   7. Gamma (link = inverse, identity, log)
+#   8. Quasi (link = user-defined)  
+
+?family() 
+# For more information on family and/or link functions
+
+library(lme4)
+
+## MODEL 5: RANDOM INTERCEPT, DEFAULT GAUSSIAN (INVARIANT SLOPE FOR LEVELS OF FHabitat) ####
+
+model5 <- lmer(Richness ~ Distance +  # Default model using a fixed effect (distance)
+                 (1|fHabitat),        # Random effect (Habitat type)
+               data = dframe1)
+
+sresid <- resid(model5, type = "pearson")     # Produce the standardised residuals
+hist(sresid)                                  # Check for normality using a histogram
+
+fitted.glmm <- fitted(model5, level=1)        # Generate the fitted values from the model
+plot(sresid ~ fitted.glmm)                    # Plot the SRs vs. fitted values 
+plot(model5)                                  # Check for homoscedasticity...
+
+plot(sresid ~ dframe1$Distance)               # SR vs. indpendent variable(s)
+
+anova(model5)
+model5
+summary(model5)
+AIC(model5)
+
+### MODEL 6: RANDOM INTERCEPT, POISSON (INVARIANT SLOPE FOR LEVELS OF FHabitat) ####
+
+model6 <- glmer(Richness ~ Distance +
+                  (1|fHabitat),
+                family = poisson (link = "log"), 
+                data = dframe1)
+
+sresid <- resid(model5, type = "pearson")     # Produce the standardised residuals
+hist(sresid)                                  # Check for normality using a histogram
+
+fitted.glmm <- fitted(model5, level=1)        # Generate the fitted values from the model
+plot(sresid ~ fitted.glmm)                    # Plot the SRs vs. fitted values 
+plot(model5)                                  # Check for homoscedasticity...
+
+plot(sresid ~ dframe1$Distance)               # SR vs. indpendent variable(s)
+
+anova(model6)
+model6
+summary(model6)
+AIC(model6)
+
+# This model fits the data much better (provides a log transformation in the link function)
+# Still mild patterning in the residual plots
+# On the whole a much better model
+
+## MODEL 7: RANDOM INTERCEPT, POISSON (VARIABLE SLOPE FOR LEVELS OF FHabitat) ####
+
+model7 <- glmer(Richness ~ Distance + 
+                  (Distance|fHabitat),
+                family = poisson (link = "log"), 
+                data = dframe1)
+
+sresid <- resid(model7, type = "pearson")  # Produces the standardised residuals
+hist(sresid)
+
+fitted.glmm <- fitted(model7, level=1)     # Extract the fitted (predicted) values
+plot(sresid ~ fitted.glmm)                 # Check for homoscedasticity 
+plot(sresid ~ dframe1$Distance)              # SR vs. indpendent variable(s)
+
+anova(model7)
+model7
+summary(model7)  
+AIC (model7)
+
+# Comparison of model performance (only comparing Poisson error family)
+AIC(model6, model7)
+anova(model6, model7, test="Chi")
+
+##############################################################################################
+##############################################################################################
+########################################### THE END ##########################################
+##############################################################################################
+##############################################################################################

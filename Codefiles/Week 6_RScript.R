@@ -17,7 +17,7 @@
 
 #load datafile loyn.csv - call it Loyn or the rest of the code won't work!!!!
 
-Loyn <- read.csv(file.choose())
+Loyn <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/loyn.csv")
 
 # Look at its structure and shape....you know the pertinent function calls!!
 
@@ -112,7 +112,7 @@ avPlots(Loyn.lm)			# This is a call to the car package
 # of North America. Ecological Applications 6: 1212–1224.
 # 73 different sites covering all of the USA (3 sites in Canada)
 
-Pareulo <- read.csv(file.choose())
+Pareulo <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/paruelo.csv")
 # Normality, linearity and homogeneity checks
 require(car)
 scatterplotMatrix(~ C3 + MAP + MAT + JJAMAP + DJFMAP + 
@@ -164,10 +164,6 @@ summary(M3)
 M4 <- lm(log10(C3 + 0.1) ~ MAP + JJAMAP+ MAT:JJAMAP, data = Pareulo) 	# Remove least significant main term MAT
 summary(M4)
 
-M5 <- lm(C3 ~ MAP + JJAMAP+ MAT:JJAMAP, data = Pareulo) 	# Remove least significant main term MAT
-summary(M5)
-
-autoplot(M5)
 autoplot(M4)
 # NOTE: it's easier to use the update function do this (have a look at it); I did it long hand so you could see
 # what was chopped out.
@@ -178,6 +174,7 @@ autoplot(M4)
 op <- par(mfrow = c(2,2))
 plot(M4)
 par(op)
+
 # These look okay but scale - location is slightly humped. Made worse by red line ; points look okay
 # plot residuals against explanatory variables
 op <- par(mfrow = c(2,2))
@@ -209,13 +206,14 @@ avPlots(M4)
 # Let's start by using the lyon.csv data and using an automated step function disregarding Whittingham et al.
 # for the time being...
 # Load data if you haven't already done so (loyn.csv)
-Loyn <- read.csv(file.choose())
+Loyn <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/loyn.csv")
 
 # We'll use the model we were happy with after the analyses above. Run it again:
 Loyn.lm <- lm(ABUND ~ log10(AREA) + YR.ISOL + log10(DIST) + log10(LDIST) + 
                 GRAZE + ALT, data = Loyn)
 # Look at the output  - you'll see some variables are not significant influences on Y (our response)
 summary(Loyn.lm)
+
 
 # for simplicity we won't include interactions. But even with 6 variables the number of competing models is 6 factorial!
 # HUGE e.g.

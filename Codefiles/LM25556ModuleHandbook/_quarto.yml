@@ -1,0 +1,37 @@
+project:
+  type: book
+
+book:
+  title: ""
+  author: "Jon Sadler"
+  date: "8/8/2025"
+  
+  chapters:
+    - index.qmd
+    - preface.qmd
+    - chap1.qmd
+    - chap2.qmd
+    - chap3.qmd
+    - chap4.qmd
+    - chap5.qmd
+    - chap6.qmd
+    - chap7.qmd
+    - chap8.qmd
+    - chap9.qmd
+    - chap10.qmd
+  #  - references.qmd
+
+bibliography: /Users/jonsadler/Documents/GitHub/Common Resources/My Library.bib
+
+format:
+  html:
+    theme:
+      - /Users/jonsadler/Documents/GitHub/Common Resources/custom-fonts.scss
+  # --- This is for the PDF version ---
+  pdf:
+    documentclass: scrreprt
+    # This tells the LaTeX engine to place an image on the title page.
+    titlepage-logo: "images/my-cover.png"
+
+editor: visual
+

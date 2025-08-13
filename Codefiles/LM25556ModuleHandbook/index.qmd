@@ -1,0 +1,15 @@
+# Welcome {.unnumbered}
+
+## This is the module handbook for the UoB module: LM25556: Environmental analysis and modelling in R. {.unnumbered}
+
+![](my-cover.png)
+
+**Figure Credits::**
+
+-   Top left. Penguin violin plot. From: R Graph Gallery using the PalmerPenguins package data. Plot created by Tuo Wang and code is here: https://r-graph-gallery.com/web-violinplot-with-ggstatsplot.html
+
+-   Top right. An original figure of the famous 'bullhead/loach chironomid predation' dataset. See Doncaster and Davey (2007) *Analysis of Variance and Covariance: How to Choose and Construct Models for the Life Sciences*. CUP, Cambridge.
+
+-   Bottom left. The Birch trees on the Worcester-Birmingham Canal. Photograph: Jon Sadler.
+
+-   Bottom right. A flock of turnstones (Bardsey Isle, North Wales). Photograph: Jon Sadler.

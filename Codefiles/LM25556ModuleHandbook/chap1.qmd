@@ -1,0 +1,718 @@
+# An introduction to R and RStudio
+
+The aim of this first class is to get introduce you to R and how it works within RStudio.
+
+In it we will:
+
+1.  Work with the Console window to carry out some basic R tasks to familarise with you the software and coding in general.
+2.  Download the census from my github repository.
+3.  Load the data into R using RStudio.
+4.  View the raw data in R amnd modify it.
+5.  Subset data in R.
+6.  Merge data in R.
+
+本模块接下来的几个研讨会将以这些数据为案例研究。数据以及研讨会（html 文档）以 zip 文件的形式存储在 CANVAS 网站上：
+
+https://canvas.bham.ac.uk/courses/74919/pages/code-and-data-files-download-links-and-instructions
+
+请将它们下载到您的硬盘、共享网络驱动器、OneDrive 或其他合适的位置。双击 zip 文件并解压数据。
+
+本课程旨在向您介绍 R 语言及其在 RStudio 中的工作原理。
+
+我们将：
+
+1.  使用控制台窗口执行一些基本的 R 任务，以帮助您熟悉该软件和编程。
+2.  从我的 GitHub 代码库下载人口普查数据。
+3.  使用 RStudio 将数据加载到 R 中。
+4.  在 R 中查看原始数据并进行修改。
+5.  在 R 中对数据进行子集化。
+6.  在 R 中合并数据。
+
+## About R and RStudio
+
+In this course, we will use R, the industry-standard programming language for environmental and geographic data analysis. While tools like Excel or SPSS rely on clicking through menus, R operates on typed commands. This command-based approach is fundamentally more powerful because it forces you to create a script. This script acts as a permanent, shareable record of your entire workflow, ensuring your analysis is transparent. More importantly, it allows you to repeat complex tasks perfectly, guaranteeing that you—and others—can reproduce the same results every time!
+
+在本课程中，我们将使用 R，它是用于环境和地理数据分析的行业标准编程语言。Excel 或 SPSS 等工具依赖于点击菜单，而 R 则依靠键入的命令进行操作。这种基于命令的方法本质上更加强大，因为它强制您创建脚本。该脚本可作为整个工作流程的永久可共享记录，确保您的分析透明化。更重要的是，它允许您完美地重复复杂的任务，确保您和其他人每次都能重现相同的结果！
+
+It was designed in 1990s for statistics and the generation of publication quality graphics, which can be easily modified and tweaked by making slight changes to the script. Command-line computing like this can be off-putting at first as it is easy to make mistakes that aren’t always obvious to detect. But it is worth sticking with because:
+
+-   It is an industry standard with a large user base.
+-   It’s free and cross-platform so runs on Windows, Mac-OS and Unix.
+-   It is highly customisable with a large number of libraries (‘or packages’) supporting multilevel and longitudinal regression, and mapping, spatial statistics, spatial regression and geostatistics to name a few methods.
+
+它设计于 20 世纪 90 年代，用于统计和生成出版级质量的图表，只需对脚本进行细微修改即可轻松进行修改和调整。像这样的命令行计算一开始可能会让人感到不适应，因为很容易犯一些不易察觉的错误。但它值得坚持使用，因为：
+
+-   它是拥有庞大用户群的行业标准。
+-   它是免费且跨平台的，可在 Windows、Mac OS 和 Unix 上运行。
+-   它高度可定制，拥有大量支持多级和纵向回归、制图、空间统计、空间回归和地理统计等方法的库（或软件包）。
+
+R can be downloaded from https://www.r-project.org/. While it is possible to conduct analysis on R directly, we will run it via Rstudio which provides a user-friendly graphical user interface. After downloading R, Rstudio can be obtained for free from https://www.rstudio.com/.
+
+The software is available on our university computer clusters and accessible via the *AppsAnywhere* application. There is a shortcut to this on the desktop of all PCs. Click on RStudio and the R will already be there.
+
+You can run this on your personal laptop and bring it to class. If it is not on your computer already please review the pre-session module on the CANVAS website for guidance on installation and so on.
+
+R 语言可以从 https://www.r-project.org/ 下载。虽然可以直接在 R 上进行分析，但我们将通过 Rstudio 运行它，因为它提供了用户友好的图形用户界面。下载 R 语言后，您可以从 https://www.rstudio.com/ 免费获取 Rstudio。
+
+该软件已在我们大学的计算机集群上安装，可通过 *AppsAnywhere* 应用程序访问。所有电脑的桌面上都有该软件的快捷方式。点击 RStudio，R 语言就会自动出现。
+
+您可以在个人笔记本电脑上运行该软件并将其带到课堂上。如果您的电脑上还没有 R 语言，请查看 CANVAS 网站上的课前模块，获取安装指南等。
+
+To open R click on the start menu and open RStudio. You should see a screen resembling the image below (Fig. 1). The screen is separated into 4 windows: - The **scripting window** (top left). This is where you open and edit your scripts (or code files). - The **console window** (bottom left). This is where R lists the commands you have entered and the results of those commands (or at least some of them). - The **environment windows** - or if you like R's brain. This window shows the objects held in memory by the system (e.g. datafiles, vectors and so on), as well a history of things you've done, the connections you have open and lastly some tutorial resources. - The **output/input** window. This shows many things but the most important are the packages you have in the system, the files you are viewing (i.e. where you working directory is), the plots/graphics you might create and help options.
+
+要打开 R，请点击开始菜单，然后打开 RStudio。您将看到类似下图（图 2）的屏幕。该屏幕分为 4 个窗口： - **脚本窗口**（左上角）。您可以在此处打开和编辑脚本（或代码文件）。 - **控制台窗口**（左下角）。R 在此处列出您输入的命令以及这些命令（或至少部分命令）的执行结果。 - **环境窗口** - 如果您喜欢 R 的“大脑”，也可以称之为环境窗口。此窗口显示系统内存中保存的对象（例如数据文件、向量等），以及您执行操作的历史记录、您打开的连接以及一些教程资源。 - **输出/输入**窗口。此窗口显示许多内容，但最重要的是系统中的软件包、您正在查看的文件（即您的工作目录）、您可能创建的图表/图形以及帮助选项。
+
+```{r}
+#| label: fig-rstudio-windows
+#| echo: false
+#| fig-cap: "**RStudio screen windows**"
+
+knitr::include_graphics("images/RStudio_Screen_Grab.png")
+```
+
+We are going to start by setting the **working directory**. This is so R knows where to open and save files to. It is recommended that you set the working directory to an appropriate space in your computers work space. To start with, make it the directory where you have stored the unzipped data.
+
+首先，我们需要设置工作目录。这是为了让 R 知道在哪里打开和保存文件。建议将工作目录设置为计算机工作区中合适的位置。首先，将其设置为存储解压数据的目录。
+
+To set the working directory, go to the **Session** option from the top bar of RStudio, click on **Set Working Directory** then **Choose Directory** and use the search window to click through to your directory and select **Open**.
+
+要设置工作目录，请转到 RStudio 顶部栏中的 **会话** 选项，单击 **设置工作目录**，然后单击 **选择目录**，并使用搜索窗口单击到您的目录并选择 **打开**。
+
+Alternatively, you can type in the address of the working directory manually using the setwd() function as demonstrated below. This requires you to type in the full address of where your data are stored. **Pay attention to the double quotes around the path address**. The code for this is:
+
+Where, **setwd()** is the **function call**, and **"\~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Codefiles"** is the **path**.
+
+或者，您可以使用 setwd() 函数手动输入工作目录的地址，如下所示。这需要您输入数据存储的完整地址。**请注意路径地址周围的双引号**。代码如下：
+
+其中，**setwd()** 是**函数调用**， **"\~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Codefiles"** 是**路径**。
+
+**You will need to add in your path**. **您需要在路径中添加**.
+
+If you want to know where your working directory currently is then use the **getwd()** function. R will return the disk address where it is looking. Or click on the **Files** tab on the bottom right window.
+
+如果你想知道当前工作目录的位置，可以使用 **getwd()** 函数。R 会返回当前正在查找的磁盘地址。或者，点击右下角窗口的 **Files** 选项卡。
+
+```{r}
+#get working directory (WD)
+getwd()
+```
+
+If you want to see what files are in your working directly to copy a filename then either click on the **Files** tab on the bottom right window or use the **list.files()** function. Remember this list is from my computer. Your file list will be different.
+
+如果您想直接复制文件名并查看工作区中有哪些文件，请点击右下方窗口的“文件”选项卡，或使用“list.files()”函数。请记住，此列表来自我的电脑。您的文件列表可能会有所不同。
+
+```{r}
+#List the files in the WD
+list.files()
+```
+
+### Loading some packages into the system
+
+The base installation of R has a lot of packages loaded as default. They sit in the toolbox available for instant use. But some functions are only available in different packages that are not in the base R installation. View each package as a set of tools that do things that aren't in the base toolbox. This module will use the **tidyverse** package for many basic tasks; it includes tools for data manipulation/wrangling, creating graphics, dealing with dates and lots of other things. It was created by Hadley Wickham and you can read about it here:
+
+https://cran.r-project.org/web/packages/tidyverse/vignettes/paper.html
+
+and here:
+
+https://doi.org/10.18637/jss.v059.i10
+
+Here is the documentation/manual related to the package:
+
+https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf
+
+R 的基础安装默认加载了许多软件包。它们位于工具箱中，可立即使用。但有些函数仅在基础 R 安装中未包含的其他软件包中可用。您可以将每个软件包视为一组工具，用于执行基础工具箱中未包含的操作。本模块将使用 **tidyverse** 软件包执行许多基本任务；它包含用于数据操作/整理、创建图形、处理日期以及许多其他功能的工具。该软件包由 Hadley Wickham 创建，您可以在此处阅读相关信息：
+
+https://cran.r-project.org/web/packages/tidyverse/vignettes/paper.html
+
+以及此处：
+
+https://doi.org/10.18637/jss.v059.i10
+
+以下是与该软件包相关的文档/手册：
+
+https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf
+
+To use packages you must first install them. You can do this by clicking on **packages** on the bottom right window, selecting **install** and searching for the package and installing it. Or if know know the name of the package, you can hard wire the installing using the function **install.packages()**:
+
+要使用软件包，您必须先安装它们。您可以通过点击右下角窗口的“packages”按钮，选择“install”，然后搜索并安装软件包来完成此操作。或者，如果您知道软件包的名称，也可以使用函数“install.packages()”来强制安装：
+
+```{r}
+#Install packages function
+# install.packages("tidyverse", dependencies = TRUE) # Note the use of quotes
+# NOTE: to allow this to render I have made the function call a comment. To make it run copy the code and delete the '#' from before the 'install.packages' command.
+# 注意：为了方便渲染，我已将函数调用添加注释。要使其运行，请复制代码并删除“install.packages”命令前的“#”。
+```
+
+The 'dependencies=TRUE' argument ensures that any dependent package is also installed with your target paackage. Remember the packages are tools in a toolbox; to use them after you have installed them you need to take them tool out of the box. The function that does this is called **library()**.
+
+'dependencies=TRUE' 参数确保所有依赖包都会与目标包一起安装。请记住，这些包就像工具箱中的工具；安装后要使用它们，您需要将它们从工具箱中取出。执行此操作的函数称为 **library()**。
+
+```{r}
+#Load the library
+library(tidyverse) # this loads multiple packages/libraries
+```
+
+R will generally manages the conflicts between packages that have functions with the same names but you can tell R use a function from a particular package using the package name, then two colons, and finally the function name. For example:
+
+dplyr::filter().
+
+*Where*, **dplyr** is the package, **::** links the package to the function **filter()**.
+
+R 通常会处理包含同名函数的包之间的冲突，但您可以使用包名称、两个冒号以及函数名称来指示 R 使用特定包中的函数。例如：
+
+dplyr::filter()。
+
+*其中*，**dplyr** 是包，**::** 将包链接到函数 **filter()**。
+
+### Your first code / script file
+
+We are going to create a new code file so you can progress through the workshop. The code commands are listed in the html file outlining the workshop activities and **highlighted in square boxes**. To make a new file click on the green cross at the top left of the window -\> select 'Script file' from the dropdown list. A new file called **untitled** will be added to the tabs. **Simply copy the text from the boxes and drop it into the scripting window**. Use this area as your workspace rather than typing directly into the console window (bottom left). Change the text below to fit your filename and add today's date.
+
+我们将创建一个新的代码文件，以便您完成研讨会。代码命令列在概述研讨会活动的 HTML 文件中，并以**方框突出显示**。要创建新文件，请点击窗口左上角的绿色十字 -\> 从下拉列表中选择“脚本文件”。一个名为**无标题**的新文件将添加到选项卡中。**只需从方框中复制文本并将其拖放到脚本窗口中即可**。将此区域用作您的工作区，而不是直接在控制台窗口（左下角）中输入。请将下面的文本更改为适合您的文件名，并添加今天的日期。
+
+```{r}
+# Filename: add in your filename. I suggest something that includes 'week_1'
+# Date: Add a date so you can track changes
+```
+
+The **\#** symbol tells R that is is a comment so it is not run as a line of code. We use comments to aid script interpretation for users and to remind ourselves why our former self coded what we did. It is amazing what we forget when moving on from a piece of coding.
+
+To run a line of code hold **control Ctrl** and enter on your keyboard (**command and enter** on a mac). You can also highlight blocks of code and do the same. You can also select the line (or block of code) you wish to run and click 'Run' at the top of the scripting window.
+
+**NOTE: The code is sequential so start at the top and work down. If you miss bits of code it will error and you will get confused and likely frustrated.**
+
+**\#** 符号告诉 R，这是一个注释，因此它不会作为一行代码运行。我们使用注释来帮助用户解释脚本，并作为我们的*备忘录*。令人惊讶的是，当我们从一段代码中继续前进时，我们竟然会忘记很多东西。
+
+要运行一行代码，请按住键盘上的 **control Ctrl** 和 Enter 键（在 Mac 上，请按住 \*\*command 和 Enter 键）。您也可以高亮显示代码块并执行相同操作。您也可以选择要运行的行（或代码块），然后点击脚本窗口顶部的“运行”。
+
+**注意：代码是连续的，因此请从顶部开始向下运行。如果您错过任何代码片段，就会出错，您会感到困惑，甚至可能感到沮丧。**
+
+### Coding Basics
+
+R has a **steep learning curve**, but the benefits of using it are well worth the effort. Take your time and think what the code is doing as you use it. As Wickham *et al*. (2023) note "*Frustration is natural when you start programming in R because it is such a stickler for punctuation, and even one character out of place can cause it to complain. But while you should expect to be a little frustrated, take comfort in that this experience is typical and temporary: it happens to everyone, and the only way to get over it is to keep trying*".
+
+R 语言的学习曲线**陡峭**，但使用它所带来的好处绝对值得你付出努力。在使用过程中，请慢慢思考代码的功能。正如 Wickham 等人 (2023) 指出的那样：“*刚开始使用 R 编程时，感到沮丧是很自然的，因为它对标点符号非常严格，即使一个字符出错也会导致它报错。虽然你可能会感到有些沮丧，但请放心，这种经历很常见，而且是暂时的：每个人都会遇到这种情况，克服它的唯一方法就是继续尝试*”。
+
+The best way to learn R is to take the basic code provided in the workshops and experiment with changing parameters - such as point type in a graph, line thickness or point colour - ***You cannot break it! Everything is fixable***. Make lots of notes as you go along and if you are getting really frustrated take a break! In many ways this is like learning a language; a little practice more frequently is a good strategy.
+
+R operates by taking instructions, running functions and adding the outcomes of those functions into **objects**. The objects are generated by using the assignment operator **'\<-'**.
+
+This 'pipes' the outcome of a piece of code into an *object*.
+
+For example, try the following (copy the text from the box below and paste it into your code file, below the filename and data comment lines):
+
+学习 R 的最佳方法是学习研讨会上提供的基础代码，并尝试改变参数——例如图表中的点类型、线条粗细或点颜色——***你无法破坏它！一切都是可以修复的***。边学边做笔记，如果感到很沮丧，就休息一下！这在很多方面就像学习一门语言；多练习一些是个好策略。
+
+R 的运行方式是接收指令、运行函数，并将这些函数的结果添加到**对象**中。这些对象是使用赋值运算符生成的 **'\<-'**.
+
+这会将一段代码的结果“通过管道”传输到一个*对象*中。
+
+例如，尝试以下操作（从下面的框中复制文本并将其粘贴到代码文件中，位于文件名和数据注释行下方）：
+
+```{r}
+Tutorname <- "Jon" # note the quotes. These tell R it is a string.
+```
+
+When you run the code it takes the string **Jon** and adds it to an object called **Tutorname**. This object is then stored in the **Environment** window (top right) (Fig. 2).
+
+运行代码时，它会获取字符串 **Jon** 并将其添加到名为 **Tutorname** 的对象中。该对象随后存储在 **Environment** 窗口（右上角）中（图 3）。
+
+```{r}
+#| label: fig-rstudio-object
+#| echo: false
+#| fig-cap: "**The environment window function**"
+
+knitr::include_graphics("images/Object_exampleRStudio.png")
+```
+
+If you just type "Jon" and run that code, it will repeat the name in console window (bottom left window).
+
+如果您只是输入“Jon”并运行该代码，它将在控制台窗口（左下角窗口）中重复该名称。
+
+```{r}
+"Jon"  
+```
+
+All R statements where you create objects, assignment statements, have the same form:
+
+**object_name \<- value** When reading that code, say “object name gets value” in your head. You will make lots of assignments, and typing \<- repetitively is a pain to type. You can save time with RStudio’s keyboard shortcut: Press **Alt** and the **-** (the minus sign) in sequence. This is **Option** plus **-** (the minus sign) on a Mac.
+
+Let's explore some more... R will do lots of things. It will act like a huge calculator running mathematical calculations:
+
+所有用于创建对象的 R 语句（赋值语句）都具有相同的形式：
+
+**object_name \<- value** 阅读该代码时，请在脑海中默念“对象名称获取值”。您将进行大量赋值，而重复输入 \<- 会非常麻烦。您可以使用 RStudio 的键盘快捷键来节省时间：依次按下 **Alt** 和 **-**（减号）。在 Mac 上，这相当于 **Option** 加 **-**（减号）。
+
+让我们进一步探索…… R 可以做很多事情。它就像一个巨大的计算器，运行着数学计算：
+
+```{r}
+1/1000*25 # see the response in the console window (bottom left)
+```
+
+or
+
+```{r}
+tan(pi*100) # or
+10+20+30 # or 
+```
+
+As we have seen above you can add the outcomes of these calculations to an **object**. Keep and eye on the **Environment** window as you run the code. This is useful if you want to use the outcome many times.
+
+正如我们上面所见，您可以将这些计算的结果添加到**对象**中。运行代码时，请密切关注**环境**窗口。如果您想多次使用该结果，这将非常有用。
+
+```{r}
+x <- 8 * 9
+```
+
+Notice it doesn't show the content of the **object** in the console window but it does store as an **object** in the computer memory or R's **Environment** (see top right window).
+
+If you want to know whats in the object then type the object name and run the line of code.
+
+请注意，它不会在控制台窗口中显示**对象**的内容，但它会作为**对象**存储在计算机内存或 R 的**环境**中（参见右上角的窗口）。
+
+如果您想知道对象中的内容，请输入对象名称并运行该代码行。
+
+```{r}
+x
+```
+
+And it gives you the answer in the console (bottom left window).
+
+You can combine multiple elements into a vector with the **c()** function (literally means 'concatenate' or 'add together'):
+
+它会在控制台（左下角窗口）中显示答案。
+
+您可以使用 **c()** 函数（字面意思是“连接”或“相加”）将多个元素组合成一个向量：
+
+```{r}
+primes <- c(2, 3, 5, 7, 11, 13) # adds primes from zero to 13 into a vector
+```
+
+And basic arithmetic on vectors is applied to every element of of the vector. So here each prime in the sequence is multiplied by 2 and the and returned to the same object.
+
+向量的基本运算应用于向量的每个元素。因此，这里将序列中的每个素数乘以 2，然后返回同一个对象。
+
+```{r}
+primes * 2
+```
+
+**NOTE R overwrites the previous object with no warnings as that is what you told it to do!**: If want to retain the first object then give the new one a different name!
+
+**注意 R 会毫无警告地覆盖前一个对象，因为这是你告诉它要做的！**：如果要保留第一个对象，那么给新对象起一个不同的名称！
+
+### Getting Data into R via the Console
+
+Most of the following derives from Beginner's Guide to R [@Zuur2009]. First Steps - typing in a small dataset.
+
+以下内容大部分来自 Zuur 等人的《2009 R 初学者指南》。第一步 - 输入一个小的数据集。
+
+```{r}
+a <- 59
+b <- 55
+c <- 55.5
+d <- 55
+```
+
+See what happens if you type the object names: 看看输入对象名称会发生什么：
+
+```{r}
+d
+a
+```
+
+Now use some basic maths operators to play around with them. Try a \* b etc
+
+To see what you've done type any of the letters. You could have called these variables anything but it is wise to use names that are memorable and relate to what the variable represents. Let's assume you have been measuring bird wing length (in mm). So:
+
+现在使用一些基本的数学运算符来操作它们。试试 a \* b 等等。
+
+要查看你输入的内容，请输入任意字母。你可以给这些变量起任何名字，但最好使用容易记住且与变量含义相关的名称。假设你一直在测量鸟翼的长度（以毫米为单位）。所以：
+
+```{r}
+Wing1 <- 59 # Note naming conventions in R. It's case sensitive, no spaces, forward slashes 
+Wing2 <- 55 # hyphens; the names cannot start with a numeric either! 
+Wing3 <- 55.5 # It will accept dots (periods), underscores etc 
+Wing4 <- 55 # Capitalising variable names is good practice as there maybe functions with similar names! 
+Wing5 <- 52.5
+```
+
+Base R is powerful and has numerous functions allocated to it. Let's try a few basic ones with these data.
+
+R 基础功能强大，并配备了众多函数。让我们用这些数据尝试一些基本函数。
+
+```{r}
+sqrt(Wing1) # Square root of variable 
+Wing1 * Wing3 
+Wing1 + Wing2 + Wing3 
+Wing1 * Wing5 / 5
+```
+
+Although R is performing these calculations and returning the answer via the console, it is not storing them. The console output is visible in the html file (the document you are reading) below the code snippet. I used a quarto file to create the html output but I want you all to work with base R codefiles for the time being. To store these you need to define new variables (or objects).
+
+虽然 R 会执行这些计算并通过控制台返回结果，但它不会存储它们。控制台输出可以在代码片段下方的 HTML 文件（您正在阅读的文档）中查看。我使用 Quarto 文件创建了 HTML 输出，但我希望大家暂时使用基础 R 代码文件。要存储这些输出，您需要定义新的变量（或对象）。
+
+```{r}
+SQ.Wing1 <- sqrt(Wing1) # Calculation product is now stored as another variable SQ.Wing1
+```
+
+This doesn't display the outcome in the console window. It has added as a variable to your environment (see top right panel of your screen). To see it you need to type the new object name.
+
+这不会在控制台窗口中显示结果。它已作为变量添加到您的环境中（请参阅屏幕右上角的面板）。要查看它，您需要输入新的对象名称。
+
+```{r}
+SQ.Wing1
+```
+
+We can hold objects in any form. You used the concatenate **c()** function above to calculate a run of prime numbers from a vector. We can create a vector of our wing lengths.
+
+我们可以保存任何形式的对象。你之前使用了 concatenate **c()** 函数从一个向量计算出一连串素数。我们可以创建一个包含机翼长度的向量。
+
+```{r}
+Wingcrd <- c(59, 55, 53.5, 55, 52.5, 57.5, 53, 55) 
+```
+
+Note spaces improve readibilty and you need () brackets not \[ \] or {}; these are reserved for other things. You can create vectors with strings using quotes. This typically how factor variables might be stored in a dataframe:
+
+注意：空格可以提高可读性，并且需要使用 () 括号，而不是 \[ \] 或 {}；这些是保留用于其他用途的。您可以使用引号创建包含字符串的向量。因子变量通常存储在数据框中，如下所示：
+
+```{r}
+my_string <- c("str1", "str2") # It needs quotation marks
+my_string # returns the vector
+```
+
+Once you have data in a vector you can find individual values and ranges of values by using the '\[\]' square brackets. Very useful for subsetting data for analyses! We'll return to this many times, so do not worry if it isn't making sense right now.
+
+将数据放入向量后，您可以使用“\[\]”方括号查找单个值及其值域。这对于分析子集数据非常有用！我们以后会多次讨论这一点，所以如果现在看不懂也不用担心。
+
+```{r}
+Wingcrd[1] # Finds the first value 
+Wingcrd[1 : 5] # Returns values 1-5 
+Wingcrd[-2] # Returns all values excluding value 2
+```
+
+Notice the formatting here.
+
+Now we have multiple variables we can use base R functions to provide statistical descriptors of them (sum, mean, max, min, median, var, sd and so on).
+
+注意这里的格式。
+
+现在我们有多个变量，我们可以使用基础 R 函数来提供它们的统计描述符（总和、平均值、最大值、最小值、中位数、方差、标准差等等）。
+
+```{r}
+sum.wings <- sum(Wingcrd)# We have allocated the sum of the values to the variable sum.wings
+sum.wings
+```
+
+**EXERCISE: Spend a few minutes to try a few more out:sum, mean, max, min, median, var, sd (5 minutes or so).**
+
+Now let's add the other variables in same way to create the other variables a table. These are other measurements from birds, specifically, their foot length (tarsus), head length including their bill (head) and their weight (wt).
+
+**练习：花几分钟时间尝试更多变量：总和、平均值、最大值、最小值、中位数、方差、标准差（大约 5 分钟）。**
+
+现在，让我们以相同的方式添加其他变量，创建一个表格。这些是鸟类的其他测量数据，具体来说，包括它们的足长（跗骨）、包括喙在内的头长（头部）以及体重（wt）。
+
+```{r}
+Tarsus <- c(22.3, 19.7, 20.8, 20.3, 20.8, 21.5, 20.6, 21.5) 
+Head <- c(31.2, 30.4, 30.6, 30.3, 30.3, 30.8, 32.5, NA) # see the NA
+Wt <- c(9.5, 13.8, 14.8, 15.2, 15.5, 15.6, 15.6, 15.7)
+```
+
+Note one variable has a missing value; these must be listed with an NA; empty cells are a problem! Take heed though! Missing values cause issues for some functions:
+
+注意，一个变量有缺失值；这些变量必须用NA列出；空单元格会有问题！不过要注意！缺失值会导致某些函数出现问题：
+
+```{r}
+sum(Head) # Told you!
+```
+
+The system errored because it was not expecting a missing value or NA. To get around that you need to instruct the function that NAs exist.
+
+系统出错了，因为它没有预料到缺失值或 NA。为了解决这个问题，你需要指示函数存在 NA。
+
+```{r}
+sum(Head, na.rm = TRUE) # Note check help files for functions. Some use 'na.action'
+```
+
+Let's pose a question. Can you combine these variables Wingcrd, Tarsus, Head, Wt into one file? Maybe **c()** will help....?
+
+让我们提出一个问题。你能把 Wingcrd、Tarsus、Head 和 Wt 这些变量合并到一个文件中吗？也许 **c()** 能帮上忙……？
+
+```{r}
+BirdData <- c(Wingcrd, Tarsus, Head, Wt)  
+```
+
+Let's have a look:
+
+让我们来看看：
+
+```{r}
+BirdData
+```
+
+Hmmm big mess!!!! BirdData is a single vector of length 32 (4 x 8). It is organised this way because it cannot distinguish the 8 values in each variables. To sort this out we need to create another variable with 32 values to use an index. We could do this the hard way and use the repeat and sequencing tools to sort it then align it but I am a fan of easier fixes.
+
+We can combine it directly in a table, by binding these values into a data file of sorts using the **cbind()** or column bind function.
+
+嗯，乱糟糟的！BirdData 是一个长度为 32（4 x 8）的向量。它之所以这样组织，是因为它无法区分每个变量中的 8 个值。为了解决这个问题，我们需要创建另一个包含 32 个值的变量来使用索引。我们也可以采用更复杂的方法，使用 repeat 和 sequence 工具对其进行排序，然后再进行对齐，但我更喜欢更简单的方法。
+
+我们可以直接在表中合并它们，方法是使用 **cbind()** 或列绑定函数将这些值绑定到一个数据文件中。
+
+```{r}
+BirdData2 <- cbind(Wingcrd, Tarsus, Head, Wt) 
+BirdData2 # See product of your labour. A data file!
+```
+
+If you click on the "BirdData2" object in the Environment tab above right window it will open as a tab in this window. Looks familiar doesn't it?!
+
+Notice this is one of the few occasions where the function call has an uppercase letter it is 'View' not 'view'. This is because it was uniquely created for RStudio. This highly unusual all R functions start with lowercase letters (e.g. mean, sd).
+
+No suppose you want to access elements of BirdData2 to check on data accuracy. We can find elements as we did above by using the square brackets. Pay attention to the format of the subset search here \[row,column\]. You need to tell R to look in the right place. The rows are always the first element in the bracket followed by a comma and the column. R is expecting a number in this bracket and the numbers are effectively coordinates. So \[1,1\] will return the value that is located in the first row and first column of the table.
+
+如果您在右侧窗口上方的“环境”选项卡中点击“BirdData2”对象，它将在此窗口中以选项卡的形式打开。看起来很熟悉，是吧？！
+
+请注意，这是函数调用中少数几个包含大写字母的情况之一，它是“View”而不是“view”。这是因为它是专门为 RStudio 创建的。所有 R 函数都以小写字母开头（例如 mean、sd），这种情况非常罕见。
+
+假设您想访问 BirdData2 的元素来检查数据准确性。我们可以像上面一样使用方括号查找元素。请注意此处子集搜索的格式为 \[row,column\]。您需要告诉 R 在正确的位置查找。行始终是括号中的第一个元素，后跟逗号和列。R 期望括号中是一个数字，而这些数字实际上是坐标。因此 \[1,1\] 将返回位于表格第一行第一列的值。
+
+```{r}
+BirdData2[,1] # lists ALL the data from the first column. There is no value for the row, and
+BirdData2[1,] # lists ALL the data from the first row.
+BirdData2[1,1] # Reports the item in the first row and column 
+BirdData2[,2 : 4] # Reports the data in columns 2-4 or "Tarsus", "Head" and "Wt" 
+BirdData2[,-1] # Returns all columns minus column one "Wingcrd
+BirdData2[, c(1, 2, 4)] # Returns all the data from columns 1, 2 and 4 (i.e. non sequential)
+```
+
+That's a lot of work for a simple data file we could (and will later) load in from a text file or excel. Why do it? Because you've learned some very important functions 'c', and 'cbind' are three of my favourites (but check 'rbind'). What we did was create a simple table of data that looked like a spreadsheet. But it is actually an array or matrix, lacking the column headers you typically find in a spreadsheet.
+
+对于一个简单的数据文件来说，这可是个大工程，我们可以（以后也会）从文本文件或 Excel 中加载它。为什么要这么做？因为你已经学习了一些非常重要的函数，其中“c”和“cbind”是我最喜欢的三个函数（不过，也请检查一下“rbind”）。我们所做的就是创建一个简单的数据表，看起来像电子表格。但它实际上是一个数组或矩阵，缺少电子表格中常见的列标题。
+
+```{r}
+class(BirdData2)
+```
+
+To use it you need to use column and row numbers. Climate scientists frequently use arrays for their larger dataset because the require less space and can be more readily used for mathematical calculations, but sometimes is easier for our data to be stored in an spreadsheet object known as a dataframe.
+
+要使用它，您需要使用列号和行号。气候科学家经常使用数组来存储较大的数据集，因为数组占用的空间更少，而且更容易用于数学计算。但有时，将数据存储在称为数据框的电子表格对象中会更方便。
+
+### Creating and using dataframes
+
+They have special properties and are the general means of housing data in R (after import). So we can recreate the data file above using the data.frame function (we'll shorten the names as well).
+
+它们具有特殊属性，是 R 中（导入后）存储数据的通用方法。因此，我们可以使用 data.frame 函数重新创建上面的数据文件（我们也会缩短其名称）。
+
+```{r}
+BirdData3 <- data.frame(WC = Wingcrd, TS = Tarsus,
+  HD = Head, W = Wt) 
+BirdData3
+```
+
+Look the environment tab again it's added a blue arrow symbol and it tells you how many observations (=rows) and variables (=columns) you have in the dataframe. Now click on the blue arrow. This shows your column data and the column name. Click on the name and it will open the file up in View.
+
+Some key things you need to know about dataframes.
+
+-   They hold data of different types unlike matrices and vectors more easily;
+
+-   No real limit on size (for most purposes) but bigger does = slower;
+
+-   They allow you to draw out data with all the available filters and searches (see above);
+
+-   You can use the dollar sign operator assigns column to the data frame.
+
+再次查看“环境”选项卡，它添加了一个蓝色箭头符号，它指示数据框中有多少个观察值（=行）和变量（=列）。现在点击蓝色箭头。这将显示您的列数据和列名称。点击列名称，它将在视图中打开文件。
+
+关于数据框，您需要了解一些关键事项。
+
+-   与矩阵和向量不同，它们更容易保存不同类型的数据；
+
+-   对大小没有实际限制（在大多数情况下），但数据框越大，速度越慢；
+
+-   它们允许您使用所有可用的过滤器和搜索功能（参见上文）提取数据；
+
+-   您可以使用美元符号运算符将列分配给数据框。
+
+```{r}
+BirdData3
+```
+
+Returns the full dataframe in its entirety, whereas:
+
+返回完整的数据框，而：
+
+```{r}
+BirdData3$WC 
+```
+
+Returns just that one column. 仅返回该列。
+
+Once you have your data in a dataframe, you can also add in additional columns and also rename either the column headings and the row headings using the colnames() and rownames() functions. Have a look at this using the ?? help from the console window / pane (if you are in RStudio) 将数据放入数据框后，您还可以添加其他列，并使用 colnames() 和 rownames(). 函数重命名列标题和行标题。如果您使用的是 RStudio，请使用控制台窗口/窗格中的 ?? 帮助查看此信息。
+
+### A few more key functions
+
+These will be useful as you progress:
+
+**read.table()** imports data from a tab separated text file (see below) names() lists the column names in the datafile str() shows the data structure of the datafile. dim() gives the fuile dimensions (rows v columns) head() displays the first six rows tail() displays the last six rows View() displays 1000 rows of the datafile (like a spreadsheet) as you recall from above.
+
+**read.table()** 从制表符分隔的文本文件导入数据（见下文） names() 列出数据文件中的列名 str() 显示数据文件的数据结构。 dim() 给出完整的维度（行 v 列） head() 显示前六行 tail() 显示后六行 View() 显示数据文件的 1000 行（像电子表格一样），正如您从上面回忆的那样。
+
+### Loading in data from a file
+
+We'll start by importing the deer.txt using read.table. Remember unless you have set your data subdirectory as your working directory you need to show R where the data is located. My standard practice is to open my codefiles from the directory by double-clinking on it. This will open RStudio and then working directory will the the code file directory. I then 'hardwire' the read calls using a path in the function:
+
+我们首先使用 read.table 导入 deer.txt 文件。记住，除非你已将数据子目录设置为工作目录，否则你需要向 R 展示数据所在的位置。我的标准做法是双击该目录打开我的代码文件。这将打开 RStudio，然后工作目录将指向代码文件目录。然后，我使用函数中的路径“硬连接” read 调用：
+
+```{r}
+Deer <- read.table("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/Deer.txt",header=TRUE)
+```
+
+This is easier than you'd imagine. Look at the bottom right window. This shows files, plots, etc. Click on 'Files'. This will show you where R is currently 'looking'. You can click on the subdirectories listed in the directory structure till you land on the 'data' subdirectory. Then simply click on the blue cog and select copy 'folder path to clipboard' (Fig. 3). Then paste this into your read function call (see above). I use a mac, so your windows path will look different.
+
+这比你想象的要简单。查看右下角的窗口。这里显示了文件、图表等。点击“文件”。这将显示 R 当前正在“查看”的位置。你可以点击目录结构中列出的子目录，直到找到“数据”子目录。然后点击蓝色齿轮，选择“将文件夹路径复制到剪贴板”（图 3）。然后将其粘贴到你的 read 函数调用中（见上文）。我用的是 Mac，所以你的 Windows 路径看起来会有所不同。
+
+```{r}
+#| label: fig-rstudio-path
+#| echo: false
+#| fig-cap: "**Copying the path information**"
+
+knitr::include_graphics("images/Set_path_directory.png")
+```
+
+Now we have the data loaded let's explore some of those commands we mentioned above.
+
+现在我们已经加载了数据，让我们来探索一下上面提到的一些命令。
+
+```{r}
+dim(Deer)
+```
+
+We have 1182 row and 9 columns in our data.
+
+我们的数据有 1182 行和 9 列。
+
+```{r}
+head(Deer) 
+```
+
+Shows our first 6 rows. Have a guess what 'tail' shows! If we want to understand the type of data we have in the file we can use base R's **str()** function or tidyverse's **glimpse()**. I prefer the latter but it's your decision.
+
+显示前 6 行。猜猜“tail”显示的是什么！如果我们想了解文件中的数据类型，可以使用基础 R 的 **str()** 函数或 tidyverse 的 **glimpse()**。我更喜欢后者，但最终决定权在你。
+
+```{r}
+str(Deer)
+```
+
+```{r}
+glimpse(Deer)
+```
+
+If we want to how many observations we have per farm, then we can use the table() function. This is brilliant for looking at balance of say an ANOVA (Analysis of Variance) design or even an interaction in a regression call.
+
+如果我们想知道每个农场有多少个观测值，可以使用 table() 函数。这对于查看方差分析 (ANOVA) 设计的平衡性，甚至回归分析中的交互作用都非常有效。
+
+```{r}
+table(Deer$Farm)
+```
+
+We can see that a few farms have got very few observations (i.e. it's unbalanced) - we'd need to be careful in how we analyse it.
+
+我们可以看到，一些农场的观测数据非常少（即不平衡），我们需要谨慎分析。
+
+If we were interested in seeing whether gender interacts with year, then:
+
+如果我们想知道性别是否与年份有相互作用，那么：
+
+```{r}
+table(Deer$Sex, Deer$Year) 
+```
+
+Rows: 1 = Males, 2 = Female Columns: 0 = 2000, 1 = 2001, 2 = 2002, 3 = 2003, 4 = 2004, 5 = 2005 and 99 = 1999
+
+In 1999 no females were sampled, so you cannot use an interaction effect for Year:Sex in your models. This will make sense later in the course!
+
+Now let's spend a few minutes using some of the new knowledge you have gained.
+
+行：1 = 男性，2 = 女性；列：0 = 2000，1 = 2001，2 = 2002，3 = 2003，4 = 2004，5 = 2005，99 = 1999
+
+1999 年没有女性样本，因此你不能在模型中使用“年份：性别”的交互作用效应。这在课程的后续部分会讲解！
+
+现在，让我们花几分钟时间运用你学到的一些新知识。
+
+## Class Exercises
+
+### Exercise 1 - using the c function to create vectors
+
+```{r}
+#| label: deer-table
+#| echo: false
+#| message: false
+#| warning: false
+
+# Load the necessary library for creating tables
+library(knitr)
+
+# Create a data frame with your data
+# Using NA for missing values is the correct R practice
+deer_data <- data.frame(
+  Farm = c("MO", "MO", "MO", "MO", "LN", "SE", "QM"),
+  Month = c(11, 7, 7, NA, 9, 9, 11),
+  Year = c("00", "00", "01", NA, "03", "03", "02"),
+  Sex = c(1, 2, 2, 2, 1, 2, 2),
+  LengthClass = c(1, 1, 1, 1, 1, 1, 1),
+  LengthCT = c(75, 85, 91.6, 95, NA, 105.1, 106),
+  Ecervi = c(0, 0, 0, NA, 0, 0, 0),
+  Tb = c(0, 0, 1, NA, 0, 0, 0)
+)
+
+# Use kable() to format the data frame into a clean table
+# and add a caption for context.
+kable(deer_data, caption = "Table 1: Deer Measurement Data")
+
+```
+
+These data are a small part of a data file we imported earlier ( = deer.txt for full data).
+
+Tb is the occurrence of Tuberculosis in cattle on some farms; The variables Farm, Month, Year, Sex, LengthClass are self-explanatory Ecervi is the occurrence of a cattle parasite.
+
+1.  Using the c function, create a variable that contains the length variable that contains the lengths of seven animals;
+2.  Also create a variable that contains the Tb values;
+3.  What's the average length, sd of the length of the cattle on the farms?
+
+Tb 表示某些农场牛的结核病发病率；变量 Farm、Month、Year、Sex 和 LengthClass 的含义不言自明；Ecervi 表示牛寄生虫的发病率。
+
+1.  使用 c 函数创建一个变量，其中包含长度变量，该变量包含七头牛的长度；
+2.  再创建一个变量，其中包含 Tb 值；
+3.  农场牛的平均长度（标准差）是多少？
+
+### Exercise 2:
+
+Using BirdData2 find the following by using the \[\] brackets to subset data.
+
+1.  data found in the cell situated in the last row and last column.
+2.  rows 3-4 in column called "Head".
+3.  All the data from columns 2 and 3 (you need to use 2: 3 to link the columns).
+4.  All the weights and write them to a variable Y.
+5.  All the columns excluding the first and third "Wingcrd" and "Wt"; use the 'c' function to do this. Write them to object called 'X'.
+
+使用 BirdData2，通过使用 \[\] 括号对数据进行子集处理，找到以下结果：
+
+1.  在最后一行最后一列的单元格中找到的数据。
+2.  “Head”列的第 3-4 行。
+3.  第 2 列和第 3 列的所有数据（需要使用 2:3 连接各列）。
+4.  计算所有权重并将其写入变量 Y。
+5.  除第一列和第三列“Wingcrd”和“Wt”之外的所有列；使用“c”函数执行此操作。将它们写入名为“X”的对象。
+
+### Exercise 3: Creating and using data frames
+
+1.  Use the data on deer parasites and Tb (EXERCISE 1 above) to create a data frame
+2.  Square root transform the length variable
+3.  Add it to the data frame as a new variable
+
+**HINT: To do this you need to use 'c' to create all the variables first!!!**
+
+1.  使用鹿寄生虫和结核分枝杆菌的数据（上述练习 1）创建一个数据框
+2.  对长度变量进行平方根变换
+3.  将其作为新变量添加到数据框中
+
+**提示：要执行此操作，您需要先使用“c”创建所有变量！**
+
+## References

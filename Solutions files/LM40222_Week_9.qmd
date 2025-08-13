@@ -1,0 +1,841 @@
+---
+title: "Introduction to Generalised Linear Models (GLMs)"
+subtitle: "Week 9"
+author: "Jon Sadler"
+format: 
+  html:
+    code-links: true  # Enables clickable links
+    code-line-numbers: true  # Optional: Adds line numbers
+editor: visual
+---
+
+## Outline:
+
+Today we are going to introduce you to Generalised Linear Models (GLMs). These were developed in the 1970s but popularised in 80s by McCullagh and Nelder in their seminal book '*Generalised Linear Models*' (1982, 2nd edition 1989). They are a group of regression models from the exponent family that generalise classical linear models. They are used in situations when the data you have collected have properties that do not conform to the requirements of linear regression. These sorts of data are much more common that you'd imagine, as we'll explore below.
+
+今天，我们将向您介绍广义线性模型（GLMs）。这些模型最初在 **1970 年代** 被提出，并在 **1980 年代** 由 **McCullagh 和 Nelder** 在其经典著作《广义线性模型》（**1982 年，第二版 1989 年**）中推广。GLMs 是**指数族**回归模型的一类，它们对经典线性模型进行了推广。当您收集到的数据**不符合线性回归的假设**时，就可以使用 GLMs 进行建模。事实上，这类数据比您想象的要普遍得多，我们将在下面进一步探讨这一点。
+
+### Learning Outcomes:
+
+-   Outline the four main error structures (poisson, quasipoisson and negative binomial) associated with GLMs.
+-   Establish when to use them during analyses.
+-   Validate their outcomes.
+-   Plot the summary tables and visualise the relationships of the models.
+
+### Generalised Linear Models (GLMs)
+
+I don't propose to work through the mathematics of these in any depth but you need to have a solid understanding of mechanics of linear regression models, hence the level of detail in last two workshops. GLMs are an extension of classic linear models with additional link functions and error structures that provides more flexibility in their application to different types of response variables.
+
+我不打算深入探讨这些模型的数学原理，但您需要对**线性回归模型的机制**有扎实的理解，这也是前两次研讨会中详细讲解的原因。GLMs 是**经典线性模型的扩展**，通过**引入链接函数（link function）和不同的误差结构**，使其在处理不同类型的响应变量时更加灵活。
+
+#### GLM structure
+
+There are three components to any GLM:
+
+-   *Random component or error structure* - specifies the probability distribution of the response variable; e.g., normal (gaussian) distribution for in the case of a classical linear regression model, a binomial distribution for binary, or multinominal, ordinal logistic regression models, poisson, quasipoisson or negative binomial in the case of a count data (there are other variants!) (Fig. 1).
+
+-   *Systematic component* - specifies the explanatory variables in the model, more specifically, their linear combination; e.g., as we have seen in a linear regression. This will be familiar to you as it is the same as in linear regression.
+
+-   *Link function* which specifies the link between the random and the systematic components. It indicates how the expected value of the response relates to the linear combination of explanatory variables; e.g., for classical regression, or for logistic regression. In all our cases this involves a log exponent link.
+
+任何广义线性模型（GLM）都包含三个组成部分：
+
+### **1. 随机成分（Random Component）或误差结构**
+
+该部分指定**响应变量的概率分布**，例如：
+
+-   **正态（高斯）分布**——适用于经典线性回归模型。
+
+-   **二项分布**——用于二分类、多项式或序数逻辑回归模型。
+
+-   **泊松（Poisson）、准泊松（Quasi-Poisson）或负二项（Negative Binomial）分布**——适用于计数数据（当然，还有其他变体！）（见图 1）。
+
+### **2. 系统成分（Systematic Component）**
+
+该部分指定**模型中的解释变量**，更具体地说，是它们的**线性组合**。
+
+-   例如，在**线性回归**中，我们已经见过类似的形式。
+
+-   这部分对您来说应该很熟悉，因为它与**经典线性回归**的结构相同。
+
+### **3. 链接函数（Link Function）**
+
+该部分**建立随机成分与系统成分之间的联系**，即**响应变量的期望值**如何与解释变量的**线性组合**相关联，例如：
+
+-   **经典回归**使用恒等函数。
+
+-   **逻辑回归**使用\*\*对数几率（logit）\*\*函数。
+
+-   在我们所有的案例中，都涉及一个**对数指数（log-exponent）链接函数**。
+
+#### GLM assumptions
+
+GLMs share some assumptions with linear regression models, such as:
+
+-   The data are independently distributed, i.e., the cases are independent. Just a in a linear regression.
+-   There is a linear relationship between the transformed expected response between the link function and the explanatory variables, for binary logistic regression and poisson regression.
+
+广义线性模型（GLMs）与**线性回归模型**共享一些假设，例如：
+
+-   **数据是独立分布的**，即各个观测值之间**相互独立**，这与线性回归的假设相同。
+
+-   **转换后的期望响应值**（通过**链接函数**转换）与**解释变量之间存在线性关系**，例如在**二元逻辑回归**和**泊松回归**中。
+
+But not others:
+
+-   The response variable does **not** need to be normally distributed, rather it must fits a distribution from an exponential family (e.g. Poisson, multinomial, normal, gamma etc.).
+-   Explanatory variables can be nonlinear transformations of some original variables.
+-   The homogeneity of variance does **not** need to be satisfied.
+-   Errors need to be independent but **not** normally distributed.
+-   Parameter estimates use maximum likelihood estimation (MLE) rather than ordinary least squares (OLS) (do not worry about the details of this).
+
+### **但 GLMs 也不同于线性回归，区别包括：**
+
+-   **响应变量不需要服从正态分布**，但必须符合**指数族分布**（如泊松、多项式、正态、伽马等）。
+
+-   **解释变量可以是原始变量的非线性变换**，不必严格是线性关系。
+
+-   **不需要满足方差齐性（homogeneity of variance）**。
+
+-   **误差需要独立**，但不需要服从正态分布。
+
+-   **参数估计使用最大似然估计（MLE），而不是普通最小二乘法（OLS）**（不必担心具体细节）
+
+As a result of the above GLMs have two key advantages over traditional linear regression:
+
+-   The choice of link is separate from the choice of random component, giving us flexible models models which can be fitted to response data of different formats.
+-   They allow for different error structures, accommodating heteroscedasticity and other complexities in the data and providing a more accurate representation of the variance.
+-   We do not need to transform the response to have a normal distribution.
+-   The models are fitted via maximum likelihood estimation, so likelihood functions and parameter estimates benefit from asymptotic normal and chi-square distributions.
+-   All the inference tools and model checking that we will discuss for logistic and Poisson regression models (below) apply for other GLMs too; e.g., Deviance, residuals, confidence intervals, and overdispersion.
+
+### **GLMs 相比传统线性回归的优势：**
+
+✅ **链接函数的选择独立于随机成分的选择**，因此模型更加灵活，可以适用于**不同格式的响应变量**。 ✅ **允许不同的误差结构**，能够处理**异方差性（heteroscedasticity）和其他数据复杂性，更准确地表示方差。 ✅ 不需要对响应变量进行转换以满足正态分布假设。 ✅ 模型通过最大似然估计拟合，其似然函数和参数估计**受益于**渐近正态分布和卡方分布**。 ✅ **所有的推断工具和模型检验方法**（如**逻辑回归**和**泊松回归**中的\*\*偏差（Deviance）、残差（Residuals）、置信区间、过度离散（Overdispersion）\*\*等），**同样适用于其他 GLMs**。
+
+Let's conclude this theory section by reviewing types of data which GLMs can use, and their respective error structures and link functions. We will also suggest what kinds of social science datasets might fit these models (Fig. 1).
+
+让我们通过回顾 GLM 可以使用的数据类型及其各自的误差结构和链接函数来结束本理论部分。我们还将建议哪些类型的社会科学数据集可能适合这些模型（图 1
+
+```{r echo=FALSE}
+# Create a data frame of error structures, links, and data types
+library(ggplot2)
+glm_links <- data.frame(
+  ErrorStructure = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson", "Negative Binomial", "Binomial", "Multinomial"),
+  Link = c("Identity", "Inverse", "Log", "Log", "Log", "Logit", "Logit"),
+  DataExamples = c(
+    "Continuous",
+    "Continuous",
+    "Count",
+    "Count",
+    "Count",
+    "Binary",
+    "Categorical"
+  ),
+  DataType = c("Continuous", "Continuous", "Count", "Count", "Count", "Binary", "Categorical")
+)
+
+# Reorder levels 
+glm_links$ErrorStructure <- factor(glm_links$ErrorStructure,
+                                   levels = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson", 
+                                              "Negative Binomial", "Binomial", "Multinomial"))
+
+# Create a faceted text-based plot with boundary boxes for tiles and margins
+ggplot(glm_links, aes(x = Link, y = ErrorStructure, label = DataExamples)) +
+  geom_tile(fill = "lightblue", color = "black", linewidth = 0.8, alpha = 0.5) + # Add boundary box to tiles
+  geom_text(size = 4) + # Add text annotations
+  labs(
+    title = "GLM Error Structures, Links, and Data Types",
+    x = "Link",
+    y = "Error Structure"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1), # Add margin boundary box
+    plot.margin = margin(10, 10, 10, 10) # Adjust margins if needed
+  )
+```
+
+**Fig. 1: The mains types Error structures and their link functions mapped onto the different types of data that a GLM can be used to model.**
+
+图 1：主要类型的错误结构及其链接函数映射到 GLM 可用于建模的不同类型数据上。
+
+As you can see we have 4 main data types (there are more of course!): continuous, counts, binary, and categorical.
+
+-   Continuous data relate phenomena that are measurable in some way e.g. height, weight, tumour size, speed of cars ahead of accidents.
+-   Count data have particular properties as they cannot be negative and range from zero to infinity; they also could be rates e.g. number or rates neighbourhood crimes, the number of deaths due to covid or voting numbers in elections etc.
+-   binary data relate to yes/no categories. e.g. males or females, success or failure of cancer drugs, driving test passes or fails. These are depicted as either a 1 or a 0, so are effectively modelling the probability of a particular outcome.
+-   categorical data relate multiclass outcomes of say responses the heat stress in heat waves (e.g. death, cardiovascular problems, excessive tiredness), or responses to surveys (graded 1-5) and so on.
+
+Observe also that the link functions for the count, binary and categorical data are log based. This keeps the values as positives as required by the error structure. It also means that to make meaningful inferences you need to back transform the logged response values to their raw form.
+
+如您所见，我们有 4 种主要数据类型（当然还有更多！）：连续、计数、二进制和分类。
+
+-   连续数据与可以以某种方式测量的现象相关，例如身高、体重、肿瘤大小、事故发生前的车速。
+-   计数数据具有特殊属性，因为它们不能为负数，范围从零到无穷大；它们也可以是比率，例如社区犯罪的数量或比率、因 covid 死亡的人数或选举中的投票人数等。
+-   二进制数据与是/否类别相关。例如男性或女性、抗癌药物的成功或失败、驾驶考试通过或失败。这些被表示为 1 或 0，因此可以有效地模拟特定结果的概率。
+-   分类数据与多类结果相关，例如对热浪中的热应激的反应（例如死亡、心血管问题、过度疲劳）或对调查的回应（1-5 级）等。
+
+还要注意，计数、二进制和分类数据的链接函数是基于对数的。这样可以将值保持为误差结构所要求的正值。这也意味着，要做出有意义的推断，您需要将记录的响应值反向转换为其原始形式。
+
+#### [TASK 1: Now take a few minutes to think about what other different types of data there are and what error structure and link functions you might apply to them \[\~ 5 min\]]{style="color:red;"}.
+
+#### [任务 1：现在花几分钟思考一下还有哪些不同类型的数据，以及您可能对它们应用哪些错误结构和链接函数\[\~ 5 分钟\]]{style="color:red;"}。
+
+#### Mathematical Formulation of Poisson Regression
+
+The general form of a Poisson regression model is:
+
+$\text{log}(\lambda_i) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \ldots + \beta_k x_k$
+
+Where: - $\lambda_i$ is the expected count (mean) for observation $i$. - $\beta_0$ is the intercept. - $\beta_1, \beta_2, \ldots, \beta_k$ are the coefficients corresponding to predictor variables $x_1, x_2, \ldots, x_k$.
+
+#### Interpretation of Coefficients:
+
+-   $\beta_0$: The log of the expected count when all predictors are zero.
+-   $\beta_1, \beta_2, \ldots, \beta_k$: The change in log(count) associated with a one-unit increase in predictor $x_1, x_2, \ldots, x_k$.
+
+The key to using GLMs is mapping the error structure to the structure of your response variable. We will explore this using the two commonest forms of data used in GLMs. While this is a little limiting, we cannot realistically work through all the possible permutations of GLMs in one class.
+
+-   a count dataset constructed using the Birmingham data on unemployment and other social/economic variable derived from the 2021 UK Census.
+
+-   $\beta_0$：所有预测因子均为零时预期计数的对数。
+
+-   $\beta_1, \beta_2, \ldots, \beta_k$：预测因子 $x_1, x_2, \ldots, x_k$ 每增加一个单位，对数（计数）的变化。
+
+使用 GLM 的关键是将误差结构映射到响应变量的结构。我们将使用 GLM 中使用的两种最常见数据形式来探索这一点。虽然这有点限制，但我们无法在一个类中实际处理 GLM 的所有可能排列。
+
+-   使用伯明翰失业率数据和其他来自 2021 年英国人口普查的社会/经济变量构建的计数数据集。
+
+#### Essential reading:
+
+-   <https://en.wikipedia.org/wiki/Generalized_linear_model>.
+-   [https://medium.com/\@sahin.samia/a-comprehensive-introduction-to-generalized-linear-models-fd773d460c1d](https://medium.com/@sahin.samia/a-comprehensive-introduction-to-generalized-linear-models-fd773d460c1d){.uri}.
+-   <https://www.utstat.toronto.edu/brunner/oldclass/2201s11/readings/glmbook.pdf>. This is a download of the second edition. You are not required to read it cover to cover!
+
+## Today's Session
+
+### Load/install libraries
+
+You need the following libraries today. Pacman does not work very well with apps anywhere so I am removing it from the code. Instead we are going to create a list of libraries with need and then use **lapply()** to load them. If they don't load then use **install.packages("the package name")** to install and use the **library(the package name)** to load it.
+
+您今天需要以下库。Pacman 无法很好地与任何地方的应用程序配合使用，因此我将从代码中删除它。相反，我们将创建一个需要的库列表，然后使用 **lapply()** 加载它们。如果它们没有加载，则使用 **install.packages(“包名称”)** 进行安装，并使用 **library(包名称)** 加载它。
+
+```{r}
+# List of packages
+packages <- c("sf", "dplyr", "ggplot2","tidyverse", "moderndive", 
+"ggfortify", "performance", "car", "skimr", "gridExtra", "broom", 
+"ggeffects", "tmap","MASS")
+# Load all packages
+lapply(packages, library, character.only = TRUE)
+```
+
+These are the new packages for today's session:
+
+-   **ggfortify** - Creates validation plots for a range regression model outputs using ggplot wrappers: <https://cran.r-project.org/web/packages/ggfortify/index.html>
+-   **performance** - Part of the 'easystats' ecosystem and provides tools for evaluating, comparing, and reporting statistical models. It is particularly useful for assessing the quality, assumptions, and goodness-of-fit of a wide range of regression models, including linear models, generalized linear models, and mixed-effects models: <https://cran.r-project.org/web/packages/performance/readme/README.html>
+-   **MASS** - short for Modern Applied Statistics with S, authored by Venables and Ripley, provides functions and data sets related to modern statistical methods. The package is widely used for applied statistics and contains tools for various types of statistical analysis: <https://cran.r-project.org/web/packages/MASS/index.html>
+
+这些是今天课程的新软件包：
+
+-   **ggfortify** - 使用 ggplot 包装器为范围回归模型输出创建验证图：<https://cran.r-project.org/web/packages/ggfortify/index.html>
+-   **performance** - “easystats”生态系统的一部分，提供用于评估、比较和报告统计模型的工具。它对于评估各种回归模型的质量、假设和拟合优度特别有用，包​​括线性模型、广义线性模型和混合效应模型：<https://cran.r-project.org/web/packages/performance/readme/README.html>
+-   **MASS** - 带有 S 的现代应用统计学的缩写，由 Venables 和 Ripley 编写，提供与现代统计方法相关的函数和数据集。该软件包广泛用于应用统计，包含各种类型的统计分析工具：<https://cran.r-project.org/web/packages/MASS/index.html>
+
+### Create your code file
+
+You should know how to do this by now! Create it and call it something memorable that links to the week and it the content of the workshop and save to your 'Codefiles directory'. I have used a new way of creating the html document using a Quarto document. You can now click on the code link at the code will be copied to the clipboard.
+
+您现在应该知道该怎么做了！创建它并将其命名为与本周和研讨会内容相关的令人难忘的名字，然后保存到您的“Codefiles 目录”。我使用了一种新方法，即使用 Quarto 文档创建 html 文档。您现在可以单击代码链接，代码将被复制到剪贴板。
+
+### Load datafiles
+
+We need two datafiles for this session:
+
+-   **Bham_21_census_dataglm.csv** - Our census data but this time including other variables such as the number of people under 30 in the LSOA, the population density as well as the number of non White British, as as well as some of the other metrics. These are not scaled to percentages but provided as the total numbers of people in each category within each LSOA.
+-   **Birmingham_C21.shp** - the shapefile of all 2021 Birmingham LSOAs. We used this in week 2.
+
+All of these datafiles were made available to you in week 1 of the module.
+
+我们需要两个数据文件用于此会话：
+
+-   **Bham_21_census_dataglm.csv** - 我们的人口普查数据，但这次包括其他变量，例如 LSOA 中 30 岁以下的人数、人口密度以及非白人英国人的数量，以及其他一些指标。这些不是按百分比缩放的，而是以每个 LSOA 中每个类别的总人数提供。
+-   **Birmingham_C21.shp** - 所有 2021 年伯明翰 LSOA 的 Shapefile。我们在第 2 周使用了它。
+
+所有这些数据文件都在模块的第 1 周提供给您。
+
+### Set Working Directory
+
+**Your WD will be different.** This is mine:
+
+```{r}
+setwd("~/Documents/GitHub/Teaching/LM_40222_Quantitative_Methods/Codefiles")
+```
+
+### PART 1. GLMs for count data (poisson, negative binomial and quasipoisson)
+
+We are going to model how the total (count) of unemployed people in the working population is related to metrics of social deprivation such as room overcrowding, poverty, ethnicity and educational level. We looked at these data in previous weeks (see week 7 linear regression) but then we analysed percentage data. These data are 'counts' so we need to use a GLM. All the same checks are necessary in a poisson regression:
+
+Specifically these are (note the acronym **LINE**):
+
+-   **L**inear regression fits a straight line so it assumes linearity of the data.
+-   **I**ndependence of observations. We assume each observation has no relationship to another one. This isn't always the case. We'll cover this sort of situation later in the module.
+-   **N**ormality of distributions. Our expectation is that the data are drawn from a random pool of potential observations so conform to a normal distribution, which is usual depicted as a 'bell-shaped' curve.
+-   **E**quality of homogeneity of variances, called **homoscedasticity**. The assumption is that the variability between the data points is homogeneous and residuals from the regression are not patterned in any way.
+
+But we need to add some other checks for:
+
+-   Multicollinearity. We will use Variation Inflation Factors (VIFs) to do that.
+-   Over- or underdispersion. We will test for that.
+-   The presence of outliers (this is relevant to all regression) which can have a large influence on poisson regression. We'll use Cook's Distances to check for that.
+
+我们将模拟劳动人口中失业人数的总数与社会贫困指标（如房间拥挤、贫困、种族和教育水平）之间的关系。我们在前几周查看了这些数据（参见第 7 周线性回归），但随后我们分析了百分比数据。这些数据是“计数”，因此我们需要使用 GLM。泊松回归中所有相同的检查都是必需的：
+
+具体来说，这些是（请注意首字母缩略词 **LINE**）：
+
+-   **线性**回归拟合直线，因此它假设数据是线性的。
+-   \*\*观测值的独立性。我们假设每个观测值与另一个观测值没有关系。情况并非总是如此。我们将在模块的后面介绍这种情况。
+-   \*\*分布的正态性。我们的期望是数据是从潜在观测值的随机池中抽取的，因此符合正态分布，通常被描绘成“钟形”曲线。
+-   **方差同质性**，称为**同方差性**。假设数据点之间的变异性是同质的，并且回归残差没有任何模式。
+
+但我们需要添加一些其他检查：
+
+-   多重共线性。我们将使用变异膨胀因子 (VIF) 来做到这一点。
+-   过度或不足分散。我们将对此进行测试。
+-   异常值的存在（这与所有回归相关）可能对泊松回归产生很大影响。我们将使用 Cook 距离来检查这一点。
+
+First need load the datafiles:
+
+```{r}
+# Load data
+bham_census <- read_csv("~/Dropbox/LgDatafiles/Teaching/Quant_meths/Data/Bham_21_census_dataglm.csv")
+Birmingham_C21.shp <- st_read("~/Dropbox/LgDatafiles/Teaching/Quant_meths/Data/shapefiles/Birmingham_C21.shp")
+```
+
+We will combine these data with the geometry from the shapefile using the **left_join()** function from **dplyr**.
+
+我们将使用 dplyr 的 left_join() 函数将这些数据与 shapefile 中的几何图形结合起来。
+
+```{r}
+# Combine the geopack to the csv file
+bham_census_sf <- Birmingham_C21.shp %>%
+  left_join(bham_census, by = "LSOA21CD")
+```
+
+We need to look at this to see which variables we want to use.
+
+```{r}
+glimpse(bham_census_sf)
+```
+
+You can see that we have a lot of columns we don't need that are in the shapefile. We will create a new file with columns we want:
+
+-   LSOA21CD - this is the unique code identifier for each LSOA unit.
+-   Agebelow30 - this is the number of residents under 30 years of age, excluding people in full time education. A potential explanatory variable.
+-   DeprivL2to4 - this is the number of residents suffering 2-4 indicators of deprivation. A potential explanatory variable.
+-   Unemployed - this is the number of unemployed residents. This is our response variable.
+-   Occ_rating - this is the number of people living in overcrowded conditions. A potential explanatory variable.
+-   Qualification - the number of residents with level 4 qualifications (post school level e.g. degrees, HNDs and so on).
+
+We will select these from the pool of variables.
+
+您可以看到，shapefile 中有很多我们不需要的列。我们将创建一个包含所需列的新文件：
+
+LSOA21CD - 这是每个 LSOA 单元的唯一代码标识符。
+
+Agebelow30 - 这是 30 岁以下居民的数量，不包括接受全日制教育的人。一个潜在的解释变量。
+
+DeprivL2to4 - 这是遭受 2-4 项贫困指标的居民数量。一个潜在的解释变量。
+
+Unemployed - 这是失业居民的数量。这是我们的响应变量。
+
+Occ_rating - 这是生活在过度拥挤环境中的人数。一个潜在的解释变量。
+
+Qualification - 具有 4 级资格（中学毕业后水平，例如学位、HND 等）的居民数量。 我们将从变量池中选择这些。
+
+```{r}
+week_8_glm <- bham_census_sf %>% dplyr::select(LSOA21CD, Agebelow30,
+      DeprivL2to4,Unemployed,Occ_rating,White_pop,Qualification,geometry)
+```
+
+#### Exploratory Data Analysis (EDA)
+
+Recall from last week that we did three exploratory steps:
+
+1.  Inspected a sample of raw values.
+2.  Computing summary statistics.
+3.  Creating data visualizations.
+
+回想一下上周我们做了三个探索性步骤：
+
+检查原始值样本。
+
+计算汇总统计数据。
+
+创建数据可视化。
+
+```{r}
+glimpse(week_8_glm)
+```
+
+Now let's do some summaries to get a sense of missing data and the variability of the dataset.
+
+```{r}
+skim(week_8_glm)
+```
+
+Have a look at the metrics. We do not have any missing data but some of our variables appear to be quite variable and are likely to be not normally distributed (see the histograms).
+
+看看这些指标。我们没有任何缺失数据，但我们的一些变量似乎变化很大，可能不呈正态分布（见直方图）。
+看看这些指标。我们没有任何缺失数据，但我们的一些变量似乎变化很大，可能不呈正态分布（见直方图）。
+
+#### Do some visualisation
+
+We have a large number of variables in this file so we are going to use a function from the **car** library called **scatterplotMatrix()** to visualise them and their relationships to each other in one go (Fig. 2). We'll select the columns we want to display, removing those aren't numerical. We use the **diagonal** argument **list(method ="qqplot")** to create the QQ-plots. **regLine** and **smooth** set the colour, line type and line width for the regression and loess lines.
+
+此文件中有大量变量，因此我们将使用 **car** 库中的函数 **scatterplotMatrix()** 一次性可视化它们及其相互关系（图 2）。我们将选择要显示的列，删除那些非数字的列。我们使用 **diagonal** 参数 **list(method ="qqplot")** 来创建 QQ 图。**regLine** 和 **smooth** 设置回归线和 loess 线的颜色、线型和线宽。
+
+```{r}
+scatterplotMatrix(~ Unemployed +
+                    Agebelow30 + 
+                    Qualification + 
+                    DeprivL2to4 +
+                    Occ_rating,
+                  col = "black", 
+                  diagonal = list(method = "qqplot"),
+                  regLine = list(col = "blue", lwd = 2),   # Linear regression line in blue
+                  smooth = list(col.smooth = "blue", lty.smooth = 2, lwd.smooth = 2), # Loess line in blue, dashed
+                  data = week_8_glm)
+```
+
+**Fig. 2: Scattermatrix plot of the full suite of variables. The diagonal line shows the QQ-plots for each variable**
+
+**图 2：全套变量的散点矩阵图。对角线显示每个变量的 QQ 图**
+
+This plot (Fig. 2) isn't nearly as confusing at it looks! Firstly, look at the diagonal down middle. This shows a QQ-plot of all the variables in the dataset, excluding the spatial geometry. Observe that many of these variables (i.e. Agebelow30, Qualification, Occ_rating) are not normally distributed. Look up from the diagonal and you see the paired correlations of the variables against each other. Unemployed is our response so it is the Y axis for all the scatterplots along the top row of the plot. The second panel from the left (top row) shows the relationship between Unemployed and Agebelow30, observe that is looks a little lumped not linear. The other plots on this row suggest we have linear relationship with quite a high slopes. Moving down the row, we see that the second shows the plots for Agebelow30, and the third row down, Qualification and so on. So we can examine the relationship between the explanatory variables. Several of them are clearly linked but only one pair (DeprivL2to4 - Occ_rating) looks a little worrying. We check for this kind of collinearity in our predictor pools using **Variation Inflation Factors** (VIFs) as we run our regression analyses: <https://online.stat.psu.edu/stat462/node/180/>
+
+Because we have crime numbers linked to LSOAs we can map them (Fig. 3). This is a useful additional exploratory step because spatially structured data has implications for GLM models.
+
+此图（图 2）并不像看上去那么令人困惑！首先，查看中间的对角线。这显示了数据集中所有变量的 QQ 图，不包括空间几何。请注意，其中许多变量（即 Agebelow30、Qualification、Occ_rating）不是正态分布的。从对角线上看，您会看到变量之间的成对相关性。失业是我们的响应，因此它是沿着图顶行的所有散点图的 Y 轴。从左侧开始的第二个面板（顶行）显示了失业和 Agebelow30 之间的关系，请注意，它看起来有点集中而不是线性的。此行上的其他图表明我们具有线性关系，并且斜率相当高。向下移动行，我们看到第二行显示了 Agebelow30 的图，第三行显示了资格等等。因此，我们可以检查解释变量之间的关系。其中几个显然是相互关联的，但只有一对（DeprivL2to4 - Occ_rating）看起来有点令人担忧。我们在运行回归分析时使用**变异膨胀因子**（VIF）检查预测池中的这种共线性：<https://online.stat.psu.edu/stat462/node/180/>
+
+因为我们有与 LSOA 相关的犯罪数字，所以我们可以绘制它们（图 3）。这是一个有用的额外探索步骤，因为空间结构化数据对 GLM 模型有影响。
+
+```{r}
+# code updated to tmap v.4
+tm_shape(week_8_glm) +
+  tm_polygons(
+    fill = "Unemployed",
+    fill.scale = tm_scale_intervals(values = "brewer.greens", style = "jenks"),
+    fill.legend = tm_legend(title = "Number of Unemployment people", title.size = 0.8)) +
+  tm_borders(
+    col = "lightgray",    # Set border color to light gray
+    lwd = 0.5) +             # Set border line width 
+  tm_layout(legend.outside = TRUE)
+
+```
+
+**Fig. 3: Unemployment levels for Birmingham LSOAs. Data from 2021**
+**图 3：伯明翰 LSOA 的失业率。数据来自 2021 年**
+
+You can clearly see there is a pattern to these data. Unemployment appears to be higher in a band across the centre of the city.
+
+您可以清楚地看到这些数据具有一定的模式。市中心一带的失业率似乎较高。
+
+#### [TASK 2: Now take a few minutes to map some of the explanatory variables. HINT: you only need to change the tm_polygon 'fill=' argument to another variable name to achieve this. \\\[\~ 5 min\]]{style="color:red;"}.
+
+#### [任务 2：现在花几分钟映射一些解释变量。提示：您只需将 tm_polygon 'fill=' 参数更改为另一个变量名即可实现此目的。\\\[\~ 5 分钟\]]{style="color:red;"}。
+
+### Running a Generalised linear (poisson) regression
+
+Recall that we have count data i.e. the total number of unemployed residents in each LSOA. These data have special properties that conform to a **Poisson** distribution meaning that (1) they cannot be negative, (2)and the mean of the response variable equals its variance.
+
+We know from the literature that a wide range of social variables are **associated** with high unemployment, such increased levels e.g. poor living conditions (i.e. overcrowding), population age profiles, poverty, and population density. We ask the following question in an *exploratory* GLM:
+
+-   What census derived social/economic variables are related to increased unemployment in the city?
+
+回想一下，我们有计数数据，即每个 LSOA 中的失业居民总数。这些数据具有符合**泊松**分布的特殊属性，这意味着 (1) 它们不能为负数，(2) 响应变量的平均值等于其方差。
+
+我们从文献中了解到，各种社会变量都与高失业率**相关**，例如生活条件差（即过度拥挤）、人口年龄结构、贫困和人口密度等失业率的上升。我们在*探索性* GLM 中提出以下问题：
+
+- 哪些人口普查得出的社会/经济变量与城市失业率上升有关？
+
+#### Running the model
+
+This is straightforward as it uses the same code as the last week except we replace the **lm** function with **glm**. The only other difference is that we need to specify what error structure we need to use with the **family =** argument. In this case it is **poisson**.
+
+这很简单，因为它使用的代码与上周相同，只是我们用 **glm** 替换了 **lm** 函数。唯一的区别是我们需要使用 **family =** 参数指定我们需要使用什么错误结构。在本例中它是 **poisson**。
+
+```{r}
+M1 <- glm(Unemployed ~ Occ_rating + 
+          Agebelow30 + DeprivL2to4 +
+          Qualification, 
+          data = week_8_glm, family="poisson")
+```
+
+Let's examine the regression coefficients. We will use the **summary()** function not **(tidy)** because I want you to see another element of a GLM.
+
+让我们检查一下回归系数。我们将使用 **summary()** 函数而不是 **(tidy)**，因为我希望您看到 GLM 的另一个元素。
+
+```{r}
+summary(M1)
+```
+
+We can see that all of our variables have a significant fit to the data. Observe that the slope coefficient are mostly positive. We can interpret these in terms of the probable change unemployment rate for each **one unit increase in the predictors**. To do this we need to exponentiate for find the antilogarithm of the slope coefficients using the **exp()** function, subtract 1 from them all to get the difference in odds and multiply that value by 100 to get the percentage increase in unemployment per one unit increase in the explanatory variable. e.g. for Occ_rating $\% \, \text{Change} = \left(e^{0.00313} - 1\right) \times 100 \approx 0.31\%$.
+
+If we apply this to the coefficients we find:
+
+我们可以看到，所有变量都与数据有显著的拟合度。观察到斜率系数大多为正。我们可以将这些解释为预测变量每增加一个单位，失业率可能的变化。为此，我们需要使用 **exp()** 函数对斜率系数求指数，从所有斜率系数中减去 1 以获得赔率差，然后将该值乘以 100 以获得解释变量每增加一个单位，失业率增加的百分比。例如，对于 Occ_rating $\% \，\text{Change} = \left(e^{0.00313} - 1\right) \times 100 \approx 0.31\%$。
+
+如果我们将其应用于系数，我们会发现：
+
+```{r}
+beta <- coef(M1)
+expB <- exp(beta)
+odds_diff <- (expB-1)
+chan <- (odds_diff)*100
+chan
+```
+
+For each predictor the we can see:
+
+-   Occ_rating - 31% increase in unemployment
+-   Agebelow30 a 2% increase in unemployment
+-   DeprivL2to4 a 34% increase in unemployment, and
+-   Qualification a small 0.01 decrease in unemployment
+
+
+对于每个预测因子，我们可以看到：
+
+- Occ_rating - 失业率增加 31%
+- Agebelow30 失业率增加 2%
+- DeprivL2to4 失业率增加 34%，以及
+- Qualification 失业率小幅下降 0.01
+
+Please note that you cannot compare these coefficients in terms of the their effect size because the are scaled differently. Look at skim() function outcomes and see how the descriptors vary. What we are saying is that these increases/decreases occur for each explanatory variable per unit increase of one unit **when all the other variables are held constant in the model**. We'll come back to this below when we plot the marginal effects. If you want to compare the explanatory variables in terms of the strength or their effects then you need to standardize the variables to the same scale before you run the regression (e.g. center them). Or use a package such as **arm** and the **standardize()** function.
+
+You will notice also that we don't have and $R_2$ in the output (unlike a linear regression) but we have something called **deviance** $D$. In a Generalized Linear Model (GLM), deviance is a measure of the goodness-of-fit of the model. It compares the fit of the specified model to a saturated model, which is a hypothetical model that fits the data perfectly. i.e. if we drew the regression line it would be a 1:1 fit. The lower the deviance the better the model fit to the data. You can see that our model has a $D$ of 64654. We can estimate the fit by using the following equation which gives us something akin to an $R_2$ value: $$
+\text{Proportion of Deviance Explained} = \frac{\text{Null Deviance} - \text{Residual Deviance}}{\text{Null Deviance}}
+$$ We can calculate it:
+
+请注意，您无法根据这些系数的效应大小来比较它们，因为它们的缩放比例不同。查看 skim() 函数结果并查看描述符如何变化。我们所说的是，当模型中的所有其他变量保持不变时，每个解释变量每增加一个单位就会发生这些增加/减少。当我们绘制边际效应时，我们将在下面回到这一点。如果您想根据强度或效果比较解释变量，则需要在运行回归之前将变量标准化为相同的比例（例如，将它们居中）。或者使用诸如 **arm** 和 **standardize()** 函数之类的包。
+
+您还会注意到，我们在输出中没有和 $R_2$（与线性回归不同），但我们有一个称为 **偏差** $D$ 的东西。在广义线性模型 (GLM) 中，偏差是模型拟合优度的度量。它将指定模型的拟合度与饱和模型进行比较，饱和模型是与数据完美拟合的假设模型。也就是说，如果我们画出回归线，它将是 1:1 拟合。偏差越低，模型与数据的拟合度就越好。您可以看到我们的模型的 $D$ 为 64654。我们可以使用以下方程来估计拟合度，该方程给出类似于 $R_2$ 的值：$$
+\text{偏差解释比例} = \frac{\text{零偏差} - \text{残差}}{\text{零偏差}}
+$$ 我们可以计算它：
+
+```{r}
+null_deviance <- M1$null.deviance #
+residual_deviance <- M1$deviance
+proportion_explained <- (null_deviance - residual_deviance) / null_deviance
+
+# Print result
+cat("Proportion of Deviance Explained:", proportion_explained, "\n")
+```
+
+The estimate of deviance explained is moderately high at 0.608849, indicating our model accounts for around 61% of the variation in unemployment numbers across the city. That's if we can accept the model i.e. validate it!!
+
+解释偏差的估计值较高，为 0.608849，表明我们的模型解释了全市失业人数变化的约 61%。前提是我们可以接受该模型，即验证它！
+
+#### Model validation
+
+Poisson regression shares many of the properties of linear regression. Notwithstanding the flexibility of GLMs we still have to validate the models by examining residual spreads (more below) but you'll also recall that we have some other checks in terms of model assumptions and validation i.e. multicollinearity, over/underdispersion and checks for outliers.
+
+泊松回归具有许多线性回归的属性。尽管 GLM 具有灵活性，但我们仍必须通过检查残差差幅来验证模型（详见下文），但您还会记得，我们在模型假设和验证方面还有一些其他检查，即多重共线性、过度/欠分散和异常值检查。
+
+#### Over-underdispersion and multicollinearity
+
+Overdispersion occurs when the observed variability in the response variable is greater than what is expected under the assumed statistical model. This issue is common in GLMs using count data or binary data, such as Poisson and binomial regressions.
+
+-   Poisson Regression: Assumes that the mean of the response variable equals its variance. Overdispersion occurs if the variance exceeds the mean. Underdispersion if the mean exceeds the variance.
+-   Binomial Regression: Assumes the variance is proportional to $p(1-p)$, where $p$ is the probability of success). Overdispersion arises if the observed variance is larger than this theoretical variance. We need to check for this in our regression model using either tests in packages, such the **performance** package or calculate it directly with an equation. We'll do both. First up the **performance** package.
+
+当响应变量中观察到的变异性大于假设统计模型下的预期变异性时，就会发生过度离散。这个问题在使用计数数据或二进制数据的 GLM 中很常见，例如泊松回归和二项回归。
+
+- 泊松回归：假设响应变量的平均值等于其方差。如果方差超过平均值，就会发生过度离散。如果平均值超过方差，就会出现欠离散。
+- 二项回归：假设方差与 $p(1-p)$ 成比例，其中 $p$ 是成功概率。如果观察到的方差大于理论方差，就会出现过度离散。我们需要使用包中的测试（例如 **performance** 包）或直接用方程式计算来检查回归模型中的这种情况。我们将同时进行这两种操作。首先是 **performance** 包。
+
+```{r}
+check_overdispersion(M1)
+```
+
+And hand calculated. 
+并手工计算。
+
+```{r}
+dispersion_stat <- sum(residuals(M1, type = "pearson")^2) / M1$df.residual
+cat("Dispersion Statistic:", dispersion_stat, "\n")
+```
+
+If we find a value over 1 then we need to fix this. With a value of 4.6 this model is overdispersed.
+
+Overdispersion can be caused by a lot of things: an excessive numbers of zeros in our response data (i.e. zero inflation), lack of independence of data points (i.e. spatial structure or repeated measurements), missing covariates, clustering of correlated variables, non-linear relationships. We know from our EDA work that we don't have an zeros and the relationships look linear, but we certainly do have some spatial patterns in the data (Fig. 3). Ought to try compensating for this spatial patterning using some form of spatial regression, which we will try next week.
+
+First up, we'll check for multicollinearity. There is a debate about the use of VIFs in data science, especially where you have large numbers of data points. Our dataset has 659 datapoints so it is a reasonable size. As datasets become smaller \<100 then we need to make some decisions about collinear predictor/explanatory variables. But how do we make a decision? If we are using VIFs then there is a rule of thumb that says if the values are 3 or less we retain the variables (see Zuur et al. 2016). Let's have a look; we use the **vif()** function from the **car** package.
+
+如果我们发现一个大于 1 的值，那么我们需要修复它。如果该值为 4.6，则该模型过度分散。
+
+过度分散可能由很多因素造成：响应数据中零的数量过多（即零膨胀）、数据点缺乏独立性（即空间结构或重复测量）、缺少协变量、相关变量聚类、非线性关系。从 EDA 工作中我们知道，我们没有零，关系看起来是线性的，但数据中确实存在一些空间模式（图 3）。应该尝试使用某种形式的空间回归来补偿这种空间模式，我们将在下周尝试。
+
+首先，我们将检查多重共线性。关于在数据科学中使用 VIF 存在争议，尤其是在您拥有大量数据点的情况下。我们的数据集有 659 个数据点，因此大小合理。随着数据集变得越来越小（<100），我们需要对共线预测变量/解释变量做出一些决定。但是我们如何做出决定呢？如果我们使用 VIF，那么有一个经验法则，即如果值为 3 或更小，我们保留变量（参见 Zuur 等人，2016 年）。让我们来看看；我们使用 **car** 包中的 **vif()** 函数。
+
+```{r}
+gvif_values <- car::vif(M1)
+print(gvif_values)
+
+# Calculate scaled GVIFs for interpretation
+scaled_gvif <- gvif_values^(1 / (2 * attr(gvif_values, "df")))
+print(scaled_gvif)
+
+# Output
+cat("Scaled GVIF values indicate the degree of multicollinearity.\n")
+```
+
+They are all less than 3 so we are okay to retain them.
+
+So it is not down to multicollinearity. It could be a result of spatial patterning in the data and we'll look at that next session. For now we'll try to fix it by applying a different error structure to the data, either **quasipoisson** or **negative binomial**. We cannot work through the derivation of these, so just remember if it is overdispersed we apply one of those two.
+
+Let's fit the quasipoisson model. To do this we vary the error structure, changing the family argument to: **family="quasipoisson"**.
+
+它们都小于 3，所以我们可以保留它们。
+
+所以这不是多重共线性造成的。这可能是数据空间模式的结果，我们将在下一节中讨论这个问题。现在，我们将尝试通过对数据应用不同的误差结构来修复它，要么是 **拟泊松**，要么是 **负二项式**。我们无法通过推导这些来解决问题，所以只要记住，如果它过度分散，我们就应用其中之一。
+
+让我们拟合拟泊松模型。为此，我们改变误差结构，将系列参数更改为：**family="quasipoisson"**。
+
+```{r}
+M1.1 <- glm(Unemployed ~ Occ_rating + 
+          Agebelow30 + DeprivL2to4 +
+          Qualification, 
+          data = week_8_glm, family="quasipoisson")
+```
+
+Look at the table.
+
+```{r}
+summary(M1.1)
+```
+
+It's similar but Qualification becomes less significant. The model also has a reasonable goodness of fit.
+
+
+类似，但资格变得不那么重要。该模型也具有合理的拟合优度。
+
+```{r}
+null_deviance <- M1.1$null.deviance #
+residual_deviance <- M1.1$deviance
+proportion_explained <- (null_deviance - residual_deviance) / null_deviance
+
+# Print result
+cat("Proportion of Deviance Explained:", proportion_explained, "\n")
+```
+
+#### Model validation
+
+Once we have fitted this we need to validate it by checking the residual spreads. Note that because it is a GLM we need to use **Pearson residuals** not **standardised residuals** to do this. We will use the **autoplot()** function from the **ggfortify** package to create our validation plots. We will add a **method=** argument to specify we ran a GLM model for clarity, but the package checks for model type (Fig. 4).
+
+一旦我们拟合了它，我们就需要通过检查残差差幅来验证它。请注意，因为它是一个 GLM，所以我们需要使用 **Pearson 残差** 而不是 **标准化残差** 来执行此操作。我们将使用 **ggfortify** 包中的 **autoplot()** 函数来创建我们的验证图。我们将添加一个 **method=** 参数来指定我们运行了一个 GLM 模型，以便清晰起见，但包会检查模型类型（图 4）。
+
+```{r}
+## simulate residuals
+autoplot(M1.1, method="glm")
+## plot simulated residuals
+```
+
+**Fig. 4: Validation plots for model M1.1** This plot shows us a Q-Q plot output which we have seen before and plots the residuals as well. As before we do not want to see patterns in these. There is a slight indication of a 'humped' pattern especially in the residuals v fit but it is fine overall. We check directly for outliers using Cook's distance (D), which is displayed on the Y axis of the plot below (Fig. 5). The **which=4** argument isolates this plot. The 'rule of thumb' here is that we don't want to see values of greater that 1.
+
+**图 4：模型 M1.1 的验证图** 此图向我们展示了我们之前见过的 Q-Q 图输出，并绘制了残差。和之前一样，我们不希望在这些图中看到模式。特别是在残差 v 拟合中，有轻微的“驼峰”模式迹象，但总体上还不错。我们使用 Cook 距离 (D) 直接检查异常值，该距离显示在下图的 Y 轴上（图 5）。**which=4** 参数隔离了此图。这里的“经验法则”是我们不希望看到大于 1 的值。
+
+
+```{r}
+plot(M1.1, which=4)
+```
+
+**Fig. 5: Cook's distance (D) plot for our model showing the lack of influential/outliers. The vertical bars on the X axis show the D for each data point.**
+
+**图 5：我们的模型的 Cook 距离 (D) 图显示缺乏有影响力/异常值。X 轴上的垂直条显示每个数据点的 D。**
+
+We see no issues in terms of outliers (even though row 598 is close to the threshold of 1), so now we have the final task of validating each variable in the model. As this is a GLM with use the Pearson's residuals (Fig. 6). Having said all this, given the difference between data point 598 (this is row 598 in the dataframe) and the others in Figs 4 and 5, we could make a case for removing it as a potential outlier but we won't in this instance.
+
+我们没有发现任何异常值问题（尽管第 598 行接近阈值 1），所以现在我们还有最后一项任务，即验证模型中的每个变量。因为这是一个使用 Pearson 残差的 GLM（图 6）。话虽如此，考虑到数据点 598（这是数据框中的第 598 行）与图 4 和图 5 中的其他数据点之间的差异，我们可以将其作为潜在异常值删除，但在本例中我们不会这么做。
+
+```{r}
+pres <- residuals.glm(M1.1, type="pearson") # strip the residuals
+#plot against the predictor variables in a panel plot
+par(mfrow = c(2, 2))  # Set 3 rows and 2 columns
+plot(pres ~ week_8_glm$Agebelow30)
+plot(pres ~ week_8_glm$Occ_rating)
+plot(pres ~ week_8_glm$DeprivL2to4)
+plot(pres ~ week_8_glm$Qualification)
+```
+
+**Fig. 6: Residual patterns for all the explanatory (or predictor) variables.**
+
+REMEMBER TO RETURN YOU PLOT WINDOW TO THE DEFAULT.
+
+```{r}
+par(mfrow = c(1, 1))
+```
+
+These are okay but there is a slight humped in the residual spreads of the DeprivL2to4 predictor. We can address this by fitting a quadratic to the variable. I'll leave that to you as some homework - see below (there is some guidance).
+
+这些都还好，但 DeprivL2to4 预测器的残差差值略有凸起。我们可以通过对变量进行二次拟合来解决这个问题。我会把这留给你作为家庭作业 - 见下文（有一些指导）。
+
+#### Plot some figures to support the story
+
+Do do this we need to calculate and plot each predictor to visualize their effect on the response variable while holding other predictors constant. This approach is called a marginal effects plot or partial dependence plot, and it's a useful way to interpret the model. And you have encountered it before. To do we need to calculate the means and create new predictions for each explanatory variable then plot the outcome. Here is a step-by-step example for Occ_rating Firstly, we create a the data set by sequencing 100 steps across the min and max values of the variable and calculating the means for the others.
+
+要做到这一点，我们需要计算并绘制每个预测变量，以可视化它们对响应变量的影响，同时保持其他预测变量不变。这种方法称为边际效应图或部分依赖图，它是一种解释模型的有用方法。你以前也遇到过它。为此，我们需要计算平均值并为每个解释变量创建新的预测，然后绘制结果。以下是 Occ_rating 的分步示例首先，我们通过对变量的最小值和最大值进行 100 次排序并计算其他变量的平均值来创建数据集。
+
+```{r}
+# Create dataset for partial effect
+partial_data <- data.frame(
+  Occ_rating = seq(min(week_8_glm$Occ_rating), 
+                   max(week_8_glm$Occ_rating), length.out = 100),
+  Agebelow30 = mean(week_8_glm$Agebelow30, na.rm = TRUE),
+  DeprivL2to4 = mean(week_8_glm$DeprivL2to4, na.rm = TRUE),
+  Qualification = mean(week_8_glm$Qualification, na.rm = TRUE)
+)
+```
+
+Second, we use the **predict()** function to calculate predicted values for the new data frame and add in the CIs. We use **type = "response"** to exponentiate the predictions back onto the original response scale. Remember these are GLMs, so the data are logged in the link function.
+
+其次，我们使用 **predict()** 函数计算新数据框的预测值并添加 CI。我们使用 **type = "response"** 将预测指数化回原始响应范围。请记住，这些是 GLM，因此数据记录在链接函数中。
+
+```{r}
+# Predict response and confidence intervals
+predictions <- predict(M1.1, newdata = partial_data, type = "response", se.fit = TRUE)
+partial_data$predicted <- predictions$fit
+partial_data$lower_ci <- predictions$fit - 1.96 * predictions$se.fit
+partial_data$upper_ci <- predictions$fit + 1.96 * predictions$se.fit
+
+```
+
+Third, we plot the graph. We are allocating figure numbers because we are going to put them all in one plot. But we do need to save each one as an object (called 'p1','p2','p3','p4').
+
+第三，我们绘制图形。我们分配图形编号，因为我们要将它们全部放在一个图中。但我们确实需要将每个图形保存为一个对象（称为“p1”、“p2”、“p3”、“p4”）。
+
+```{r}
+# Plot the partial effect - we store it in an object so we can use it later
+p1 <- ggplot(partial_data, aes(x = Occ_rating, y = predicted)) +
+  geom_line(color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Occupancy Levels on Unemployment totals",
+       x = "Number of residents living in crowded housing", y = "Predicted Unemployed")
+p1
+```
+
+Let's do one for more qualifications. 让我们再做一次以获得更多资格。
+
+
+```{r}
+# Create dataset for partial effect
+partial_data <- data.frame(
+  Qualification = seq(min(week_8_glm$Qualification), 
+                   max(week_8_glm$Qualification), length.out = 100),
+  Agebelow30 = mean(week_8_glm$Agebelow30, na.rm = TRUE),
+  DeprivL2to4 = mean(week_8_glm$DeprivL2to4, na.rm = TRUE),
+  Occ_rating = mean(week_8_glm$Occ_rating, na.rm = TRUE)
+)
+
+predictions <- predict(M1.1, newdata = partial_data, type = "response", se.fit = TRUE)
+partial_data$predicted <- predictions$fit
+partial_data$lower_ci <- predictions$fit - 1.96 * predictions$se.fit
+partial_data$upper_ci <- predictions$fit + 1.96 * predictions$se.fit
+
+p2 <- ggplot(partial_data, aes(x = Qualification, y = predicted)) +
+  geom_line(color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Qualification Level on Unemployment totals",
+       x = "Number of Residents with higher qualifications", y = "Predicted Unemployed")
+p2
+```
+
+And for Agebelow30.
+
+```{r}
+partial_data <- data.frame(
+  Agebelow30 = seq(min(week_8_glm$Agebelow30), 
+                   max(week_8_glm$Agebelow30), length.out = 100),
+  Qualification = mean(week_8_glm$Qualification, na.rm = TRUE),
+  DeprivL2to4 = mean(week_8_glm$DeprivL2to4, na.rm = TRUE),
+  Occ_rating = mean(week_8_glm$Occ_rating, na.rm = TRUE)
+)
+
+predictions <- predict(M1.1, newdata = partial_data, type = "response", se.fit = TRUE)
+partial_data$predicted <- predictions$fit
+partial_data$lower_ci <- predictions$fit - 1.96 * predictions$se.fit
+partial_data$upper_ci <- predictions$fit + 1.96 * predictions$se.fit
+
+p3 <- ggplot(partial_data, aes(x = Agebelow30, y = predicted)) +
+  geom_line(color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Age on Unemployment totals",
+       x = "Number of residents under 30 years old (Yrs)", y = "Predicted Unemployed (Total per LSOA")
+p3
+```
+
+#### [TASK 3: Create the plot for DeprivL2to4, call the plot p4. Hint: you are being asked to repeat the code above but change the predictor variable to DeprivL2to4 \[\~ 5 min\]]{style="color:red;"}.
+
+#### [任务 3：创建 DeprivL2to4 的图，将图命名为 p4。提示：您需要重复上述代码，但将预测变量更改为 DeprivL2to4 \[\~ 5 分钟\]]{style="color:red;"}。
+
+```{r include=FALSE}
+partial_data <- data.frame(
+  DeprivL2to4 = seq(min(week_8_glm$DeprivL2to4), 
+                   max(week_8_glm$DeprivL2to4), length.out = 100),
+  Qualification = mean(week_8_glm$Qualification, na.rm = TRUE),
+  Agebelow30 = mean(week_8_glm$Agebelow30, na.rm = TRUE),
+  Occ_rating = mean(week_8_glm$Occ_rating, na.rm = TRUE)
+)
+
+predictions <- predict(M1.1, newdata = partial_data, type = "response", se.fit = TRUE)
+partial_data$predicted <- predictions$fit
+partial_data$lower_ci <- predictions$fit - 1.96 * predictions$se.fit
+partial_data$upper_ci <- predictions$fit + 1.96 * predictions$se.fit
+
+p4 <- ggplot(partial_data, aes(x = DeprivL2to4, y = predicted)) +
+  geom_line(color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Resident poverty on Unemployment totals",
+       x = "Number of resident living in poverty", y = "Predicted Unemployed")
+p4
+```
+
+Create the final plot combining all 4 into a four-panel figure using the **gridExtra** package. If you have created your code correctly and saved it as and object called 'p4'. This plot will work! If it doesn't you've made an error.
+
+使用 **gridExtra** 包将全部 4 个图合并为一个四面板图，从而创建最终图。如果您正确创建了代码并将其保存为名为“p4”的对象。那么此图将有效！如果无效，则说明您犯了一个错误。
+
+```{r}
+grid.arrange(p1,p2,p3,p4,ncol =2)
+```
+
+**Fig. 7: The partial slopes for the predictor variables. Blue line is the predictor fit and blue shading the confidence intervals.**
+**图 7：预测变量的部分斜率。蓝线为预测拟合，蓝色阴影为置信区间。**
+
+## Further Work
+
+1.  Finish the class exercises.
+2.  Read Chapter 20: Quantitative Modelling in human Geography. In *Key Methods in Geography*. We have online access: <https://read.kortext.com/reader/epub/2342362?page=>
+3.  Have a go at adding a quadratic to the quasipoisson model M1.1. HINT: You need to add the **poly()** function to the model equation: poly(DeprivL2to4,2). Then work through the validation steps and plot the final figures.
+4.  Please read these human geography papers to reinforce your learning. They all use GLMs as an analytical approach:
+
+1. 完成课堂练习。
+2. 阅读第 20 章：人文地理学中的定量建模。在《地理学中的关键方法》中。我们有在线访问权限：<https://read.kortext.com/reader/epub/2342362?page=>
+3. 尝试向准泊松模型 M1.1 添加二次函数。提示：您需要将 **poly()** 函数添加到模型方程：poly(DeprivL2to4,2)。然后完成验证步骤并绘制最终图形。
+4. 请阅读这些人文地理论文以巩固您的学习。它们都使用 GLM 作为分析方法：
+
+-   Hamza, Salma, Imran Khan, Linlin Lu, Hua Liu, Farkhunda Burke, Syed Nawaz-ul-Huda, Muhammad Fahad Baqa, and Aqil Tariq. ‘The Relationship between Neighborhood Characteristics and Homicide in Karachi, Pakistan’. Sustainability 13, no. 10 (January 2021): 5520. <https://doi.org/10.3390/su13105520>.
+-   Sugiyama, Takemi, Karen Villanueva, Matthew Knuiman, Jacinta Francis, Sarah Foster, Lisa Wood, and Billie Giles-Corti. ‘Can Neighborhood Green Space Mitigate Health Inequalities? A Study of Socio-Economic Status and Mental Health’. Health & Place 38 (1 March 2016): 16–21. <https://doi.org/10.1016/j.healthplace.2016.01.002>.
+-   Herfort, Benjamin, Sven Lautenbach, João Porto de Albuquerque, Jennings Anderson, and Alexander Zipf. ‘The Evolution of Humanitarian Mapping within the OpenStreetMap Community’. Scientific Reports 11, no. 1 (4 February 2021): 3037. <https://doi.org/10.1038/s41598-021-82404-z>.
+-   Jestico, Ben, Trisalyn Nelson, and Meghan Winters. ‘Mapping Ridership Using Crowdsourced Cycling Data’. Journal of Transport Geography 52 (1 April 2016): 90–97. <https://doi.org/10.1016/j.jtrangeo.2016.03.006>.
+
+### Next Week
+
+Next week I will introduce you to the datasets that you will use for your assessments.
+
+下周我将向您介绍您将用于评估的数据集。
+
+### Citations
+
+-   McCullagh, P. and Nelder, J.A. (1989) Generalized Linear Models. 2nd Edition, Chapman and Hall, London. <http://dx.doi.org/10.1007/978-1-4899-3242-6>.

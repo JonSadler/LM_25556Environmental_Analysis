@@ -9,7 +9,9 @@
 # Bullhead - Presence of a bullhead in the enclosure (factor - 0 = absent, 1 = present)
 # ----------------------------------------------------------------------------------------
 
-pred <- read.csv(file.choose())
+library(car)
+pred <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/fish_pred.csv")
+
 str(pred)
 head(pred)
 pred
@@ -35,11 +37,7 @@ shapiro.test(pred$Density)
 # Data are normally distributed....
 
 # Homogeneity of variance
-# Check for residual spreads indicating heterogeneity of variance
-library(alr3)    # New package do some reading....
-resplot(lm(Density~Bullhead+Loach, pred))
 
-require(car)
 leveneTest(pred$Density ~ pred$Bullhead * pred$Loach)
 # No issues visible
 
@@ -59,6 +57,10 @@ summary(pred_aov)
 par(mfrow = c(2, 2)) # set graphics device toplot four graphs in a 2 x 2 matrix
 plot(pred_aov)
 # Slight wedge in res v fit plot and dip in Scale - location.....these are not worrying patterns (but you already know this as you checked the assumptions earlier)
+
+# Check for residual spreads indicating heterogeneity of variance
+
+crPlots(lm(Bullhead + Loach, data=pred))
 
 # ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
 # Do the following for all three data files:

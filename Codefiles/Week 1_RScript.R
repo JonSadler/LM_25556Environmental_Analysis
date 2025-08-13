@@ -285,5 +285,3 @@ table(Deer$Sex, Deer$Year)
 # 2. Square root transform the length variable
 # 3. Add it to the data frame as a new variable
 # NOTE: To do this you need to use 'c' to create all the variables first!!!
-
-# **** IF YOU'VE GOT HERE AND STILL HAVE TIME LEFT MAKE A START ON WEEK 2!!!! ****

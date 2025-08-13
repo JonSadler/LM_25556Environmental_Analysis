@@ -1,0 +1,240 @@
+---
+title: "LM40222_Week_9"
+author: "Jon Sadler"
+format: html
+editor: visual
+---
+
+\## Outline:
+
+Today we are going to introduce you to Generalised Linear Models (GLMs).
+
+These were developed in the 1970s but popularised in 80s by McCullagh
+
+and Nelder in their seminal book '\*Generalised Linear Models\*' (1982,
+
+2nd edition 1989). They are a group of regression models from the
+
+exponent family that generalise classical linear models. They are used
+
+in situations when the data you have collected have properties that do
+
+not conform to the requirements of linear regression. These sorts of
+
+data are much more common that you'd imagine, as we'll explore below.
+
+\### Learning Outcomes:
+
+\- Outline the four main error structures (poisson,
+
+quasipoisson and negative binomial) associated with GLMs.
+
+\- Establish when to use them during analyses.
+
+\- Validate their outcomes.
+
+\- Plot the summary tables and visualise the relationships of the
+
+models.
+
+\### Generalised Linear Models (GLMs)
+
+I don't propose to work through the mathematics of these in any depth
+
+but you need to have a solid understanding of mechanics of linear
+
+regression models, hence the level of detail in last two workshops. GLMs
+
+are an extension of classic linear models with additional link functions
+
+and error structures that provides more flexibility in their application
+
+to different types of response variables.
+
+\#### GLM structure
+
+There are three components to any GLM:
+
+\- \*Random component or error structure\* - specifies the probability
+
+distribution of the response variable; e.g., normal (gaussian)
+
+distribution for in the case of a classical linear regression model,
+
+a binomial distribution for binary, or multinominal, ordinal
+
+logistic regression models, poisson, quasipoisson or negative
+
+binomial in the case of a count data (there are other variants!)
+
+(Fig. 1).
+
+\- \*Systematic component\* - specifies the explanatory variables in the
+
+model, more specifically, their linear combination; e.g., as we have
+
+seen in a linear regression. This will be familiar to you as it is
+
+the same as in linear regression.
+
+\- \*Link function\* which specifies the link between the random and the
+
+systematic components. It indicates how the expected value of the
+
+response relates to the linear combination of explanatory variables;
+
+e.g., for classical regression, or for logistic regression. In all
+
+our cases this involves a log exponent link.
+
+\#### GLM assumptions
+
+GLMs share some assumptions with linear regression models, such as:
+
+\- The data are independently distributed, i.e., the cases are
+
+independent. Just a in a linear regression.
+
+\- There is a linear relationship between the transformed expected
+
+response between the link function and the explanatory variables,
+
+for binary logistic regression and poisson regression.
+
+But not others:
+
+\- The response variable does \*\*not\*\* need to be normally distributed,
+
+rather it must fits a distribution from an exponential family (e.g.
+
+Poisson, multinomial, normal, gamma etc.).
+
+\- Explanatory variables can be nonlinear transformations of some
+
+original variables.
+
+\- The homogeneity of variance does \*\*not\*\* need to be satisfied.
+
+\- Errors need to be independent but \*\*not\*\* normally distributed.
+
+\- Parameter estimates use maximum likelihood estimation (MLE) rather
+
+than ordinary least squares (OLS) (do not worry about the details of
+
+this).
+
+As a result of the above GLMs have two key advantages over traditional
+
+linear regression:
+
+\- The choice of link is separate from the choice of random component,
+
+giving us flexible models models which can be fitted to response
+
+data of different formats.
+
+\- They allow for different error structures, accommodating
+
+heteroscedasticity and other complexities in the data and providing
+
+a more accurate representation of the variance.
+
+\- We do not need to transform the response to have a normal
+
+distribution.
+
+\- The models are fitted via maximum likelihood estimation, so
+
+likelihood functions and parameter estimates benefit from asymptotic
+
+normal and chi-square distributions.
+
+\- All the inference tools and model checking that we will discuss for
+
+logistic and Poisson regression models (below) apply for other GLMs
+
+too; e.g., Deviance, residuals, confidence intervals, and
+
+overdispersion.
+
+Let's conclude this theory section by reviewing types of data which GLMs
+
+can use, and their respective error structures and link functions. We
+
+will also suggest what kinds of social science datasets might fit these
+
+models (Fig. 1).
+
+\`\`\`{r echo=FALSE}
+
+\# Create a data frame of error structures, links, and data types
+
+glm_links \<- data.frame(
+
+ErrorStructure = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson", "Negative Binomial", "Binomial", "Multinomial"),
+
+Link = c("Identity", "Inverse", "Log", "Log", "Log", "Logit", "Logit"),
+
+DataExamples = c(
+
+"Continuous",
+
+"Continuous",
+
+"Count",
+
+"Count",
+
+"Count",
+
+"Binary",
+
+"Categorical"
+
+),
+
+DataType = c("Continuous", "Continuous", "Count", "Count", "Count", "Binary", "Categorical")
+
+)
+
+\# Reorder levels
+
+glm_links\$ErrorStructure \<- factor(glm_links\$ErrorStructure,
+
+levels = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson",
+
+"Negative Binomial", "Binomial", "Multinomial"))
+
+\# Create a faceted text-based plot with boundary boxes for tiles and margins
+
+ggplot(glm_links, aes(x = Link, y = ErrorStructure, label = DataExamples)) +
+
+geom_tile(fill = "lightblue", color = "black", linewidth = 0.8, alpha = 0.5) + \# Add boundary box to tiles
+
+geom_text(size = 4) + \# Add text annotations
+
+labs(
+
+title = "GLM Error Structures, Links, and Data Types",
+
+x = "Link",
+
+y = "Error Structure"
+
+) +
+
+theme_minimal() +
+
+theme(
+
+axis.text.x = element_text(angle = 45, hjust = 1),
+
+panel.grid = element_blank(),
+
+panel.border = element_rect(color = "black", fill = NA, linewidth = 1), \# Add margin boundary box
+
+plot.margin = margin(10, 10, 10, 10) \# Adjust margins if needed
+
+)
+
+\`\`\`

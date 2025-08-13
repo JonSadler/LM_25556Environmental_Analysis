@@ -1,0 +1,16 @@
+# Preface
+
+## **The class materials**
+
+The class materials are written as a Quarto book which is renders to a sequence of linked html files and a PDF document. You need to click on the ‘index.html’ file to use it as a book - this will open up the list of chapters. 
+
+The module is structured into 10 weeks of content, with each week introducing you to different aspects of using R to analyse environmental datasets. Chapter 10, or week 10, will introduce you to the datasets that you will use for Part A of the module assessment, which is worth 50% of overall the module mark.
+
+## **How to use this document**
+
+The instructions are self-evident. The instructions and code are interlinked, please:
+
+- Work through the workshop materials and click on each code link which will copy the code from the chunk to your computer clipboard;
+- Paste the code into the relevant weekly codefile;
+- Remember to use the **#** symbol to add comments to your code. Please use comments extensively;
+- Each chapter has its own References section. Please undertake the guided readings as indicated, especially if it is reading for the next workshop. This will support your learning immeasurably!

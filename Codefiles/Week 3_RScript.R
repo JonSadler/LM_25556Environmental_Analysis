@@ -66,10 +66,11 @@ ggplot(data=subset(Air, !is.na(Nitrogen.Oxides)), aes(x=Nitrogen.Oxides)) + geom
 
 # Histogram overlaid with kernel density curve
 ggplot(data=subset(Air, !is.na(Nitrogen.Oxides)), aes(x=Nitrogen.Oxides)) + 
-  geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+  geom_histogram(aes(y=after_stat(density)),
                  binwidth=20,
                  colour="black", fill="white") +
-  geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+                geom_density(alpha=.2, fill="#FF6666")
+                # Overlay with transparent density plot
 
 # **********************************************************
 # *** PART 1.1: Barcharts ----

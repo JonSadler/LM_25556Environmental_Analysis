@@ -237,11 +237,12 @@ summary(Grazeaov)
 # Getting Started with R: An Introduction for Biologists
 # Andrew Beckerman, Dylan Childs, and Owen Petchey
 
-par(mfrow = c(2, 2)) # plot four pictures per page
+par(mfrow = c(2, 2)) # plot four pictures per page i.e. a 2 x 2 panel window
 plot(Grazeaov)
 # set the device off....
 dev.off()
-
+# Or reparameterise the plotting window
+par(mfrow = c(1, 1)) # A one panel window
 
 # Look okay apart from plot 4 which indicates a lumped pattern.
 # Now let's try the interaction between the two factors to see if it improves the fit.
@@ -261,7 +262,7 @@ library(dplyr)
 Grazesum <- group_by(Graze, Field, Grazing) %>% summarise(mean = mean(Abund),
                                                           sd = sd(Abund),
                                                           N = length(Abund),
-                                                          se = sd/sqrt(N))
+        ?                                                  se = sd/sqrt(N))
 
 library(ggplot2) # load ggplot2
 
@@ -327,7 +328,7 @@ dev.off()
 # Filename: fish_pred.csv (data from Doncaster and Davey, 2002, p. 50)
 # fish predation experiment - using enclosures of two species of fish to assess their impact on predation on chironomids
 # File contents:
-# Density - density of chironomids left activty fish predation exercise (response variable - continuous)
+# Density - density of chironomids left activity fish predation exercise (response variable - continuous)
 # Loach - Presence of a loach in the enclosure (factor - 0 = absent, 1 = present)
 # Bullhead - Presence of a bullhead in the enclosure (factor - 0 = absent, 1 = present)
 # ----------------------------------------------------------------------------------------

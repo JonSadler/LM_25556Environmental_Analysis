@@ -19,7 +19,7 @@
 library(tidyverse)
 
 # Load compensation.csv datafile from Beckerman and Petchey's book.....see readings
-Growth <- read.csv(file.choose())
+Growth <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/compensation.csv")
 
 # Look at the file
 Growth 
@@ -79,7 +79,7 @@ plot(Fruit ~ Root, data = Growth,
 
 # now let's finish the graphic by adding a legend
 legend("topleft", legend = c("Grazed", "Ungrazed"),
-       pch = 21, pt.bg = c("Green", "Red"), pt.cex = 2)
+       pch = 21, pt.bg = c("Green", "Blue"), pt.cex = 2)
 
 # Repeat in ggplot2
 library(ggplot2)
@@ -93,13 +93,13 @@ ggplot(Growth, aes(x=Root, y=Fruit, colour = Grazing)) + geom_point() +
 #**************************************************
 
 # First linear regression output
-# use the Nelson.csv data
+# use the nelson.csv data
 # This is an experiment on 9 batches of flour beetles assessing their weight loss measued in mg
 # at different humidity levels ranging from 0-93% humidity
 # The experiment lasted 6 days
 
 # Load data (you should have already done this)
-Flour <- read.csv(file.choose())
+Flour <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/nelson.csv")
 
 # Look at it
 str(Flour)
@@ -137,7 +137,7 @@ summary(Flour.lm)   # refer to lecture PDF to see what the numbers mean i.e. for
 anova(Flour.lm)     # lists the tests on the data of response to explanatory
 
 #So what does this show us?
-#First we see our model call usig the lm() function
+#First we see our model call using the lm() function
 #Then we have the spread of residuals lists from min (generally a -ve) to positive 
 #The coefficients are listed next. The intercept estimate (~8.7) is the point that the regression line passes ths Y axis. Then we have the standard  error, a T value and a significance level Pr (note it's highly significant).
 #The next line is your explanatory variable in this case HUMIDITY. The estimate this time is the slope of the line (it's a negative so is slopes down from left to right); the we have the same other elements. Note it is highly significant too.
@@ -308,7 +308,7 @@ par(op)
 # Logan models abundance but we're going to look at species richness
 
 # load data file
-Mussel <- read.csv(file.choose())
+Mussel <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/mussel.csv")
 
 # Look at it
 str(Mussel)
@@ -421,7 +421,7 @@ qqPlot(mussel.lm1, main="QQ Plot")
 # Do some plotting....
 # CLASS EXERCISE: you need a boxplot and scatterplot (5 Mins)
 #************************
-Limpet <- read.csv(file.choose()) 
+Limpet <- read.csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/limpet.csv") 
 glimpse(Limpet)
 # make season a factor
 Limpet$SEASON <- as.factor(Limpet$SEASON)
@@ -613,7 +613,7 @@ ggplot(Limpet, aes(x = DENSITY, y = EGGS, colour = SEASON)) +
   # first add in the points
   geom_point(size = 5) +
   # now add in the fits and CIs
-  # NOte DENSITY and EGG are inherited so don't need specifying
+  # Note DENSITY and EGG are inherited so don't need specifying
   geom_smooth(data = Limpet.addition, aes(ymin = lwr, ymax = upr,
                                           fill = SEASON), stat = 'identity') +
   # now adjust colours
@@ -622,7 +622,7 @@ ggplot(Limpet, aes(x = DENSITY, y = EGGS, colour = SEASON)) +
   # add theme
   theme_bw()
 
-# Note this way we get the CKs too!!
+# Note this way we get the CIs too!!
 
 #************************************************
 # PART FOUR: Class Exercises                    *
