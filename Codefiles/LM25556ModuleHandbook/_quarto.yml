@@ -5,7 +5,6 @@ book:
   title: ""
   author: "Jon Sadler"
   date: "8/8/2025"
-  
   chapters:
     - index.qmd
     - preface.qmd
@@ -19,19 +18,20 @@ book:
     - chap8.qmd
     - chap9.qmd
     - chap10.qmd
-  #  - references.qmd
+ #  - references.qmd
 
 bibliography: /Users/jonsadler/Documents/GitHub/Common Resources/My Library.bib
 
 format:
   html:
+     # --- THIS IS THE FIX ---
+    # Set the Table of Contents depth to include level-3 headings (###)
+    toc-depth: 3
     theme:
       - /Users/jonsadler/Documents/GitHub/Common Resources/custom-fonts.scss
-  # --- This is for the PDF version ---
   pdf:
     documentclass: scrreprt
-    # This tells the LaTeX engine to place an image on the title page.
-    titlepage-logo: "images/my-cover.png"
 
 editor: visual
+
 

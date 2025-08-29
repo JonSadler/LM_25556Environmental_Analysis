@@ -1,16 +1,33 @@
-# Preface
+# Preface {.unnumbered}
 
-## **The class materials**
+## The class materials {.unnumbered}
 
-The class materials are written as a [Quarto](https://quarto.org/) book which is renders to a sequence of link html files (and a PDF document). You need to click on the ‘index.html’ file to use it as a book - this will open up the list of chapters.
+Please note I have used google translate to improve the access to these material for colleagues from China (the model is Chinese simplified). It may, or may not, faithfully translate the English to Mandarin. I have absolutely no way or knowing either way! Perhaps our native Mandarin speakers can confirm whether this is a helpful intervention or not! 请注意，我使用了谷歌翻译来方便中国同事访问这些资料（模型是简体中文）。它可能会，也可能不会，准确地将英文翻译成普通话。我完全不知道答案！或许我们的普通话母语人士可以确认一下，这是否是一种有效的干预措施！
+
+The class materials are written as a [Quarto](https://quarto.org/) book which is renders to a sequence of link html files (and a PDF document). You need to click on any of the ‘\*.html’ file to use it as a book - this will open up the list of chapters. 课程资料以 [Quarto](https://quarto.org/) 格式编写，并渲染为一系列 HTML 链接文件（以及一个 PDF 文档）。您需要点击“index.html”文件才能将其用作书籍——这将打开章节列表。
 
 The module is structured into 10 weeks of content, with each week introducing you to different aspects of using R to analyse environmental datasets. Chapter 10 or week 10 will introduce you to the datasets for Part A of the module assessment, which is worth 50% of the module mark.
 
-## **How to use this document**
+该模块包含10周的内容，每周将向您介绍使用R分析环境数据集的不同方面。第10章或第10周将向您介绍模块评估A部分的数据集，该部分占模块总分的50%。
+
+## How to use this document {.unnumbered}
 
 The instructions are self-evident. The instructions and code are interlinked, please:
 
+-   Navigate around the chapter materials by clicking on the left hand list. When you open a chapter the sections in it are displayed on the the drop list on the right.
 -   Work through the workshop materials and click on each code link which will copy the code from the chunk to your computer clipboard.
 -   Paste the code into the relevant weekly codefile;
 -   Remember to use the **\#** symbol to add comments to your code. Please use comments extensively.
 -   Each chapter has its own References section. Please undertake the guided readings as indicated, especially if it is reading for the next workshop. This will support your learning immeasurably!
+
+说明一目了然。说明和代码相互关联，请注意：
+
+点击左侧列表浏览章节资料。打开章节后，该章节的章节内容会显示在右侧的下拉列表中。
+
+浏览研讨会资料，然后点击每个代码链接，代码就会从该区块复制到您的计算机剪贴板。
+
+将代码粘贴到相关的每周代码文件中；
+
+请记住使用 \# 符号为代码添加注释。请广泛使用注释。
+
+每章都有各自的参考文献部分。请按照指示阅读指导性阅读材料，尤其是下次研讨会的阅读材料。这将极大地支持您的学习！

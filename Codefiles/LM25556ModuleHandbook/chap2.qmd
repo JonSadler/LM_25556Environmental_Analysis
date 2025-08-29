@@ -1,1 +1,653 @@
-# Chapter 2
+# Importing files and manipulating data
+
+## Outline
+
+Last week we covered the basics of inputting and accessing data in vectors and eventually dataframes. We concluded by importing data (tab delineated) into R as dataframe. This week the aim is to familarise you with R data file imports using various file formats:
+
+-   Tab delineated `txt` files
+
+-   Comma separated `csv` files (this usual format we select)
+
+-   And excel spreadsheet format, e.g. `xls` and `xlsx`.
+
+And, focus on the functions in **base R** and the **tidyverse** package that we can use to evaluate data structures, summarise, select and aggregate data and so on. Buckle up, it's a bit dry but it is essential material!
+
+上周我们讲解了在向量以及数据框中输入和访问数据的基础知识。最后，我们讲解了如何将数据（制表符分隔）以数据框的形式导入 R。本周的目标是让你熟悉使用各种文件格式导入 R 数据文件：
+
+制表符分隔的 txt 文件
+
+逗号分隔的 csv 文件（我们通常使用的格式）
+
+以及 Excel 电子表格格式，例如 xls 和 xlsx。
+
+接下来，我们将重点介绍 R 基础库和 tidyverse 包中的函数，这些函数可以用来评估数据结构、汇总、选择和聚合数据等等。系好安全带，虽然内容有点枯燥，但绝对是必学内容！
+
+### Learning Outcomes
+
+By the end of this session you will be able to:
+
+-   Load data into R stored in most of the heavily used formats (we are excluding those commonly used in remote sensing, such as shapefiles, geopackages and rasters). But should you need to access these for your projects then drop me an email.
+
+-   Use common functions to modify, select, subset, summarise and aggregate data. These are the data wrangling skills covered in @Wickham2019 and chapters 3 and 4 of his book [@Wickham2023] *Data Science*, which is available online here: [https://r4ds.hadley.nz/data-transform.htmlhttps://r4ds.hadley.nz/data-transform.html](https://r4ds.hadley.nz/data-transform.html).
+
+在本课程结束时，您将能够：
+
+将以大多数常用格式存储的数据加载到 R 中（我们不包括遥感领域常用的格式，例如 Shapefile、地理包和栅格数据）。如果您需要访问这些格式的数据，请给我发送电子邮件。
+
+使用常用函数修改、选择、子集化、汇总和聚合数据。这些是 @Wickham2019 及其著作 [@Wickham2023]《数据科学》第 3 章和第 4 章中涵盖的数据整理技巧，该书可在此处在线获取：<https://r4ds.hadley.nz/data-transform.htmlhttps://r4ds.hadley.nz/data-transform.html。>
+
+### Load the packages
+
+We'll need `tidyverse` and two additional packages today. We use a little bit of code that checks our installation for packages we have previously installed and if it finds one missing it will install it for us. Don't worry about the code right now, we'll introduce to the function `lapply()` as the module progresses.
+
+今天我们需要 tidyverse 和另外两个软件包。我们使用一小段代码来检查安装中是否存在之前安装过的软件包，如果发现缺少某个软件包，就会自动安装。现在先不用担心代码，随着模块的进展，我们会逐步介绍 lapply 函数。
+
+```{r}
+# List of packages
+packages <- c("skimr","readxl","tidyverse")
+
+# Load all packages and install the packages we have no previously installed on the system
+lapply(packages, library, character.only = TRUE)
+```
+
+**NOTE:** You can load the libraries using the `pacman` package, which will install any that are not in your current R setup. i.e. simulate the code above. The function we use to do this is `p_load()`. We are not using this package because it does not work well with the *UoB apps anywhere* simulator. But you could do this on your own computer. It's cleaner and easier.
+
+Our new packages for the data are:
+
+-   `skimr` - this is a package designed to generate *on the fly* summaries of data in dataframes [@Waring2022].
+
+-   `readxl` - although not formerly part of the `tidyverse` suite this is installed along side it. It is a package for reading data into R from the various variants of Microsoft's excel spreadsheet [@Wickham2023a].
+
+注意：您可以使用 pacman 包加载库，它会安装您当前 R 设置中不存在的任何库。例如，模拟上面的代码。我们使用的函数是 p_load()。我们没有使用此包，因为它与 UoB Apps Anywhere 模拟器配合不佳。但您可以在自己的电脑上执行此操作，这样更简洁、更轻松。
+
+我们新的数据包包括：
+
+`skimr` - 这是一个用于动态生成数据框中数据摘要的包 [@Waring2022]。
+
+`readxl` - 虽然它以前不是 tidyverse 套件的一部分，但它与 `tidyverse` 套件一起安装。它是一个用于从各种 Microsoft Excel 电子表格版本中将数据读入 R 的包 [@Wickham2023a]。
+
+### Create your codefile
+
+As last call it something sensible, like **Week_2_LM25556**. You don't need the **.R** suffix, that will be added for you when you save it.
+
+最后，给它起个更合理的名字，比如 Week_2_LM25556。不需要 .R 后缀，保存时会自动添加。
+
+------------------------------------------------------------------------
+
+## Getting Data into R via file import
+
+Remember to either set your working directory to the **...data** directory or better still hardwire to the file by adding the path to the read command. I opt for the latter because as long as you don't change the directory structure, when you revisit the project every data load will work seamlessly.
+
+We will focus on the two main **text file types** initially:
+
+-   tab delineated (`txt`);
+
+-   comma delineated (`cvs`).
+
+These are ASCI data so are compact and small. Note though, there are not compressed. We need other commands for compressed files.
+
+Then we'll look at importing excel formats.
+
+请记住，要么将工作目录设置为 ...data 目录，要么最好通过将路径添加到读取命令来将其固定到文件。我选择后者，因为只要您不更改目录结构，当您重新访问项目时，每次数据加载都能无缝进行。
+
+我们将首先关注两种主要的文本文件类型：
+
+制表符分隔 (`txt`)；
+
+逗号分隔 (`cvs`)。
+
+这些是 ASCI 数据，因此紧凑且小巧。但请注意，它们没有压缩。我们需要其他用于压缩文件的命令。
+
+然后我们将讨论导入 Excel 格式。
+
+### Tab text files
+
+We'll start by using the read.table function for "tab delineated" data. The key elements of this are : the `read.table()` function (from base R), the text in the parentheses which is the path and datafile name. You will need the suffix! And the last element `header = TRUE` tells R that the column names are in the first row of the table. This format is the same for all of core import functions.
+
+我们首先使用 read.table 函数来处理“制表符分隔”数据。其关键元素包括：read.table() 函数（来自基础 R），括号中的文本（即路径和数据文件名）。您需要后缀！最后一个元素 header = TRUE 告诉 R 列名位于表的第一行。所有核心导入函数都采用相同的格式。
+
+```{r}
+Squid <- read.table("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/squid.txt", header = TRUE)
+```
+
+### csv files
+
+To load in a csv file we write a similar bit of code. We'll select bird_stress.csv as we will be using it later on:
+
+```{r}
+Sleep <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/MammalSleep.csv")
+```
+
+Notice we have just changed read call to `read_csv`. This function is in the `tidyverse` package and does not require us to specify whether the file has a header or not. It also provides you with some additional information on the file. **NOTE**: base R has its own version called `read.csv`. But that command will need the `header = TRUE` argument. Read chapter 7 of @Wickham2023 for a more detailed outline of this command and its use: <https://r4ds.hadley.nz/data-import.html>.
+
+注意，我们刚刚将 read 调用改为 read_csv。此函数位于 tidyverse 包中，不需要我们指定文件是否包含文件头。它还会提供一些关于文件的其他信息。注意：R 语言有自己的版本 read.csv。但该命令需要 header = TRUE 参数。阅读 @Wickham2023 的第 7 章，了解有关此命令及其用法的更详细概述：<https://r4ds.hadley.nz/data-import.html。>
+
+### Excel files
+
+The last format we'll focus on is data sat in `xls` or `xlsx` spreadsheets. This is also covered in depth (along with Google Sheets imports) in @Wickham2023, chapter 20: <https://r4ds.hadley.nz/spreadsheets.html>. The functions we use here are in the `readxl` package:
+
+-   [`read_xls()`](https://readxl.tidyverse.org/reference/read_excel.html) reads Excel files with `xls` format.
+
+-   [`read_xlsx()`](https://readxl.tidyverse.org/reference/read_excel.html) read Excel files with `xlsx` format.
+
+-   [`read_excel()`](https://readxl.tidyverse.org/reference/read_excel.html) can read files with both formats. It guesses the file type based on the input file.
+
+As you are aware both `xls` and `xlsx` files permit user to create multiple sheets within the spreadsheet. As a result you need to specify the sheet of data you want. The default will read in sheet 1 (the first sheet listed in the spreasheet). Let's have a go with two spreadsheets: `fish.xlsx` and `birdsurvey.xls.`
+
+我们最后要关注的格式是 xls 或 xlsx 电子表格中的数据。@Wickham2023 的第 20 章也对此进行了深入介绍（包括 Google 表格的导入）：<https://r4ds.hadley.nz/spreadsheets.html。我们这里使用的函数位于> readxl 包中：
+
+read_xls() 读取 xls 格式的 Excel 文件。
+
+read_xlsx() 读取 xlsx 格式的 Excel 文件。
+
+read_excel() 可以读取两种格式的文件。它会根据输入文件猜测文件类型。
+
+正如您所知，xls 和 xlsx 文件都允许用户在电子表格中创建多个工作表。因此，您需要指定所需的数据工作表。默认会读取工作表 1（电子表格中列出的第一个工作表）。让我们尝试使用两个电子表格：fish.xlsx 和 birdsurvey.xls。
+
+```{r}
+# read both in 
+# birdsurvey.xls first
+bird <- read_xls("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/birdsurvey.xls")
+fish <- read_xlsx("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/fish.xlsx")
+```
+
+The first import worked well as there is only one sheet in the file. Second one didn't. The 'New names:' response is because there were empty columns in the sheet. If you view it by double clicking the dataframe in the `environment window` (top right), you'll see it has pulled in the sheet with all the metadata. You actually need sheet 2. We can amend the code to do that. Notice that the sheet argument sits outside the quotes.
+
+第一次导入工作顺利，因为文件中只有一张工作表。第二次导入则不然。“新名称：”的响应是因为工作表中有空列。如果您双击环境窗口（右上角）中的数据框来查看，您会看到它已导入包含所有元数据的工作表。您实际上需要的是工作表 2。我们可以修改代码来实现这一点。请注意，工作表参数位于引号之外。
+
+```{r}
+# sheet = 2 is the datasheet number within the spreadsheet [they are number 1-n left to right!]
+fish <- read_xlsx("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/fish.xlsx", sheet=2)
+```
+
+### Things to watch out for
+
+When importing an Excel, CVS, or any other spreadsheet for that matter, make sure that your data are formatted correctly with variables in columns. Use sensible column names, and don't use these characters are R doesn't like them: `£, $, %, ^, ,, ., <>, ?, , |, [], {}` etc. Make sure missing values have a 'NA' and they are not left blank. Having said that, `read_csv` and the other `excel` import functions are very flexible and will load the files with a multitude of issues, but it will recode things *en route* and you will have to do some additional tidying afterwards.
+
+导入 Excel、CVS 或任何其他电子表格时，请确保数据格式正确，列中包含变量。使用合理的列名，不要使用 R 不支持的字符：`£, $, %, ^, ,, ., <>, ?, , |, [], {}` 等。确保缺失值标有“NA”，且不留空。话虽如此，read_csv 和其他 Excel 导入函数非常灵活，虽然加载文件时可能会出现很多问题，但它会在导入过程中重新编码，之后您还需要进行一些额外的整理工作。
+
+## Examining what's in the dataframe
+
+You should now have three separate dataframes loaded in your **Environment**; see the above right window.
+
+There are a range of options here from base R, `tidyverse` and `skimr` to look at these data to evaluate some basic parameters. We'll look at them all. First up though, you can just click on a dataframe in the `Environment window` (top left) and then RStudio will use it's bespoke `View` function to open the file in your code window. It opens in a spreadsheet format and you can scroll up and down and left and right.
+
+现在，您的“环境”窗口中应该已经加载了三个独立的数据框；请参见右上方窗口。
+
+这里有一系列选项，包括基础 R、tidyverse 和 skimr，可用于查看这些数据并评估一些基本参数。我们将逐一介绍它们。首先，您只需在“环境”窗口（左上角）中点击一个数据框，RStudio 就会使用其定制的“查看”功能在您的代码窗口中打开该文件。它会以电子表格格式打开，您可以上下左右滚动查看。
+
+### base R
+
+Let's focus on the `Squid` data to start with and use some base R functions to evaluate it. You were introduced to these last week. Run the code the review the outcomes.
+
+我们先来关注一下 Squid 数据，并使用一些基本的 R 函数来评估它。我们上周已经介绍过这些函数了。运行代码并查看结果。
+
+```{r}
+names(Squid)        # Lists the column (or variable names)
+str(Squid)          # Indicates the structure of the data frame (i.e. variable types etc)
+head(Squid)         # Lists the first 6 rows of data
+tail(Squid)         # No prizes for guessing what that does....
+dim(Squid)          # Lists the dimensions of the data frame (in this case 2644 cases or rows and 6 variables or columns)
+```
+
+Out of all of the above, `str()` is probably the most useful because it allows you to view the ranges and classes of data in the dataframe. This is important because the data class has implications for the analyses we can do.
+
+以上所有方法中，str() 可能是最有用的，因为它允许你查看数据框中数据的范围和类别。这很重要，因为数据类别会影响我们接下来的分析。
+
+### tidyverse
+
+**tidyverse** has a version of this called **glimpse**. It is essentially a souped up **str()** with some evident benefits:
+
+| Feature              | `str()` (Base R)           | `glimpse()` (Tidyverse)                          | Winner                                                                    |
+|:---------------------|:---------------------------|:-------------------------------------------------|:--------------------------------------------------------------------------|
+| **Layout**           | Horizontal, wraps messily  | **Vertical, aligned, one-per-line**              | **`glimpse()`**                                                           |
+| **Readability**      | Can be difficult to scan   | **Excellent, easy to scan**                      | **`glimpse()`**                                                           |
+| **Shows Dimensions** | In a sentence at the start | **Clearly at the top (Rows: ..., Columns: ...)** | **`glimpse()`**                                                           |
+| **Type Display**     | `num`, `chr`, `Factor`     | `<dbl>`, `<chr>`, `<fct>`                        | (Matter of preference, but `glimpse()` is more consistent with Tidyverse) |
+| **Pipe-friendly**    | No, `str(data)`            | **Yes**, `data %>% glimpse()`                    | **`glimpse()`**                                                           |
+| **Availability**     | Always available in base R | Requires `dplyr` or `tibble` to be loaded        | `str()`                                                                   |
+
+### skimr
+
+If you want more summary information without troubling yourself with some addtional work then `skimr` is a good choice. This packages generates a host of useful summary information: including summary quartiles (p25, p50 (this is the median), p75), mean, max (p100), min (p0), the number of missing data points (or NAs - super useful). It even draws a raggy little histogram so you can 'eyeball' the distribution of each variable.
+
+如果您想获得更多摘要信息，又不想费力做其他工作，skimr 是个不错的选择。这个软件包可以生成大量有用的摘要信息：包括摘要四分位数（p25、p50（中位数）、p75）、平均值、最大值（p100）、最小值（p0）、缺失数据点数（或 NA - 非常有用）。它甚至还会绘制一个粗糙的小直方图，方便您“目测”每个变量的分布情况。
+
+```{r}
+skim(Squid)
+```
+
+Have a look at the other files with `glimpse()` and `skim()`.
+
+## Transforming data - Summarising, aggregating filtering, mutating
+
+The next two sections will introduce you to some important functions: - `tapply()`, `unique()` and `table()`, in base R; - `aggregate()`, `summarise()`, `mutate()`, in `dplyr`, and; - `pivot_longer()`, `pivot_wider()` and `separate()`, in `tidyr`.
+
+We'll use the Veg data. This dataframe holds information on vegetation transects from a multi-year study in the US. Further information is available in @Zuur2009.
+
+接下来的两节将介绍一些重要的函数：- 基础 R 中的 tapply()、unique() 和 table()；- dplyr7 中的aggregate()、summarise() 和 mutate()；以及 - tidyr 中的gather()、spread() 和separate()。
+
+我们将使用 Veg 数据。该数据框包含来自美国一项多年研究的植被横断面信息。更多信息请访问 @Zuur2009。
+
+```{r}
+Veg <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/Vegetation.csv")
+```
+
+The `tapply()` function creates summaries of variables (means, sd and so). Let's say you're interested in finding how the mean species richness (R in the data file) differs across transects 8 transects - a lot of effort. The `unique()` function shows you how many unique levels a factor has:
+
+tapply() 函数会创建变量（均值、标准差等）的汇总。假设您想了解 8 条样带中物种丰富度平均值（数据文件中的 R）的差异，这需要付出很多努力。unique() 函数会显示某个因子有多少个唯一级别：
+
+```{r}
+unique(Veg$Transect)
+```
+
+Fortunately, one function will do that for you:
+
+```{r}
+tapply(Veg$R, Veg$Transect, mean)       
+```
+
+This is useful when you are looking to use functions on subsets of a variable conditional on another variable (generally a factor - which does the grouping). You can use any arithmetic function sd, median, var (variance) and so on.
+
+```{r}
+Me <- tapply(Veg$R, Veg$Transect, mean)    # Calculates the mean
+Sd <- tapply(Veg$R, Veg$Transect, sd)      # Calculates the sd
+Le <- tapply(Veg$R, Veg$Transect, length)  # Calculates the number of observations (length)
+Descriptors <- cbind(Me, Sd, Le)
+Descriptors
+```
+
+### `dplyr` - some key functions
+
+This task is much easier using another package `dplyr()` (from Wickham's `tidyverse` package). The code is simpler and package super powerful. Key functions in this package are:
+
+-   `select()` - allows you to select columns in a dataframe for further manipulation;
+
+-   `slice()` - allows you to select rows in a dataframe;
+
+-   `filter()` - subsetting or removing observations based on some condition;
+
+-   `group_by()` - creates "sub-tables" or groups based on the unique values in one or more columns.;
+
+-   `summarise()` - provides summary statistics for a group of observations (e.g. mean, SD etc);
+
+-   `arrange()` - orders dataframes by observations (it's a sorting function);
+
+-   `join` - allows dataframes to be joined using unique attribute IDs;
+
+-   `mutate()` - create new columns on the basis of calculations and transforms of other columns.
+
+使用另一个包 dplyr()（来自 Wickham 的 tidyverse 包）可以更轻松地完成此任务。该包的代码更简洁，功能强大。此包中的关键函数包括：
+
+select() - 允许您选择数据框中的列以进行进一步操作；
+
+slice() - 允许您选择数据框中的行；
+
+filter() - 根据某些条件对观测值进行子集设置或移除；
+
+group_by() - 根据一列或多列中的唯一值创建“子表”或组；
+
+summarise() - 为一组观测值提供汇总统计信息（例如平均值、标准差等）；
+
+arrange() - 按观测值对数据框进行排序（这是一个排序函数）；
+
+join - 允许使用唯一属性 ID 连接数据框；
+
+mutate() - 根据其他列的计算和变换创建新列。
+
+You will need to read a little to support your learning here. Have a look at chapters 3, 4 in @Wickham2023 and try some of his exercises. It all helps to fix the functions in your mind. *Remember you are learning a language. The function calls are effectively verbs (they do things) and they have a context for usage and varying modes of use, i.e. a suite of function arguments*. **Practice is essential**. Let's look at each function in turn.
+
+你需要阅读一些内容来支持你的学习。可以看看\@Wickham2023的第三章和第四章，并尝试一些他的练习。这些都有助于巩固你对函数的理解。记住，你正在学习一门语言。函数调用实际上是动词（它们会执行操作），它们有使用上下文和不同的使用模式，也就是一组函数参数。练习至关重要。让我们依次看看每个函数。
+
+#### select
+
+`Select()` offers a way of subsetting dfs by selecting the variables or columns you want for further analysis. Take our Veg data. If we `glimpse()`it we can see that it has lots of columns (or variables).
+
+Select() 提供了一种通过选择需要进一步分析的变量或列来对 dfs 进行子集化的方法。以 Veg 数据为例。如果我们使用 glimpse() 函数，就会发现它包含很多列（或变量）。
+
+```{r}
+glimpse(Veg)
+```
+
+It has 24 to be exact. We might only require a few of these to do an analysis. Let's suppose we want to know how climatic factors, specifically precipitation, affect species richness (this the column called 'R' in the data). We can create a new df called 'Veg1' by selection the variables we need from Veg.
+
+确切地说，它有 24 个。我们可能只需要其中几个就可以进行分析。假设我们想知道气候因素，特别是降水量，如何影响物种丰富度（即数据中称为“R”的列）。我们可以从 Veg 中选择我们需要的变量，创建一个名为“Veg1”的新 df。
+
+```{r}
+Veg1 <- Veg %>% select("R", "FallPrec","SprPrec","SumPrec","WinPrec") # Here we are selection by columun names
+```
+
+Notice we now have a new df called Veg1 in our environment and only had 5 columns. Obviously, typing lots of names if you want all the climate variables is a bit of a faff. No problem, you can select them using column numbers as we found out with our subsetting work in Week 1. We keep overwriting the dfs with the same name so we are no filling up the **Environment** with lots of redundant dfs.
+
+注意，我们现在在环境中添加了一个名为 Veg1 的新 df，它只有 5 列。显然，如果要包含所有气候变量，输入大量名称会比较麻烦。没问题，你可以使用列号来选择它们，就像我们在第一周的子集工作中发现的那样。我们不断覆盖同名的 df，这样就不会在环境中填充大量冗余的 df。
+
+```{r}
+Veg1 <- Veg %>% select(5, 10:21) # this selects column 5 (R) and then all the climate variables
+```
+
+We don't need the `[row,column]` format because `select()` only allows you to select columns (or variables) from the df. To select rows, you need to use `slice()`.
+
+我们不需要 \[row,column\] 格式，因为 select() 只允许从 df 中选择列（或变量）。要选择行，需要使用 slice()。
+
+#### `slice`
+
+It is not often that we select particular rows from datasets and if needed to we'd likely go for some kind of filter that is conditional on values in particular columns (see below), or might want order the rows in a particular column in descending order to sample the top 100. But you might want the first 5, or last 10, or even a random sample of 20. This use additional variants of the `slice`, namely the functions, `slice_tail()` and `slice_sample()`.
+
+我们并不经常从数据集中选择特定的行，如果需要，我们可能会采用某种以特定列中的值为条件的过滤器（见下文），或者可能希望按降序排列特定列中的行以抽取前 100 个。但您可能需要前 5 个，或后 10 个，甚至是随机抽取 20 个。这使用了切片的其他变体，即函数 slice_tail() 和 slice_sample()。
+
+```{r}
+Veg %>% slice(1:5)           # first 5 rows
+Veg %>% slice_tail(n = 10)   # last 3 rows
+Veg %>% slice_sample(n = 20) # 20 random rows
+```
+
+#### filter
+
+Filtering allows you to subset data. You've already done this the hard way already last session. `dplyr()` makes it easier and quicker. It works on rows using some sort of search criterion.
+
+过滤功能允许您对数据进行子集化。您在上节课中已经用很困难的方法完成了这项操作。dplyr() 可以使其更简单、更快捷。它使用某种搜索条件对行进行操作。
+
+```{r}
+Veg %>% filter(Transect == 1:2) # displays all the records in transects 1 and 2
+```
+
+#### summarise
+
+Here we are just summarising the descriptive statistics for one column/variable (called FallPrec) in the Veg df. We have the mean, standard deviation, variance and length (or 'n", the number of data points).
+
+这里我们只是总结了 Veg df 中一列/变量（称为 FallPrec）的描述性统计数据。我们有平均值、标准差、方差和长度（或“n”，即数据点的数量）。
+
+```{r}
+Veg %>% summarise(mean=mean(FallPrec), sd=sd(FallPrec), var=var(FallPrec), length=length(FallPrec))
+```
+
+#### mutate
+
+Mutate and create a new dataframe (sleep1) with a new column showing the proportion of rapid eye movement (REM) sleep for each species (rem_proportion) and the body weight transformed into grams (bodywt_grams).
+
+变异并创建一个新的数据框（sleep1），其中有一个新列显示每个物种的快速眼动（REM）睡眠比例（rem_proportion）和转换为克的体重（bodywt_grams）。
+
+```{r}
+sleep1 <- Sleep %>% 
+  mutate(rem_proportion = sleep_rem / sleep_total, 
+         bodywt_grams = bodywt * 1000) 
+```
+
+Look at your new dataframe with the additional 'new' column.
+
+```{r}
+sleep1
+```
+
+#### `join`
+
+The `join` functions allow you to combine dataframes using a column with rows of unique identifiers (or keys) that is common to both files. You can use one **primary** key or two or more if the key requires more than one variable; a **compound** key.
+
+`dplyr` has six join functions: `left_join()`, `inner_join()`, `right_join()`, `full_join()`, `semi_join()`, and `anti_join()`. They all take a pair of data frames (x and y) and return one data frame. The order of the rows and columns in the output is primarily determined by x. We'll focus on the most commonly used one: `left_join()` and illustrate using it with the fish data we imported earlier in the session. If we look at that dataframe...
+
+连接函数允许您使用包含两个文件共有的唯一标识符（或键）行的列来组合数据框。您可以使用一个主键，如果键需要多个变量，则可以使用两个或多个主键；复合键。
+
+dplyr 有六个连接函数：left_join()、inner_join()、right_join()、full_join()、semi_join() 和 anti_join()。它们都接受一对数据框（x 和 y）并返回一个数据框。输出中行和列的顺序主要由 x 决定。我们将重点介绍最常用的函数：left_join()，并演示如何将其与我们之前在课程中导入的鱼类数据结合使用。如果我们看一下该数据框……
+
+```{r}
+glimpse(fish)
+```
+
+...we see it has 30 rows and 30 columns. The variable listed is `Site_no`. The is the unique identifier or **key**. If you looked at the `fish.xlsx` spreadsheet in `Excel` you would have noticed other sheets, one of them is called `environmmental variables`. It is sheet 3 in the spreadsheet. The `Site_no` variable is also in that sheet. First need to load the sheet into R and then combine them using `left_join()`.
+
+我们看到它有 30 行 30 列。列出的变量是 Site_no。它是唯一标识符或键。如果您查看了 Excel 中的 fish.xlsx 电子表格，您会注意到其他工作表，其中一个名为“环境变量”。它是电子表格中的工作表 3。Site_no 变量也在该工作表中。首先需要将工作表加载到 R 中，然后使用 left_join() 将它们合并。
+
+```{r}
+#load in the file
+env <- read_xlsx("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/fish.xlsx", sheet=3)
+# now join the fish and env using the common key, Site_no.
+fish_env <- fish %>% 
+  left_join(env, join_by(Site_no))
+```
+
+Look at the combined dataframe. What you have done is combine the two dataframes adding the environmental data from each site to the fish species data in to a new dataframe called `fish_env`.
+
+看看合并后的数据框。你所做的就是将两个数据框合并起来，将每个站点的环境数据和鱼类物种数据添加到一个名为 fish_env 的新数据框中。
+
+```{r}
+str(fish_env)
+```
+
+#### Combining functions
+
+Using combinations of these commands you can pull out, summarise and analyses subsets of data from large data files very quickly and effectively. Here are a couple of examples.
+
+Let's replicate the `tapply()` function we did earlier to generate the mean, sd, and var (variance) in the species richness variable (R) in the Veg df. We are using the `%>%` piping operate to sequence the functions. Veg is our df, we `group_by()` numbers in the Transect columns then summarise the mean, sd and var for each transect.
+
+结合使用这些命令，您可以快速有效地从大型数据文件中提取、汇总和分析数据子集。以下是几个示例。
+
+让我们复制之前执行的 tapply() 函数，以生成 Veg 数据表中物种丰富度变量 (R) 的平均值、标准差和方差 (var)。我们使用 %\>% 管道运算符对函数进行排序。Veg 是我们的 df，我们对 Transect 列中的数字进行 group_by()，然后汇总每个横断面的平均值、标准差和方差。
+
+```{r}
+Veg %>% group_by(Transect) %>% summarise(mean=mean(R), sd=sd(R), var=var(R))
+```
+
+Another example might be arranging variables by some value and selection to top 20 for further analysis. Do this you'd use `arrange()` in combination with `slice()`. We arrange by `bodywt` in descending heaviest to lightest (using the '-' character), and then sample the top 10 species. Alternative `slice` functions exist in `dplyr` (see below).
+
+另一个例子可能是按某个值对变量进行排序，然后选取前 20 个进行进一步分析。为此，您需要结合使用 accordion() 和 slice()。我们按体重从重到轻的降序排列（使用“-”符号），然后对前 10 个物种进行采样。dplyr 中提供了其他切片函数（见下文）。
+
+```{r}
+Sleep %>% arrange(-bodywt) %>% slice(1:10) # rows 1 to 10. OR:
+Sleep %>% arrange(-bodywt) %>% slice_head(n=10) # uses a different dplyr function slice_head()
+
+```
+
+### What is tidy data?
+
+**Tidy data** follows three core attributes [@Wickham2014]:
+
+-   **Each variable → has its own column;**
+
+-   **Each observation → has its own row;**
+
+-   **Each value → has its own cell.**
+
+整洁数据遵循三个核心属性 [@Wickham2014]：
+
+每个变量 → 都有自己的列；
+
+每个观测值 → 都有自己的行；
+
+每个值 → 都有自己的单元格。
+
+## Manipulating and tidying data using tidyr
+
+Key functions in this library are:
+
+-   `pivot_longer()` – a way to reshape data from **wide to long**, keeping column names as key variables;
+
+-   `pivot_wider()` – a way to reshape data from **long to wide**, creating new columns from key variables;
+
+-   `separate()` – split one **column into multiple columns** based on a delimiter or character position;
+
+-   `unite()` – combine multiple **columns into one** by pasting their values together with a separator.
+
+We'll generate some data that simulates messy data and then transform it to tidy data.
+
+该库中的关键函数包括：
+
+pivot_longer() – 将数据从宽列转换为长列，并将列名保留为键变量；
+
+pivot_wider() – 将数据从长列转换为宽列，并通过键变量创建新列；
+
+separate() – 根据分隔符或字符位置将一列拆分为多列；
+
+unite() – 将多列的值用分隔符粘贴在一起，合并为一列。
+
+我们将生成一些模拟杂乱数据的数据，然后将其转换为整洁数据。
+
+```{r}
+# Create some messy data (wide-style, species split into columns)
+Site   <- c("Site1", "Site2", "Site3")
+Sample <- c("S1", "S2", "S3")
+Plot   <- c("P1", "P2", "P3")
+Sp1    <- c(123, 533, NA)
+Sp2    <- c(156, 45, 45)
+Sp3    <- c(243, 4, 345)
+
+messy_df <- data.frame(Site, Sample, Plot, Sp1, Sp2, Sp3)
+messy_df
+```
+
+You can see here that the species are column names i.e. the data is in a wide format, which has its uses, but a lot of plotting packages (e.g. ggplot2) and analytical functions (e.g. aov, or lm) in R need data organised differently. ie. in tidy (or long) format. We achieve using `pivot_longer()`.
+
+您可以看到，物种是列名，即数据采用宽格式，这有其用途，但 R 中的许多绘图包（例如 ggplot2）和分析函数（例如 aov 或 lm）需要以不同的方式组织数据，即采用整洁（或长）格式。我们使用pivot_longer()来实现。
+
+```{r}
+# Tidy (long) data
+tidy_df <- messy_df %>%
+  pivot_longer(cols = starts_with("Sp"),
+               names_to = "Species", # new column 
+               values_to = "Count")  # another new column
+tidy_df
+```
+
+You see here we have moved the species counts from the cells in each former species variables them a new column called 'Count' and put the former species names (sp1,sp2, and sp3 i.e. the column names) into rows within a new `column (or variable) called 'Species'. If you want to transform it back to wide you can use`pivot_wider().
+
+可以看到，我们将物种数量从每个先前物种变量的单元格中移到了一个名为“Count”的新列中，并将先前的物种名称（sp1、sp2 和 sp3，即列名）放入名为“Species”的新列（或变量）中的行中。如果要将其转换回宽表，可以使用pivot_wider()。
+
+#### An example of tidying a more complex dataset
+
+We will use a partial datafile on stream temperatures to illustrate this process. Load in the datafile.
+
+```{r}
+streamT<-read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/streamT.csv") 
+```
+
+Column 1 is distance downstream in a river (in metres), Column 2 is depth in the stream bed (again in m) and Columns 3:30 are dates and times of temperatures readings with T measured in (C).
+
+Have a look at these data - identify the issues.
+
+第 1 列表示河流下游距离（以米为单位），第 2 列表示河床深度（同样以米为单位），第 3 列 30 列表示温度读数的日期和时间，单位为摄氏度 (C)。
+
+查看这些数据 - 找出问题所在。
+
+```{r}
+glimpse(streamT) 
+```
+
+Several of the columns are names are dates not numeric variables Stream temperature is hidden under the date columns making it difficult to analyse. We are going to reformat the file so date is in one column with the relevant temperature reading per distance and depth in another two columns. To do this we use `pivot_longer()`.
+
+一些列是名称，而不是数字变量。溪流温度隐藏在日期列下，这使其难以分析。我们将重新格式化文件，使日期位于一列，而每个距离和深度对应的温度读数位于另外两列。为此，我们使用pivot_longer()。
+
+```{r}
+streamTTidy <- streamT %>%  # selects our df
+  pivot_longer(cols = 3:29, # finds the columns to pivot (i.e. they are all dates)
+               names_to = "DateT", # writes the column names into the rows
+               values_to = "Temp") # pulls the temperature data from the cells and puts in the rows linked to the date when the measurement was taken.
+```
+
+The code pools the dates from columns 3:29 and places the former column headers into a DateT column and the temperatures into a Temp column. The columns we don't mention, Depth and Distance of left untouched.
+
+The remaining issue is that the DateT column has two variables date and time. We can resolve this using the `separate()` function.
+
+代码将第 3:29 列的日期合并到一起，并将之前的列标题放入 DateT 列，将温度放入 Temp 列。我们未提及的 Depth 和 Distance 列保持不变。
+
+剩下的问题是 DateT 列包含两个变量 date 和 time。我们可以使用 separate() 函数解决这个问题。
+
+```{r}
+StreamTTidier <- streamTTidy %>%
+  separate(DateT, into = c("Date", "Time"), sep = "\\ ") %>%
+  separate(Date, into = c("Day", "Month", "Year"), sep = "\\/") %>%
+  separate(Time, into = c("Hour", "Min"), sep = "\\:")
+```
+
+Line 1 of this code takes the DateT column and pulls out Date from time using the separator `\\` . This is a space. Line 2 separates Date into Day, Month and Year using the separate `\\/` Line 3 separates Time into Hours and Minutes using the separator `\\`: Check help file for more information on separators. But in short R is expecting the character that separates the fields to be given immediately after the `\\` You now have a tidy datafile to start analysis temperature change by distance downstream, depth into the stream bed and across time each day and or seasonally.
+
+We could have done it one larger code element using the piping operators to gather then separate.
+
+这段代码的第 1 行获取 DateT 列，并使用分隔符  从时间中提取日期。 是一个空格。第 2 行使用分隔符 / 将日期分隔为日、月和年。第 3 行使用分隔符 : 将时间分隔为小时和分钟。有关分隔符的更多信息，请参阅帮助文件。简而言之，R 期望在  之后立即提供分隔字段的字符。现在，您有了一个整洁的数据文件，可以开始分析温度随下游距离、河床深度以及每天或每个季节随时间的变化。
+
+我们可以使用管道运算符将其合并成一个更大的代码元素，然后进行收集和分离。
+
+```{r}
+StreamTTidier2 <- streamT %>% gather(DateT, Temp, 3:29) %>% 
+  separate(DateT, into = c("Date", "Time"), sep = "\\ ") %>%
+  separate(Date, into = c("Day", "Month", "Year"), sep = "\\/") %>%
+  separate(Time, into = c("Hour", "Min"), sep = "\\:")
+```
+
+### Working with dates and times
+
+All we did above with our dates/times was chop into smaller elements to separate out the months, days and times. We could do this because it was stored as a character. But R can store dates and times as a unique data class. Dates are stored in R as an numeric, which is effectively the mumber of days since 1st January 1070. Excel does the same. Times are location specific, depending on your time zone.
+
+Both can be manipulated using the `lubridate` package - examples are available in the code in the Appendix. `lubridate` has a run of functions to manipulate dates and times directly. `DOY()` (Day of Year) and `DOM()` (Day of Month) functions. It is also covered well in chapter 17 of @Wickham2023. You will need to wrestle with these functions if you have to analyse time series data on say, river flows, or fish mortality data on days with extreme heat events, for example.
+
+上面我们对日期/时间所做的就是将其分割成更小的元素，以区分月份、日期和时间。我们可以这样做，因为它是以字符形式存储的。但 R 可以将日期和时间存储为一个独特的数据类。日期在 R 中存储为数值型数据，实际上是自 1070 年 1 月 1 日以来的天数。Excel 也是如此。时间是特定于位置的，取决于您的时区。
+
+两者都可以使用 lubridate 包进行操作——示例可在附录的代码中找到。lubridate 包含一系列可以直接操作日期和时间的函数。DOY()（年份）和 DOM()（月份）函数。@Wickham2023 的第 17 章也对此进行了详细介绍。如果您需要分析时间序列数据，例如河流流量或极端高温事件发生时鱼类死亡率数据，则需要掌握这些函数。
+
+## Class Exercises
+
+### CLASS EXERCISE 1: Using base R
+
+Use the deep sea research data (ISIT.txt).
+
+-   Load it (it is `tab` delineated), examine its structure with your favoured functions. The file contains bioluminscence data on organisms from various depths and locations in the North Sea.
+
+-   Extract the data from station 1. How many observations are there from this station?
+
+-   What are minimum, maximum, median and mean sampled depth of stations 2 and 3.
+
+-   Identify stations with fewer observations than 20. Create a data frame omitting them.
+
+-   Extract the data for 2002 and sort it by increasing depth values.
+
+-   Show the data that were measured at depths greater than 2000m in April (all years).
+
+使用深海研究数据 (ISIT.txt)。
+
+加载它（以制表符分隔），并使用您常用的函数检查其结构。该文件包含北海不同深度和位置的生物发光数据。
+
+从站点 1 提取数据。该站点有多少个观测点？
+
+站点 2 和 3 的最小、最大、中值和平均采样深度是多少。
+
+找出观测点少于 20 个的站点。创建一个数据框，将其忽略。
+
+提取 2002 年的数据，并按深度值递增排序。
+
+显示 4 月份（所有年份）在深度超过 2000 米处测得的数据。
+
+### CLASS EXERCISE 2: Using tidyverse functions
+
+Repeat each of the above using tidyverse functions.
+
+使用 tidyverse 函数重复上述每个操作。
+
+## Homework
+
+Two things to do:
+
+-   **Please attempt to read at least some of the material listed above but certainly this one [@Wickham2014]! and the blog below.**
+
+-   Read Brian McGill's blog on the [10 commandments for good data data management.](https://dynamicecology.wordpress.com/2016/08/22/ten-commandments-for-good-data-management/). There is a lot of code that you might could also work through. I have downloaded the datasets for you if you wish to try. These are the Raw Data files. They follow a constellation schema per Commandment #3 (if you have read the blog). Some info on the data:
+
+    -   raptor_survey.csv/df is the fact table
+
+    -   raptor_temps.csv/temps is a 2nd environmental fact table
+
+    -   raptor_sites.csv/siteinfo is a dimension table (site) for both fact tables
+
+You know the commands to read them in.
+
+有两件事要做：
+
+请尝试至少阅读上面列出的部分材料，但一定要阅读这篇[@Wickham2014]！以及下面的博客。
+
+阅读 Brian McGill 关于良好数据管理十诫的博客。其中有很多代码你或许也能理解。如果你想尝试，我已经为你下载了数据集。这些是原始数据文件。它们遵循第三诫的星座图（如果你读过这篇博客的话）。以下是一些关于数据的信息：
+
+raptor_survey.csv/df 是事实表
+
+raptor_temps.csv/temps 是第二个环境事实表
+
+raptor_sites.csv/siteinfo 是两个事实表的维度表（站点）。
+
+你已经知道读取它们的命令了。
+
+## References

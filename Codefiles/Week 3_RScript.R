@@ -21,7 +21,6 @@
 # *** PART 1.1: Histograms ----
 # Useful to visualise distributions or probability density functions
 # Helps to assess data structure / skewness etc
-# We will use the compensation dataset for this (ozone.csv) derived from Beckerman and Petchy and their analysis.
 # Key functions here is hist(); remember to list these and others on the Canvas pages in your group document
 # **********************************************************
 

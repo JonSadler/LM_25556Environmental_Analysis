@@ -28,7 +28,7 @@ Try it...
 PART 1: Getting Data into R via file import 
 *******************************************
 
-REMEMBER TO MAKE SURE YOU HAVE SET YOUR WORKING DIRECTORY!
+Remember to either set your working directory to the ...data directory or better still hardwire to the file by adding the path to the read command. I opt for the latter because as long as you don't change the directory structure, when you revisit the project every data load will work seamlessly.
 
 We'll start by using the read.table function for "tab delineated" data
 ```{r}
@@ -39,8 +39,7 @@ Data input from textfiles and excel spreadsheets and choose.file()
 Make sure you have downloaded the datasets you need from the website! You need squid.txt, deer.txt, compensation.csv
 Put them in your workspace!
 
-We strongly recommend that you use the names, str, head, tail and dim functions after import
-You need to be sure you've got the correct dataset!!
+We strongly recommend that you use the names, str, head, tail and dim functions after import. You need to be sure you've got the correct dataset!!
 
 ```{r}
 names(Squid)        # Lists the column (or variable names)
@@ -536,11 +535,10 @@ thedata %>% group_by(moyr=floor_date(date,"month")) %>% summarise(abund=sum(abun
   mutate(abund.per.day=abund/obsdays) %>% select(moyr,abund.per.day)
 ```
 
+## Class Exercises
 
-**********************************************************   
-CLASS EXERCISES:  Importing and manipulating data frames *
-**********************************************************
-1. Use the deep sea research data (ISIT.txt). Load it in using read.table. The file contains bioluminscence data oo organisms from various depths and locations in the North Sea. Repeat using tidyverse packages.
+### Base R
+1. Use the deep sea research data (ISIT.txt). Load it in using read.table. The file contains bioluminscence data oo organisms from various depths and locations in the North Sea. 
 
 2. Extract the data from station 1. How many observations are there from this station?
 
@@ -553,5 +551,9 @@ CLASS EXERCISES:  Importing and manipulating data frames *
 6. Show the data that were measured at depths greater than 2000m in April (all years).
 
 7. Check out the merge() function that allows you to merge datasets with a common ID. 
+CLASS EXERCISE 2:
 
+### Tidyverse
+
+Repeat each one using tidyverse packages.
 
