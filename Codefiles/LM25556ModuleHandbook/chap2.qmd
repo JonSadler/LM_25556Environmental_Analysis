@@ -199,7 +199,7 @@ Out of all of the above, `str()` is probably the most useful because it allows y
 **tidyverse** has a version of this called **glimpse**. It is essentially a souped up **str()** with some evident benefits:
 
 | Feature              | `str()` (Base R)           | `glimpse()` (Tidyverse)                          | Winner                                                                    |
-|:---------------------|:---------------------------|:-------------------------------------------------|:--------------------------------------------------------------------------|
+|:--------------|:--------------|:----------------|:--------------------------|
 | **Layout**           | Horizontal, wraps messily  | **Vertical, aligned, one-per-line**              | **`glimpse()`**                                                           |
 | **Readability**      | Can be difficult to scan   | **Excellent, easy to scan**                      | **`glimpse()`**                                                           |
 | **Shows Dimensions** | In a sentence at the start | **Clearly at the top (Rows: ..., Columns: ...)** | **`glimpse()`**                                                           |
@@ -620,9 +620,13 @@ Repeat each of the above using tidyverse functions.
 
 使用 tidyverse 函数重复上述每个操作。
 
-## Homework
+## Next Week
 
-Two things to do:
+We will focus our attention on **Exploratory Data Analysis (EDA)** and graphical tools we can use to display data.
+
+## Follow-up work
+
+Three things to do:
 
 -   **Please attempt to read at least some of the material listed above but certainly this one [@Wickham2014]! and the blog below.**
 
@@ -647,6 +651,8 @@ raptor_survey.csv/df 是事实表
 raptor_temps.csv/temps 是第二个环境事实表
 
 raptor_sites.csv/siteinfo 是两个事实表的维度表（站点）。
+
+- Read chapter 4 in [@Beckerman2017].
 
 你已经知道读取它们的命令了。
 

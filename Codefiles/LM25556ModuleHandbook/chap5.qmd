@@ -1,1 +1,1199 @@
-# Chapter 5:
+# An Introduction to Linear Regression using R
+
+## Outline:
+
+This week we will explore linear regression in R. A fundamental understanding of this is critical for the more complex regression techniques we we explore in the coming weeks. Today we will cover:
+
+1.  Correlation between variables.
+2.  Basic theory of linear regression.
+3.  Its application in R using simple data sets.
+4.  How to understand the regression coefficient outputs.
+5.  Creating a graphic to display the results.
+
+本周我们将探索 R 语言中的线性回归。对 R 语言的基本理解对于我们接下来几周探索更复杂的回归技术至关重要。今天我们将涵盖：
+
+1.  变量间的相关性。
+2.  线性回归的基本理论。
+3.  如何在 R 语言中使用简单数据集进行线性回归分析。
+4.  如何理解回归系数的输出。
+5.  创建图表来展示结果。
+
+### Essential Reading:
+
+-   Chapter 5 in @Beckerman2017.
+
+-   Chapter 7 @Field2012 Discovering Statistic using R. Sage Publications.
+
+-   @Zuur2016a ‘A Protocol for Conducting and Presenting Results of Regression-Type Analyses’. Methods in Ecology and Evolution 7, no. 6 (2016): 636–45. <https://doi.org/10.1111/2041-210X.12577.> This paper presents an excellent framework outlining what you should present as results from regression analyses.
+
+-   @Beckerman2017 的第 5 章。
+
+-   @Field2012 的第 7 章：使用 R 語言探索統計資料。 Sage 出版品。
+
+-   @Zuur2016a：「迴歸分析結果的執行與呈現方案」。 《生態與演化方法》7，第 6 期 (2016): 636–45。 <https://doi.org/10.1111/2041-210X.12577> 本文提出了一個優秀的框架，概述了迴歸分析結果的呈現方式。
+
+### Session Aim:
+
+To understand linear regression and its application in R.
+
+### Learning Outcomes:
+
+Using `lm()` function to:
+
+-   Undertake linear regression in R with one continuous variable and one factor variable.
+-   Evaluate the summary results table.
+-   Use the `plot()` function to validate the model.
+
+使用 `lm()` 函数：
+
+-   在 R 语言中对一个连续变量和一个因子变量进行线性回归分析。
+-   计算结果汇总表。
+-   使用 `plot()` 函数验证模型。
+
+### Today's Session
+
+### Create your code file
+
+Create a new codefile and call it something memorable that links to the week and it the content of the workshop and save to your 'Codefiles directory'.
+
+创建一个新的代码文件，并给它起一个容易记住的名字，链接到本周的内容，并将其保存到您的“代码文件目录”中。
+
+### Load required libraries
+
+Most of what we need today is the base R installation but we need to install four new packages:
+
+-   The **corrplot** package [@Wei2024] which provides visual exploratory tool on correlation matrix that supports automatic variable reordering to help detect hidden patterns among variables: <https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html>.
+
+-   The **car** package [@Fox2019] which provides a run of functions to support applied regression: <https://cran.r-project.org/web/packages/car/index.html>.
+
+-   The **skimr** package [@Waring2022] which provides simple functions to commute commonly use descriptive data functions: <https://docs.ropensci.org/skimr/>.
+
+-   The **broom** package @Robinson2024 which creates 'tidy' dataframes from model objects: <https://CRAN.R-project.org/package=broom>.
+
+Load packages and install those that are not installed.
+
+我们今天所需的大部分内容是基础的 R 安装，但我们需要安装四个新软件包：
+
+-   **corrplot** 软件包 [@Wei2024]，它提供了一个基于相关矩阵的可视化探索工具，支持自动变量重新排序，以帮助检测变量之间的隐藏模式：<https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html>。
+
+-   **car** 软件包 [@Fox2019]，它提供了一系列支持应用回归的函数：<https://cran.r-project.org/web/packages/car/index.html>。
+
+-   **skimr** 软件包 [@Waring2022] 提供了一些简单的函数来转换常用的描述性数据函数：<https://docs.ropensci.org/skimr/>。
+
+加载软件包并安装尚未安装的软件包。
+
+-   **broom** 套件 [@Robinson2024] 從模型物件建立「整潔」資料框：<https://CRAN.R-project.org/package=broom>。
+
+```{r}
+# Load libraries and install packages that are not is our system
+# List of packages
+packages <- c("tidyverse", "corrplot", "car","skimr", "broom")
+
+# Load all packages and install the packages we have no previously installed on the system
+lapply(packages, library, character.only = TRUE)
+```
+
+## Simple correlation
+
+We will start by introducing you to correlation which looks at the direction and strength of association between variables. The two functions we need are `cor()` and `cor.test()`. We are doing this because when we move to multivariate regression next week it is important that we understand the relationship between our explanatory variables before we run the regression. I'll explain more next week.
+
+我們將首先介紹相關性，它考察變數之間關聯的方向和強度。我們需要兩個函數：`cor()` 和 `cor.test()`。我們這樣做是因為，下週我們將學習多元迴歸，在進行迴歸分析之前，了解解釋變數之間的關係非常重要。下週我會更詳細地解釋。
+
+R lets you access the **Pearson or Product Moment Correlation** (<https://www.statsref.com/HTML/?pearson_product_moment_correla.html>), a parametric tool and **Spearman's Rank Order Correlation**, a non-parametric version. The `cor()` function uses the former as the default.
+
+We need out datafile. We'll load it, it is called: `nelson.csv`.
+
+R 允許您使用**皮爾遜相關係數**（或稱積矩相關係數）(<https://www.statsref.com/HTML/?pearson_product_moment_correla.html>)，這是一個參數化工具，以及**斯皮爾曼秩相關係數**（非參數化工具）。 `cor()` 函數預設使用前者。
+
+我們需要一個資料檔。我們將載入它，它的名稱是：`nelson.csv`。
+
+```{r}
+beetle <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/nelson.csv")
+```
+
+This is an experiment on 9 batches of flour beetles assessing their weight loss measured in mg at different humidity levels ranging from 0-93% humidity. The experiment lasted 6 days. It a simple file with 9 rows and 2 column (or variables), no missing values and both variables are numerical (`dbl`).
+
+這是一項針對9批麵粉甲蟲的實驗，評估它們在0-93%濕度範圍內不同濕度水平下的重量損失（以毫克為單位）。實驗持續了6天。這是一個包含9行2列（或變數）的簡單文件，沒有缺失值，並且兩個變數都是數值型變數（“dbl”）。
+
+```{r}
+glimpse(beetle)
+skim(beetle)
+```
+
+We will run a Pearson or Product Moment Correlation on the data.
+
+```{r}
+# Runs a Pearson's correlation
+cor(beetle$WEIGHTLOSS, beetle$HUMIDITY)
+```
+
+Pearson's correlations ($r$) range between 1 and -1 both ends suggesting a perfect linear either positive (in the case of a 1) or negative (in the case of a -1) relationship. We can see we have a strong negative relationship ($r$=-0.987), which suggests that beetle weightloss is lower where humidity is higher. We can test whether this pattern is statistically significant using the `cor.test()` function.
+
+皮爾森相關係數 ($r$) 介於 1 和 -1 之間，表示兩者之間存在完美的線性關係，要麼為正（1 的情況），要麼為負（-1 的情況）。我們可以看到，兩者之間有強烈的負相關關係 ($r$=-0.987)，這表示濕度越高，甲蟲的減重就越少。我們可以使用 `cor.test()` 函數來檢驗這種模式是否具有統計顯著性。
+
+```{r}
+cor.test(beetle$WEIGHTLOSS, beetle$HUMIDITY)
+```
+
+This tests for significance using a `t-test` (t = -16.346) and returns a significant outcome with a p-value of 7.816e-07. This means it is a highly significant finding. To see the p-value in full we merely need to move the decimal point 7 steps to the left of the decimal place (p=0.0000007816), put another we add 6 zeros after the decimal place!!! The test also returns the 95% confidence intervals which capture the range of values of which there is a defined probability that the coefficient falls within.
+
+這使用「t檢定」（t = -16.346）進行顯著性檢驗，結果顯示p值為7.816e-07，顯著。這意味著這是一個高度顯著的發現。要查看完整的p值，我們只需將小數點向小數點左側移動7位（p=0.0000007816），並在小數點後面添加6個零即可！該檢定也傳回95%的置信區間，該區間捕捉了係數落入的機率確定的數值範圍。
+
+**Pearson’s correlation** is only appropriate when we believe the relationship between the two variables is linear. As we will discuss later on today, this is also the case for linear regression. If we think the pattern is not linear then we use a **Spearman’s rank correlation**. This statistic is generated using the rank order of the observations which means it is also suitable for large-scale ordinal explanatory variables.
+
+**皮爾遜相關**僅適用於我們認為兩個變數之間的關係是線性的。正如我們今天稍後將討論的，線性迴歸也是如此。如果我們認為模式不是線性的，則使用**斯皮爾曼秩相關**。這個統計數據是根據觀測值的秩產生的，這意味著它也適用於大規模有序解釋變數。
+
+[TASK: Now take a few minutes to create an XY plot in using ggplot2 that shows the relationship between the weight loss of the beetles (WEIGHTLOSS) and humidity (HUMIDITY). HINT: Look at the code in Week 2 if you cannot remember how to do this \[\~ 5 min\]]{style="color:red;"}.
+
+[任務：現在花幾分鐘時間使用 ggplot2 創建一個 XY 圖，展示甲蟲體重減輕 (WEIGHTLOSS) 和濕度 (HUMIDITY) 之間的關係。提示：如果您記不住如何操作，請查看第 2 週的代碼 \[\~ 5 分鐘\]]{style="color:red;"}。
+
+It should look like this (Fig. 5.1):
+
+```{r echo=FALSE}
+ggplot(beetle,aes(HUMIDITY, WEIGHTLOSS)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  xlab("Humidity") +
+  ylab("Beetle weightloss") +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank(), #remove the minor grids 
+  )
+```
+
+**Fig. 5.1: Scatterplot of the flour beetles relationship**
+
+You see a strongly linear relationship. We will revisit this dataset below and explore what the results mean. But first let's work through a bit of statistical theory goodness.
+
+你會看到一種強線性關係。我們將在下文中重新檢視這個資料集，並探討其結果的意義。不過，首先讓我們先來了解一下統計理論。
+
+## What is linear regression?
+
+At its most simple, linear regression tests for relationship between a **response** (or **dependent)** variable and **explanatory** (or **independent** variable). The relationship is typically illustrated as a scatterplot graph with the response variable shown on the Y axis and the explanatory variable (or variables) shown on the X axis. Modelling data in this way serves two purposes [@Ismay2025]:
+
+-   **Modelling for explanation**, where it serves to quantify and / or describe the relation between the response variable $y$ and a set of explanatory variables $x$ to determine the statistical significance of the relationship.
+-   **Modelling for prediction**, when you want to predict the value of $y$ with a set of explanatory variables $x$.
+
+最简单的线性回归检验是检验**响应**（或**因变量）**变量与**解释**（或\*\*自变量）之间的关系。这种关系通常用散点图来表示，响应变量显示在 Y 轴上，解释变量（或多个解释变量）显示在 X 轴上。以这种方式建模数据有两个目的 [@Ismay2025]：
+
+-   **解释建模**，用于量化和/或描述响应变量 $y$ 与一组解释变量 $x$ 之间的关系，以确定该关系的统计显著性。
+-   **预测建模**，用于用一组解释变量 $x$ 预测 $y$ 的值。
+
+These two things are not mutually exclusive and you may wish to do both things i.e. model an ecological process and then apply or generalise it to elsewhere, using say a **Species Distribution Model (SDM)**.
+
+The 'shape' of the regression relationship is shown by a regression line. As you may recall from your school mathematics the equation that describes a straight line: $$
+Y = mx + c$$
+
+Where, $Y$ is our response variable, $x$ is our explanatory variable, $m$ is a variable indicating the slope of the line and, $c$ is a constant capturing the intercept, the point at which the regression line crosses the Y axis. We can abstract this using statistical notations as:
+
+$$Y \sim X\beta_0 + X\beta_1$$
+
+Where, Y is our response and X, our explanatory variable, has two regression (or **beta**) terms associated with it:
+
+-   $X\beta_{0}$ is the term for the intercept and,
+-   $X\beta_{1}$ is the slope term.
+
+Both these terms are known as regression **coefficients** and will be visible in the tabular output of any **lm()** model call in R. Let's explore how to run regression analyses in R using one response variable and one explanatory variable, which represents the most simple case.
+
+这两件事并不相互排斥，你或许希望同时做这两件事。例如，你可能想测试一个响应变量 $y$（例如患有呼吸系统疾病的人数）是否可以由他们是否居住在交通繁忙的道路附近来解释（我们的 $x$ 变量）。完成此操作后，你可能希望使用回归结果（一个方程）来预测道路密度越高，呼吸系统疾病的发病率就越高。
+
+回归关系的“形状”由回归线表示。你可能还记得学校数学课上描述直线的方程：$$
+Y = mx + c$$
+
+其中，$Y$ 是响应变量，$x$ 是解释变量，$m$ 是表示直线斜率的变量，$c$ 是一个常数，表示截距，即回归线与 Y 轴的交点。我们可以用统计符号将其抽象为：
+
+$$Y \sim X\beta_0 + X\beta_1$$
+
+其中，Y 是响应变量，X 是解释变量，它有两个相关的回归（或 **beta**）项：
+
+-   $X\beta_{0}$ 是截距项，
+-   $X\beta_{1}$ 是斜率项。
+
+这两个项被称为回归**系数**，它们会在 R 中任何 **lm()** 模型调用的表格输出中显示。让我们探索如何在 R 中使用一个响应变量和一个解释变量进行回归分析，这代表了最简单的情况。
+
+### Linear regression with one numerical explanatory variable
+
+Let's return to the beetle dataset to work through basic linear regression.
+
+When undertaking regression analyses we need to work through a sequence of steps:
+
+Step 1. Load in and tidy the data.
+
+Step 2. Undertake some **exploratory data analysis (EDA)**.
+
+Step 3. Run the regression analysis.
+
+Step 4. Examine and interpret the regression tables.
+
+Step 5. Plot the a graph that displays relationship and generate the regression equation.
+
+Step 6. Validate the regression model.
+
+进行回归分析时，我们需要完成一系列步骤：
+
+步骤 1. 加载并整理数据。
+
+步骤 2. 进行一些**探索性数据分析 (EDA)**。
+
+步骤 3. 运行回归分析。
+
+步骤 4. 检查并解释回归表。
+
+步骤 5. 绘制显示关系的图表并生成回归方程。
+
+步骤 6. 验证回归模型（我们将在下周讨论此部分）。
+
+We have already loaded the data and decided what variables to use (so step 1 is done!). As you may recall from the discussion in the week 3 workshop, we should start our work using some **Exploratory Data Analysis (EDA)**. The steps are [@Zuur2010a]:
+
+-   Examine the raw data.
+
+-   Compute summary statistics, e.g. means, medians, counts of missing values and so on.
+
+-   Create some visualisations to look at the shape of relationships and consider dependencies (the latter especially where we have more than one explanatory variable).
+
+我們已經加載了數據並確定了要使用的變數（所以第一步完成了！）。你可能還記得第三週研討會上的討論，我們應該使用一些**探索性資料分析 (EDA)** 來開始我們的工作。步驟如下：
+
+-   檢查原始資料。
+
+-   計算總計統計數據，例如平均數、中位數、缺失值計數等等。
+
+-   建立一些視覺化圖表來查看關係的形狀並考慮依賴關係（後者特別適用於有多個解釋變數的情況）。
+
+We have already used the `glimpse()` and `skim()` functions to look at the data so we don't need to revisit this.
+
+我們已經使用 `glimpse()` 和 `skim()` 函數來查看數據，因此我們不需要重新存取它。
+
+We are going to use a new function `scatterplot()` from the `car` package to from basic visualisation. It is not only quick, but it also provides some useful additional visualisation (Fig. 5.2). We format this R command like we would a regression model (see below) by using `WEIGHTLOSS ~ HUMIDITY` and adding in a data argument that identifies the dataframe where the data are situated (in this case, beetle).
+
+我們將使用“car”套件中的新函數“scatterplot()”來實現基本的可視化。它不僅速度快，還能提供一些實用的附加視覺化效果（圖 5.2）。我們像處理回歸模型（見下文）一樣格式化此 R 命令，使用“WEIGHTLOSS \~ HUMIDITY”，並添加資料參數來識別資料所在的資料框（在本例中為 beetle）。
+
+```{r}
+car::scatterplot(WEIGHTLOSS ~ HUMIDITY, data = beetle,
+	xlab = "Relative Humidity", # add an x label
+	ylab = "Weightloss") # add a y label
+```
+
+**Fig. 5.2: `car` generated scatterplot of beetle weightloss due to changes in humidity**
+
+This plot shows a number of things:
+
+-   the solid blue line is the linear regression line.
+-   the hashed blue line is a loess smoother frequent used to show non linear patterns.
+-   the fill shows the confidence intervals (95% and 5%) either side of the loess smoother. If we look at the output you can see a large spread of data points around the blue solid line.
+-   the boxplots plots on the $x$ and $y$ axes show the variability of the each data set.
+
+這張圖展示了一些資訊：
+
+-   藍色實線是線性迴歸線。
+-   藍色虛線是 Loess 平滑線，常用於顯示非線性模式。
+-   填充部分顯示了 Loess 平滑線兩側的置信區間（95% 和 5%）。如果我們查看輸出結果，可以看到藍色實線周圍有大量資料點分佈。
+-   x 軸和 y 軸上的箱線圖顯示了每個資料集的變異性。
+
+Look at the spread of the points around the regression line. We can now see why the correlation coefficient is so high ! We can also see that the linear regression line matches the loess smoother which tells us that the data are likely linearly associated. The boxplots provide additional information. We see that both variables are likely distributed normally and we have no potential outlier points. You should have already created the ggplot earlier in this session.
+
+觀察迴歸線周圍點的分佈。現在我們就能明白為什麼相關係數這麼高了！我們還可以看到線性迴歸線與黃土平滑線相匹配，這表明數據很可能呈線性相關。箱線圖提供了更多資訊。我們發現兩個變數都呈現常態分佈，且沒有潛在的異常點。你應該已經在本節早些時候創建了ggplot圖。
+
+We can measure the difference between the 'best fit' regression line and data points to provide the **residuals** (Fig. 5.3).
+
+![](images/regress_resid.png) **Fig. 5.3: How residuals are measured in a linear regression (Source: Field et al. 2014). The points under the regression line are -ve residuals, while those above it are +ve residuals.**
+
+While the residuals are used to generate the regression output, they are also a measure of noise and error (just like ANOVA, which is also a linear technique!). We thus need to update our regression equation to account for them. So the equation becomes:
+
+$$Y \sim X\beta_0 + X\beta_1 + \epsilon$$ Where, Y is our response and X, our explanatory variable, has two beta terms associated with it:
+
+-   $X\beta_{0}$ is the term for the intercept and
+-   $X\beta_{1}$ is the slope term
+-   $\epsilon$ (epsilon) is the additional term. It is the error term indicating the residuals of the data points.
+
+虽然残差用于生成回归输出，但它们也是噪声和误差的度量。因此，我们需要更新回归方程以考虑这些因素。因此，方程变为：
+
+$$Y \sim X\beta_0 + X\beta_1 + \epsilon$$ 其中，Y 是响应变量，X 是解释变量，它包含两个 beta 项：
+
+-   $X\beta_{0}$ 是截距项，
+-   $X\beta_{1}$ 是斜率项，
+-   $\epsilon$ (epsilon) 是附加项，表示数据点残差的误差项。
+
+### Linear Regression (under the hood)
+
+Linear regression finds the best possible straight line through a set of data points using a method called the **sum of least squares**. In simple terms, this method tests countless possible lines and selects the one that has the smallest overall distance to all the data points. To measure this distance, it calculates the "residuals"—the vertical gap between each observed data point and the line (Fig. 5.4).
+
+Because some residuals are positive (above the line) and some are negative (below), we can't just add them up. Instead, we square each residual to make them all positive. Adding all these squared values together gives us the **sum of squared differences (SS)**. A small SS value means the line is a good fit for the data; a large SS value means it's a poor fit.
+
+$$deviation = \Sigma(observed - model)^2$$
+
+To know if our regression model is actually useful, we need to compare it to a baseline. The most basic model imaginable is just a horizontal line at the mean (average) of our response variable, $y$. We calculate the total variation in the data by finding the sum of squared differences between each data point and this mean line. This is called the **Total Sum of Squares (SS**$_T$).
+
+Next, we calculate the sum of squared residuals for our actual regression line. This is the **Residual Sum of Squares (SS**$_R$), which represents the error our model couldn't explain.
+
+线性回归使用一种称为**最小二乘和**的方法，通过一组数据点找到最佳直线。简单来说，该方法测试无数条可能的直线，并选择与所有数据点总距离最小的那条。为了测量这个距离，它会计算“残差”，即每个观测数据点与直线之间的垂直间隙（图 5.4）。
+
+由于有些残差为正（位于直线上方），有些为负（位于直线下方），我们不能简单地将它们相加。相反，我们会对每个残差求平方，使它们都为正。将所有这些平方值相加，就得到了**平方差和 (SS)**。较小的 SS 值表示直线与数据的拟合度良好；较大的 SS 值表示拟合度较差。
+
+$$deviation = \Sigma(observed - model)^2$$
+
+要了解我们的回归模型是否真的有用，我们需要将其与基线进行比较。最基本的模型，其实就是在响应变量 $y$ 的均值处画一条水平线。我们通过计算每个数据点与这条均值线之间的平方差之和来计算数据的总变异。这被称为**总平方和 (SS**$_T$)。
+
+接下来，我们计算实际回归线的残差平方和。这就是**残差平方和 (SS**$_R$)，它表示我们的模型无法解释的误差。
+
+By comparing these two, we can see how much better our regression model is than just using the average. The difference between them (`SS_T - SS_R`) is called the **Model Sum of Squares (SS**$_M$). A large SS$_M$ means our regression model is a significant improvement over the basic mean, indicating it does a good job of explaining the relationship in the data. A small SS$_M$ means our model isn't much better than just guessing the average. Figure 5.5 shows this relationship graphically.
+
+通过比较这两个值，我们可以看到我们的回归模型比仅仅使用平均值要好得多。它们之间的差值（`SS_T - SS_R`）称为**模型平方和（SS**$_M$）。较大的 SS$_M$ 表示我们的回归模型比基本平均值有显著的改进，表明它能够很好地解释数据中的关系。较小的 SS$_M$ 表示我们的模型并不比仅仅猜测平均值好多少。Fig. 5.5 以图形方式展示了这种关系。
+
+![](images/sum_squares_all.png) **Fig. 5.5: Showing where the sum of squares calculations are derived (Source: Field et al. 2012)**
+
+We can quantify the fit or **effect size** by dividing the **model sum of squares** with the **total sum of squares** giving us a value known as the **R**$^2$ value. This effectively shows how well the observed data fits the regression line:
+
+$R^2 = \frac{SS_M}{SS_T}$
+
+It is a faction and displayed as a decimal ranging from 0 to 1. A value of 1 would mean all the our observed data would sit on the regression line. It is also a percentage, so if the R$^2$ value was 0.58, then the regression equation accounts for 58% of the variability in the observed data.
+
+Phew! That's enough theory for now, let's move on and run a regression using R. We have our dataframe (beetles) and to run a linear regression we use the `lm()` function. Just like everything else in R, we feed the regression model into an object, we'll call it M1 (short for model 1). When you run the code look at the top right window. Your object (M1) will arrive there. Double click on it to see what is stored in it.
+
+我们可以用**模型平方和**除以**总平方和**来量化拟合度，得到一个称为**R**$^2$的值。这有效地表明了观测数据与回归线的拟合程度：
+
+$R^2 = \frac{SS_M}{SS_T}$
+
+它是一个分数，因此显示为 0 到 1 之间的小数，其中 1 表示所有观测数据都位于回归线上。由于它的范围是 0 到 1，因此它也是一个百分比，所以如果 R$^2$ 值为 0.58，我们可以说回归方程解释了观测数据 58% 的变异性。另外，如果我们只有一个解释变量，我们可以对 R$^2$ 值取平方根，得到皮尔逊相关系数！
+
+呼！理论知识到此为止，让我们继续使用 R 运行回归分析。我们有数据框 (evals)，要运行线性回归，我们使用 lm() 函数。就像 R 中的其他函数一样，我们将回归模型输入到一个对象中，我们将其命名为 M1（模型 1 的缩写）。运行代码时，请查看右上角的窗口。您的对象 (M1) 将出现在那里。双击它，查看其中存储的内容。
+
+```{r}
+M1 <- lm(WEIGHTLOSS ~ HUMIDITY, data = beetle) # this is our regression model
+```
+
+The formula for the model is straightforward, we add the 'WEIGHTLOSS' (the $y$ axis) first, then tilde, which is this symbol `~` , then 'HUMIDITY' (the $x$ axis), supported by with a **data =** statement calling the dataframe. Now we have this we can examine the coefficients table using the **summary()** function.
+
+這個模型的公式很簡單，我們先加入「WEIGHTLOSS」（y軸），然後再加入波浪號（也就是符號 `~`），最後加上「HUMIDITY」（x軸），最後使用 **data =** 語句呼叫資料框。現在，我們可以使用 **summary()** 函數檢查係數表。
+
+```{r}
+summary(M1) # base r regression table call
+```
+
+The output shows the formula we used, data on the residuals and coefficients, the significance codes, standard errors, R-squared and F statistics. The coefficients are the important elements.
+
+輸出顯示了我們使用的公式、殘差和係數的資料、顯著性代碼、標準誤差、R平方和F統計量。係數是重要的元素。
+
+The first one is the intercept which has a value of 8.70. This is $\beta_0$ from our regression equation above and the point at which the regression lines crosses the $y$ axis where $x$=0. Have a look at the line on your ggplot graph and you'll see it crosses the $y$ axis around 9.
+
+第一個是截距，值為 8.70。這是上面迴歸方程式中的 $\beta_0$，也是迴歸線與 $y$ 軸相交的點，其中 $x$=0。看看 ggplot 圖上的這條線，你會發現它在 9 左右與 $y$ 軸相交。
+
+The second, and possibly more important value, is the slope value for the explanatory $x$ variable (HUMIDITY), which rounds to -0.053. This is $\beta_1$ in our regression equation. It is a negative, suggesting that beetle weight loss decreases with increasing humidity. In fact, because it is a slope, it indicates that, *on average*, the weight loss decreases by -0.053 for every one unit increase in the humidity. Now we have these we can generate our regression equation:
+
+第二個值，也可能是更重要的值，是解釋變數 $x$（濕度）的斜率值，四捨五入為 -0.053。這在我們的迴歸方程式中就是 $\beta_1$。它是一個負數，表示甲蟲的體重減輕會隨著濕度的增加而減少。事實上，因為它是一個斜率，它表明*平均而言*，濕度每增加一個單位，體重減輕就會減少 -0.053。有了這些，我們就可以產生回歸方程式了：
+
+$y = \beta_{0} + \beta_{1} \cdot \text{HUMIDITY}$
+
+Where, the estimated coefficients are: $\beta_{0} = 8.70$ and $\beta_{1} = -0.05$.
+
+-   The p-values for both coefficients are highly significant, for the intercept = 6.4e-10 and for the slope it is 7.82e-07.
+
+-   The residual standard error is quite high at 0.2967 but you could have guessed this already from plotting the graph - it's almost a straight line!
+
+-   There are 7 degrees of freedom in the calculation. This is number of samples (or rows) minus 1 for intercept term and 1 for the slope term (so 9-2 = 7).
+
+-   The R-squared value for the model is 0.975 which suggests only \~98% of the variation of the data is accounted for by the model.
+
+-   The adjusted R-squared is a little lower at 0.970 because the model is penalised by having one term in it i.e. one explanatory variable.
+
+其中，估計的係數為：$\beta_{0} = 8.70$ 和 $\beta_{1} = -0.05$。
+
+-   這兩個係數的 p 值都非常顯著，截距為 6.4e-10，斜率為 7.82e-07。
+
+-   殘差標準誤差相當高，為 0.2967，但您可以從繪製圖表中猜到這一點——它幾乎是一條直線！
+
+-   計算中有 7 個自由度。這是樣本數（或行數）減去 1（截距項）和 1（斜率項）（因此 9-2 = 7）。
+
+-   該模型的 R 平方值為 0.975，這表示模型僅解釋了約 98% 的資料變異。
+
+-   調整後的 R 平方略低，為 0.970，因為模型因包含一個項（即一個解釋變數）而受到懲罰。
+
+We would normally create a plot to show the results using the predictions from the regression equation to complete the analyses and write out the regression equation (Fig. 5.3). The code to do this is shown below. First, we sequence across the explanatory variable using the **seq()** function and setting the limits using the `max()` and `min()` functions. We choose 1000 points with the `length=100` argument. Next, we use that object to dimensionalise at dataframe to take the prediction, called 'predictions'. We then generate the predictions from the regression model (M1) and write that to a new dataframe called 'predictions_with_CI'. We then add the predicted the values and upper and lower confidence intervals (CIs) and lastly extract the regression coefficients from the model (M1) for the regression equation. Then we plot the graph, pulling the points from the initial 'beetle' dataframe and plotting the `geom_line()` using predicted dataframe,'predictions' and adding the CIs with `geom_ribbon()` (Fig. 5.3). You know the code for labels and finally we add in equation using `annotate()`. **YOU DO NOT NEED TO BE ABLE TO UNDERSTAND ALL THIS CODE AT THE MOMENT!!!!**
+
+我們通常會建立一個圖表來顯示使用迴歸方程式的預測結果，以完成分析並寫出迴歸方程式（圖 5.6）。執行此操作的程式碼如下所示。首先，我們使用 **seq()** 函數對解釋變數進行排序，並使用 `max()` 和 `min()` 函數設定限制。我們使用 `length=100` 參數來選擇 1000 個點。接下來，我們使用該物件在資料框中對維度進行維度化以進行預測，稱為「predictions」。然後，我們從迴歸模型 (M1) 產生預測並將其寫入名為「predictions_with_CI」的新資料框。然後，我們將預測值和上下置信區間 (CI) 相加，最後從模型 (M1) 中提取迴歸方程式的迴歸係數。然後，我們繪製圖表，從初始“甲蟲”資料框中提取點，並使用預測資料框“predictions”繪製“geom_line()”，並使用“geom_ribbon()”新增CI（圖5.3）。您知道標籤的程式碼，最後我們使用“
+
+```{r}
+# Create a sequence of 100 values for the explanatory variable
+seq_HUMIDITY <- seq(min(beetle$HUMIDITY), max(beetle$HUMIDITY), length = 100)
+
+# Create Df for the predictions
+predictions <- data.frame(HUMIDITY = seq_HUMIDITY)
+
+# Add  confidence intervals 
+predictions_with_CI <- predict(M1, newdata = predictions, interval = "confidence")
+
+# Add the predicted values and CI bounds to the predictions dataframe
+predictions$predicted_score <- predictions_with_CI[, 1]
+predictions$lwr <- predictions_with_CI[, 2]
+predictions$upr <- predictions_with_CI[, 3]
+
+# extract coefficient and set up the equation
+intercept <- round(coef(M1)[1], 2)
+slope <- round(coef(M1)[2], 2)
+equation_string <- paste("WEIGHTLOSS =", intercept, "+", slope, "* HUMIDITY")
+
+# create plot with regression line, points and CIs
+ggplot() +
+  geom_point(data = beetle, aes(x = HUMIDITY, y = WEIGHTLOSS), color = "black", alpha = 0.6) +
+  geom_line(data = predictions, aes(x = HUMIDITY, y = predicted_score), color = "blue", linewidth = 1) +
+  geom_ribbon(data = predictions, aes(x = HUMIDITY, ymin = lwr, ymax = upr), fill = "blue", alpha = 0.2) +
+  labs(title = "Relationship between Beetle weightloss and Humidity",
+       x = "Humidity",
+       y = "Weightloss") +
+  
+  # Add the equation
+ annotate("text", 
+         x = Inf,       # Anchor to the far right
+         y = Inf,       # Anchor to the very top
+         label = equation_string, 
+         parse = FALSE,
+         hjust = 1.1,     # Right-justify to pull it leftwards from the edge
+         vjust = 1.5,     # Top-justify to pull it downwards from the edge
+         color = "grey25", 
+         size = 5) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank(), #remove the minor grids 
+  )
+```
+
+**Fig 5.3: The predicted relationship between beetle weightloss and humidity with the regression equation.**
+
+### Linear regression with one categorical explanatory variable
+
+For this example we will revisit the fertilizer data set you carried out a single factor ANOVA with last week. We are doing this for a number of reasons but mainly to show that the `aov` and `lm()` functions effectively do the same thing. This is because they are derived in the same manner - a straightforward linear analysis. We will use the same code to generate the dataset.
+
+在這個例子中，我們將重新審視您上週進行單因子變異數分析的肥料資料集。這樣做的原因有很多，但主要是為了證明 `aov` 和 `lm()` 函數實際上做了同樣的事情。這是因為它們的推導方式相同——簡單的線性分析。我們將使用相同的程式碼來產生資料集。
+
+```{r}
+# Set.seed() to make our "random" data reproducible i.e. if we select 42 here it will create the exact same data! Cool eh?
+set.seed(42) 
+
+# Define group parameters
+n <- 30                # Number of plants in each group (our sample size)
+sd_within <- 5         # The noise which is the standard deviation in height each group (in cm)
+
+# Define the signal. The sample means (of height) for each group (in cm)
+mean_a <- 65           # Fertilizer A (best)
+mean_b <- 58           # Fertilizer B (good)
+mean_c <- 50           # Water control (baseline)
+
+# Create random data using rnorm()
+heights_a <- rnorm(n, mean = mean_a, sd = sd_within)
+heights_b <- rnorm(n, mean = mean_b, sd = sd_within)
+heights_c <- rnorm(n, mean = mean_c, sd = sd_within)
+
+
+# A tidy data frame is the standard format for analysis and plotting in R.
+fertilizer_data <- data.frame(
+  # Combine all the height measurements into one column
+  height = c(heights_a, heights_b, heights_c),
+  
+  # Create a corresponding group label for each measurement. Treat = the fertilizer Treatments
+  group = factor(rep(c("TreatA", "TreatB", "Control"), each = n))
+)
+
+# look at the data
+glimpse(fertilizer_data)
+skim(fertilizer_data)
+```
+
+You have examined this data before, so step one of your EDA is done already. But have a good look at it again. Looking at the numerical variable (height). This shows the same information as our previous example: number of missing values, computes the means, standard deviation (sd), minimum score (p0), maximum score (p100) and quartiles (p25, p50 which is the median, p75) and lastly a histogram of each variable. So we can see mean plant height was 57.89 cm and the median (p50) height is 57.28 cm. These numbers are similar, indicating that the distribution is fairly balanced.
+
+您之前已經檢查過這些數據，因此 EDA 的第一步已經完成。但請再仔細檢查一次。查看數值變數（高度）。它顯示的資訊與我們先前的範例相同：缺失值的數量，計算平均值、標準差 (sd)、最小值 (p0)、最大值 (p100) 和四分位數（p25、p50（即中位數）和 p75），最後產生每個變數的直方圖。因此，我們可以看到平均植物高度為 57.89 厘米，中位數（p50）高度為 57.28 厘米。這些數字相似，顯示分佈相當均衡。
+
+Do some plotting to look at the patterns. We cannot use the `car::scatterplot` because it requires both variables to be continuous but we can use histograms and boxplots. Revisit week 2, where you were introduced to these plots, if you cannot remember what they are!
+
+畫一些圖來觀察其中的規律。我們不能使用“car::散點圖”，因為它要求兩個變數都是連續的，但我們可以使用直方圖和箱線圖。如果你記不住這些圖是什麼，可以回顧第二週介紹的內容！
+
+[TASK: plot a histogram for plant height and a boxplots for the different treatment groups. HINT: you already have the code for the boxplot from last week! \[\~ 5 min\]]{style="color:red;"}. [任務：繪製植物高度的直方圖和不同處理組的箱型圖。提示：你已經擁有上週繪製箱型圖的程式碼！ \[\~ 5 分鐘\]]{style="color:red;"}。
+
+The plots should look like the ones below: Fig. 5.4 is the histogram and Fig. 5.5 is the boxplot.
+
+這些圖應該看起來像下面的圖：圖 5.4 是直方圖，圖 5.5 是箱線圖。
+
+```{r,echo=FALSE}
+ggplot(fertilizer_data, aes(height)) +
+  geom_histogram(binwidth = 5, colour = "white") +
+  labs(x= "Plant height (cm)")
+```
+
+**Fig. 5.4: Histogram of plant heights.**
+
+Here is the boxplot (Fig. 5.5).
+
+```{r, echo=FALSE}
+ggplot(fertilizer_data, aes(x = group, y = height, fill = group)) +
+  geom_boxplot(outlier.shape = NA) + # make sure the outliers are not added twice as points
+  geom_jitter(width = 0.1, alpha = 0.5) + # Add individual points for clarity
+  labs(
+    title = "Simulated Plant Growth by Fertilizer Treatment",
+    x = "Treatment Group",
+    y = "Plant Height (cm)"
+  ) +
+  theme_bw() +
+  guides(fill = "none") + # Hide the redundant legend 
+ theme(
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank(), #remove the minor grids 
+ )
+
+```
+
+**Fig. 5.5: Boxplot showing the variability in plant height by treatment.**
+
+We can quantify the differences in the means and medians using the `group_by()` function from `dplyr`. This is useful as a means of baselining, especially as we plan to use the 'group' variable as a explanatory variable in a regression analysis.
+
+我們可以使用 dplyr 中的 group_by() 函數來量化平均數和中位數之間的差異。這可以作為一種基準測試方法，尤其是在我們計劃在迴歸分析中使用「組」變數作為解釋變數的情況下。
+
+```{r}
+height_summary <- fertilizer_data %>% 
+  group_by(group) %>%
+  summarize(median = median(height),
+            mean = mean(height))
+height_summary
+```
+
+We can use the `mutate()` from function `dplyr` to calculate the differences in heights between the treatment groups and control. Type '?mutate' into the console to get information on how this function works.
+
+我們可以使用函數「dplyr」中的「mutate()」來計算實驗組和對照組之間的身高差異。在控制台中輸入“?mutate”即可了解此函數的工作原理。
+
+```{r}
+# Calculate the difference from Africa's mean
+height_diff <- height_summary %>%
+  mutate(
+    diff_from_contol = mean - mean[group == "Control"]
+  )
+height_diff
+# look at the table headings to see what new columns mutate is creating.
+```
+
+These are the contrasts we discussed in last week's class. We see that fertilization increases plant productivity for both treatments A and B. 這些是我們上週課堂上討論過的對比。我們發現，施肥提高了 A 和 B 處理組的植物生產力。
+
+Now we are ready to run our regression. Recall from last week that the `summary()` function for the single factor ANOVA only provided the aggregate outcome and not the individual contrasts i.e. for the levels in the group variable. We used had to use a **Tukey test** to show those.
+
+現在我們準備運行迴歸分析了。回想一下上週，單因子變異數分析的 `summary()` 函數只提供了整體結果，而不是組別變數中各個層級的個體對比。我們不得不使用 **Tukey 檢定** 來顯示這些。
+
+```{r}
+M2 <- lm(height ~ group, data = fertilizer_data)
+```
+
+When we look at the `lm()` model output using the `summary()` function we see that it lists the levels in the group factor. If you type `anova(M2)`, you would have the exact same outcome as when you used the `summary()` for the ANOVA model last week. *Try typing it in your code and compare with the outcome from last week ANOVA*.
+
+當我們使用 `summary()` 函數來查看 `lm()` 模型輸出時，我們會發現它列出了組因子中的水平。如果您輸入 `anova(M2)`，您將獲得與上週使用 `summary()` 進行變異數分析模型時完全相同的結果。 *嘗試將其輸入到您的程式碼中，並與上週變異數分析的結果進行比較*。
+
+```{r}
+summary(M2)
+```
+
+Notice we have a very different table to the one above (the beetle regression). This is because R uses the levels of the group variable as a factor so returns estimates for each level. Notice too that 'Control' appears to be missing. It isn't. Because R uses an alphanumeric sorting algorithm it orders the levels with the factor alphabetically so 'Control' is first in the list, followed by treatments. As a result, it is the baseline and wrapped into the intercept term. You can see this because the estimate is 50.95, the mean height for all the 'Control' plants (see the difference table above). If you look at our difference table you can see that the other estimates relate to the mean differences in plant height for each treatment. So TreatA plants are on average 14.39cm (rounded to 2 decimal places) taller that the Control plants and Treat B plants are on average 6.44 cm taller. As you know from above (our beetle regression) these numbers are also the (partial) slope coefficients for each treatment level.
+
+請注意，我們得到的表格與上面的表格（甲蟲回歸）截然不同。這是因為 R 使用組變數的水平作為因子，因此會傳回每個水平的估計值。也要注意，「對照」似乎缺失了。但事實並非如此。由於 R 使用字母數字排序演算法，它按字母順序排列包含因子的水平，因此「對照」位​​於列表第一位，其次是處理組。因此，它是基線，並被包含在截距項中。您可以看到這一點，因為估計值為 50.95，這是所有「對照」植物的平均高度（請參閱上面的差異表）。如果您查看我們的差異表，您會發現其他估計值與每個處理組的植物高度平均差異有關。因此，處理 A 植株平均比處理組植株高 14.39 公分（四捨五入至小數點後兩位），處理 B 植株平均高 6.44 公分。正如您從上面（我們的甲蟲回歸）中所知，這些數字也是每個處理組的（部分）斜率係數。
+
+We are nearly there. All we need to do now is figure out the regression equation. This a little more daunting than the last one! R uses the levels in the factors as **indicator functions**. As we described above, the levels are ordered alphabetically so Control precedes, TreatA which comes before TreatB.
+
+我們快完成了。現在我們需要做的就是找出迴歸方程式。這比上一個更令人生畏！ R 使用因子中的水平作為**指示函數**。正如我們上面所述，水平按字母順序排列，因此 Control 位於前，TreatA 位於 TreatB 之前。
+
+The equation is: $$
+\begin{align}
+\hat{y} = \widehat{\text{height}} &= \beta_0 + \beta_{\text{TreatA}} \cdot \mathbb{1}_{\text{TreatA}}(x) + \beta_{\text{TreatB}} \cdot \mathbb{1}_{\text{TreatB}}(x)
+\end{align}
+$$ Don't stress about this. It isn't as hideous as it looks! Let's work through it section by section. **First**, $\mathbb{1}_A{(x)}$ is known as an **indicator function** in mathematics. It returns either a 1 or a 0 where,
+
+別擔心，它並沒有看起來那麼難看！我們來一節一節地分析一下。 **首先**，$\mathbb{1}_A{(x)}$ 在數學中稱為**指示函數**。它返回 1 或 0，其中，
+
+$$
+\mathbb{1}_A{(x)} = \begin{cases} 1 & \text{if } x > A, \\ 0 & \text{if otherwise.} \end{cases}
+$$ In statistics this is also known as **dummy variable**. Remember the Control is our baseline so our first dummy is $\mathbb{1}_{TreatA}{(x)}$. This returns a 1 if a plant is in the TreatA, or a 0 otherwise:
+
+在統計學中，這也稱為**虛擬變數**。記住，對照組是我們的基線，所以我們的第一個虛擬變數是$\mathbb{1}_{TreatA}{(x)}$。如果植物屬於TreatA組，則回傳1，否則回傳0： $$
+\mathbb{1}_A{(x)} = 
+\begin{cases} 
+1 & \text{if group } x \text{ is in the TreatA,} \\ 
+0 & \text{otherwise.}
+\end{cases}
+$$ **Second**, $\beta_0$ is the intercept, as usual, but in this case it is the mean plant height of all the plants in the Control group.
+
+**Third**, the $\beta_{TreatA}$ and $\beta_{TreatB}$ represent the 2 offsets relative to our baseline (the Control group). These are listed in our regression table as: *groupTreatA* and *groupTreatB*.
+
+We can put this all together to compute the fitted value $\hat{y} = \widehat{height}$ for a Control plant. If a plant is in the Control group $\mathbb{1}_{Control}(x)$ its indicator will be a 1 (this is always the case because it is the baseline). In contrast, all the other indicator functions, $\mathbb{1}_{TreatA}(x)$, $\mathbb{1}_{TreatB}(x)$ will equal 0 (zero) and thus:
+
+**第二**，$\beta_0$ 是截距，與往常一樣，但在本例中，它是對照組所有植物的平均株高。
+
+**第三**，$\beta_{TreatA}$ 和 $\beta_{TreatB}$ 代表相對於基線（對照組）的兩個偏移量。它們在我們的迴歸表中列為：*groupTreatA* 和 *groupTreatB*。
+
+我們可以將所有這些結合起來，計算出對照組植物的擬合值 $\hat{y} = \widehat{height}$。如果一株植物位於對照組 $\mathbb{1}_{Control}(x)$，它的指標將為 1（由於它是基線，因此始終如此）。相較之下，所有其他指示函數 $\mathbb{1}_{TreatA}(x)$、$\mathbb{1}_{TreatB}(x)$ 將等於 0（零），因此： $$
+\begin{align*}
+\hat{y} &= \widehat{height} = \beta_0 + \beta_{TreatA} \cdot \mathbb{1}_{TreatA}(x) + \beta_0 + \beta_{TreatB} \cdot \mathbb{1}_{TreatB}(x) \\
+&= 50.95 + 14.39 \cdot \mathbb{1}_{TreatA}(x) + 6.44 \cdot \mathbb{1}_{TreatB}(x) \\
+& = 50.95 + 14.39 \cdot 0 + 6.44\cdot0\\
+& = 50.95
+\end{align*}
+$$ As you know if you multiply by a 0 you end up with zero so all that's left in the intercept value of 59.95, which the mean height for the Control plants.
+
+Let's play this through. Let's say our plant is in TreatB group. The other Treatment (TreatA) will be zero, but the indicator function $\mathbb{1}_{TreatB}(x)$ will be a 1. The equation thus looks like this:
+
+眾所周知，如果乘以 0，最終結果會是零，所以剩下的截距值是 59.95，也就是對照組植物的平均高度。
+
+我們來演練一下。假設我們的植物在處理組 B。另一個處理組（處理組 A）的值為零，但指示函數 $\mathbb{1}_{TreatB}(x)$ 為 1。因此，方程式如下所示： $$
+\begin{align*}
+\hat{y} &= \widehat{height} = \beta_0 + \beta_{TreatA} \cdot \mathbb{1}_{TreatA}(x) + \beta_0 + \beta_{TreatB} \cdot \mathbb{1}_{TreatB}(x) \\
+&= 50.95 + 14.39 \cdot \mathbb{1}_{TreatA}(x) + 6.44 \cdot \mathbb{1}_{TreatB}(x) \\
+& = 50.95 + 14.39 \cdot 0 + 6.44\cdot1\\
+& = 50.95 + 6.44\\
+& = 57.39
+\end{align*}
+$$ Notice that the final number is the mean for TreatB that we calculated above! 請注意，最終數字是我們上面計算的 TreatB 的平均值！
+
+[TASK: Can you figure out how this might work for treatment group TreatA? \[\~ 5 min\]]{style="color:red;"}.
+
+[任務：你能弄清楚這對治療組 TreatA 有何作用嗎？ \[\~ 5 分鐘\]]{style="color:red;"}。
+
+### Model Validation
+
+Our last task it to validate the model. We'll do with the the `plot()` function (Fig. 5.6). 我們的最後一個任務是驗證模型。我們將使用 `plot()` 函數來完成（圖 5.6）。
+
+```{r}
+par(mfrow = c(2, 2)) # set the plotting window to a 2 x 2 frame
+plot(M2)
+par(mfrow = c(1, 1)) # reset the window back to 1 x 1 panel
+```
+
+**Fig. 5.6: validation plots for model M3**
+
+There is nothing to worry here! 這裡沒有什麼好擔心的！
+
+Now we need to look at the residual spreads for the explanatory variables in the model (Fig. 5.7). 現在我們需要查看模型中解釋變數的殘差差幅（圖 5.7）。
+
+```{r}
+res <- resid(M2) # strip out the residuals.
+boxplot(res ~ group, data = fertilizer_data) # we use boxplot from base R.
+```
+
+**Fig. 5.7: The residuals by group boxplot**
+
+We have some variability across the groups visible in the boxplot (Fig. 5.7), which we might need to try and rectify, but we'll come back to this is later sessions. The histogram indicates normal patterns across the whole pool of samples, confirming the interpretation of the four panel plot above.
+
+箱線圖中可以看到不同組別之間存在一些差異，我們可能需要嘗試修正，但我們會在後續環節中再討論這個問題。直方圖顯示整個樣本池呈現正常模式，證實了上面四幅圖的解釋。
+
+## The Analysis of Covariance ANCOVA (one continuous and one factor variable)
+
+We'll finish today by looking a the situation where we have one continuous variable and one factor variable. Analyses of this nature has a special tag: **The Analysis of Covariance**.
+
+The data we use is analysed in Chapter 6 of @Beckerman2017 but orginates from an experiment outlined in @Quinn2002 'Experimental Design and Data Analysis for Biologists'. The data relate egg production by limpets subjected to four density conditions across two seasons (spring and summer). It is a test of **density dependence** impacts on fecundity levels.
+
+今天，我們將以一個連續變數和一個因子變數的情況作為結束。這類分析有一個特殊的標籤：協方差分析。
+
+我們使用的數據是在\@Beckerman2017的第6章中進行分析的，但源自\@Quinn2002在《生物學家的實驗設計和數據分析》中概述的一項實驗。這些數據涉及了帽貝在兩個季節（春季和夏季）中四種密度條件下的產卵情況。這是一項關於密度依賴性對繁殖力水平影響的測試。
+
+The datafile is called limpet.csv.
+
+```{r}
+limpet <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/limpet.csv")
+```
+
+Look at the data.
+
+```{r}
+glimpse(limpet)
+skim(limpet)
+```
+
+We have 24 rows and 3 columns (variables). The response variable (EGGS) is the average number of eggs produced by the limpet in the enclosures. The explanatory variables are DENSITY, which is the number of limpets in each density treatment, and SEASON, which are the seasons that the experiment covered (spring and summer).
+
+We need to start by drawing some pictures. We'll do this using ggplot2 and using an additional bit of code that allow us to plot regression lines for each season on the same plot. We will do it step by step. First up, we find the data `limpet` and allocate the $x$ and $y$ via the `aes()` function. We need to show the points so we add `geom_point()` and we want a regression line, hence: `geom_smooth(method="lm")`. We use `formula = 'y ~ x'` to get rid of the irritating error message (delete the argument to see what I mean!). We add labels with `labs` and set the theme to black and white with `theme_bw()`. That's most of the prettying work done (Fig. 5.8).
+
+我們有 24 行 3 列（變數）。反應變數（EGGS）是圍欄中帽貝的平均產卵量。解釋變數是密度（DENSITY），即每個密度處理中的帽貝數量；季節（SEASON），即實驗涵蓋的季節（春季和夏季）。
+
+我們需要先畫一些圖。我們將使用 ggplot2 和一些額外的程式碼，以便在同一張圖上繪製每個季節的迴歸線。我們將逐步完成。首先，我們找到資料“limpet”，並透過“aes()”函數分配 x 和 y 值。我們需要顯示這些點，因此我們添加了“geom_point()”，並需要一條回歸線，因此使用“geom_smooth(method="lm")”。我們使用“labs”添加標籤，並使用“theme_bw()”將主題設定為黑白。至此，大部分美化工作就完成了。
+
+```{r}
+ggplot(limpet, aes(x = DENSITY, y = EGGS)) +
+  # Add the raw data points
+  geom_point(alpha = 0.6) +
+  
+  # Add a linear regression line for each season
+  geom_smooth(method = "lm", formula = 'y ~ x', se = TRUE, linewidth = 1) + # se=TRUE adds the confidence ribbon
+  labs(
+    title = "Limpets: Egg Count by Density and Season",
+    x = "Density (Limpets per square metre)",
+    y = "Egg Count"
+  ) +
+  theme_bw()
+```
+
+**Fig. 5.8: First plot with a single regression line**
+
+Now we add two little bit of code to plot a line for each season, we merely add the `colour=SEASON` argument into the `aes()` (Fig. 5.9).
+
+現在我們加入兩小段程式碼來為每個季節繪製一條線，我們只需將「colour=SEASON」參數新增到「aes()」中。
+
+```{r}
+ggplot(limpet, aes(x = DENSITY, y = EGGS, color = SEASON)) +
+  # Add the raw data points
+  geom_point(alpha = 0.6) +
+  
+  # Add a linear regression line for each season
+  geom_smooth(method = "lm", formula = 'y ~ x', se = TRUE, linewidth = 1) + # se=TRUE adds the confidence ribbon
+   labs(
+    title = "Limpets: Egg Count by Density and Season",
+    x = "Density (Limpets per square metre)",
+    y = "Egg Count"
+  ) +
+  theme_bw()
+```
+
+**Fig. 5.9: Adding the second regression line**
+
+We can make it look a little nicer by specifying the colours we want using `scale_color_manual()` and the point sizes with `size` (Fig. 5.10).
+
+我們可以使用「scale_color_manual()」指定我們想要的顏色，使用「size」指定點大小，讓它看起來更漂亮一些。
+
+```{r}
+ ggplot(limpet, aes(x = DENSITY, y = EGGS, color = SEASON)) +
+  # Add the raw data points
+  geom_point(alpha = 0.8, 
+             size=3) +
+  
+  # Add a linear regression line for each season
+  geom_smooth(method = "lm", formula = 'y ~ x', se = TRUE, linewidth = 1) + # se=TRUE display the confidence ribbon
+  
+  # Manually set the colors
+  scale_color_manual(values = c("spring" = "red", "summer" = "blue")) +
+  
+  labs(
+    title = "Limpets: Egg Count by Density and Season",
+    x = "Density (Limpets per square metre)",
+    y = "Egg Count"
+  ) +
+  theme_bw()
+```
+
+**5.10: colouring the dots**
+
+To colour the CIs the same as the points we add `fill = SEASON` to the `aes()` argument and an additional statement `scale_fill_manual` to match the points and CI colours (Fig. 5.11).
+
+為了將 CI 的顏色與點的顏色相同，我們在 `aes()` 參數中加入 `fill = SEASON`，並加入一個附加語句 `scale_fill_manual` 來符合點和 CI 的顏色。
+
+```{r}
+ # add fill to the aes
+ggplot(limpet, aes(x = DENSITY, y = EGGS, color = SEASON, fill = SEASON)) +
+  
+  # The raw data points controlled by 'color'
+  geom_point(alpha = 0.8, size =3) +
+  
+  # The regression lines controlled by 'color' and CIs are controlled by 'fill'
+  # Add a bit of transparency to the ribbon so it looks lighter.
+  geom_smooth(method = "lm", formula = 'y~x', se = TRUE, linewidth = 1, alpha = 0.2) +
+  
+  # Manually set the colors for the points and lines
+  scale_color_manual(values = c("spring" = "red", "summer" = "blue")) +
+
+  # Use the exact same color values to ensure they match.
+  scale_fill_manual(values = c("spring" = "red", "summer" = "blue")) +
+  
+  labs(
+    title = "Limpets: Egg Count by Density and Season",
+    x = "Density (Limpets per square metre)",
+    y = "Egg Count"
+  ) +
+  theme_bw() +
+  theme(  # this function allows us to change parameters in the theme we select
+    legend.position = "top",# put the legend on the top
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank() # remove the plot border
+  )
+```
+
+**Fig. 5.11: standardizing dot colour to CIs**
+
+We see that as limpet density increases egg production decreases and also that egg production is higher in spring than summer. As the lines are not overlapping it's doesn't look like there is any form on interaction. The basic ANCOVA model is `EGGS ~ DENSITY + SEASON` we can use this as our lines look parallel, but we ought to check for an interaction effect so we go with: `EGGS ~ DENSITY * SEASON`.
+
+我們發現，隨著帽貝密度的增加，產蛋量會下降，而且春季的產蛋量高於夏季。由於線條不重疊，看起來似乎不存在任何交互作用。基本的變異數分析模型是“蛋量 \~ 密度 + 季節”，由於線條看起來平行，我們可以使用它，但我們應該檢查交互作用，所以我們採用“蛋量 \~ 密度 \* 季節”模型。
+
+### The ANCOVA model
+
+We can use multiple regression to model these relationships. We can do it two ways:
+
+这个情节有很多有趣的事情。首先，它显示 生育率随着所有人预期寿命的增加而下降 收入群体。其次，这表明低收入国家的预期寿命较低。 收入国家，但随着国家变得 richier - 查看每个回归起点的顺序 线。第三，生育率随着收入的增加而下降。第四， 生育率随着预期寿命的增加而下降的速度较慢 收入国家 - 线的斜率较浅。
+
+我们可以使用多元回归来模拟这些关系。我们可以做 有两种方式：
+
+1.  A additive model that adds each explanatory variables sequentially, where (按顺序添加每个解释变量的加法模型， 在哪里)：
+
+$y = X_1 + X_2 + \epsilon$, and a
+
+2.  A multiplicative or interactive model, where (乘法或交互模型，其中)
+
+$y = X_1 * X_2 + \epsilon$.
+
+The two regression generalised equations for these models are: 这些模型的两个回归广义方程是：
+
+1.  For an additive version:
+
+$y = {\beta}0_{xi} + {\beta}1_{xi} + {\beta}2_{xi} + \epsilon$ where,
+
+${\beta}0_{xi}$ is a common intercept for both $x$ variables
+
+${\beta}1_{xi}$ is the partial slope coefficient for $x1$
+
+${\beta}2_{xi}$ is the partial slope coefficient for $x2$
+
+$\epsilon$ is the error term
+
+$y = {\beta}0_{xi} + {\beta}1_{xi} + {\beta}2_{xi} + \epsilon$ 其中，
+
+${\beta}0_{xi}$ 是两个 $x$ 变量的公共截距
+
+${\beta}1_{xi}$ 是 $x1$ 的部分斜率系数
+
+${\beta}2_{xi}$ 是 $x2$ 的部分斜率系数
+
+$\epsilon$ 是误差项
+
+2.  For a multiplicative/interactive version:
+
+$y = {\beta}0_{xi} + {\beta}1_{xi} + {\beta}2_{xi} + {\beta}3_{xi1xi2} + \epsilon$ where,
+
+${\beta}0_{xi}$ is a common intercept for both $x$ variables
+
+${\beta}1_{xi}$ is the partial slope coefficient for $x1$
+
+${\beta}2_{xi}$ is the partial slope coefficient for $x2$
+
+${\beta}3_{xi1xi2}$ is partial slope of the interactive effect $x1 \cdot x2$
+
+$\epsilon$ is the error term
+
+2.  对于乘法/交互版本：
+
+$y = {\beta}0_{xi} + {\beta}1_{xi} + {\beta}2_{xi} + {\beta}3_{xi1xi2} + \epsilon$ 在哪里，
+
+${\beta}0_{xi}$ 是两个 $x$ 变量的公共截距
+
+${\beta}1_{xi}$ 是 $x1$ 的部分斜率系数
+
+${\beta}2_{xi}$ 是 $x2$ 的部分斜率系数
+
+${\beta}3_{xi1xi2}$ 是交互效果的部分斜率 $x1 \cdot x2$
+
+$\epsilon$ 是误差项
+
+Let's start with in additive of non-interactive model.
+
+### Non interactive or additive model
+
+We will explore the simpler non-interactive model first. This still represents different SEASON groups with different regression lines by allowing different intercepts (one for each level of the SEASON variable), but all the lines have the same slope (which it looks like they do).
+
+我們將首先探索更簡單的非互動式模型。該模型仍然透過允許不同的截距（SEASON 變數的每個等級一個截距）來表示具有不同迴歸線的不同 SEASON 組，但所有迴歸線具有相同的斜率（看起來確實如此）。
+
+The additive model looks like this.
+
+```{r}
+M3 <- lm(EGGS ~ DENSITY + SEASON, data = limpet)
+```
+
+```{r}
+summary(M3)
+```
+
+The table shows the following:
+
+-   Line one intercept (2.626) for the first level of the SEASON variable (=spring). This is highly significant.
+-   Line two is the slope for all the variables (-0.03209). This is highly significant.
+-   Line three is the intercept offset for the summer SEASON. This is highly significant.
+
+表格顯示以下內容：
+
+-   第一行是季節變數第一級（春季）的截距（2.626）。該值高度顯著。
+-   第二行是所有變數的斜率（-0.03209）。該值高度顯著。
+-   第三行是夏季季節的截距偏移量。該值高度顯著。
+
+As discussed previously, R operates alphanumerically so it sorts the various levels in the factor from A to B. If we only added the SEASON variable is as an explanatory the level then the 'spring' level of the factor will be taken as the baseline for intercept, because it comes earlier in the alphabet than 'summer'.
+
+如前所述，R 按字母數字順序操作，因此它對因子中從 A 到 B 的各個層級進行排序。如果我們只添加 SEASON 變數作為解釋級別，則該因子的「春季」級別將被視為截距的基線，因為它在字母表中的位置比「夏季」更早。
+
+Recall also that the levels in the factor (or categorical) variable are effectively coded as **dummy variables** (we'll call them $D$) so it is represented as either a 1 or 0. R does this automatically for you, but for reference you can do it manually by the setting the **contrasts**. We will not cover this aspect in this module.
+
+還要記住，因子（或分類）變數的水平實際上被編碼為**虛擬變數**（我們稱之為 $D$），因此它要么表示為 1，要么表示為 0。 R 會自動為您執行此操作，但作為參考，您可以透過設定**對比度**來手動執行此操作。本模組不會介紹這方面的內容。
+
+$$
+\mathbb{D}_1 = 
+\begin{cases} 
+1 & \text{if SEASON } x \text{ is spring
+,} \\ 
+0 & \text{otherwise.}
+\end{cases}
+$$ 
+
+$$
+\mathbb{D}_2 = 
+\begin{cases} 
+1 & \text{if SEASON } x \text{ is summer,} \\ 
+0 & \text{otherwise.}
+\end{cases}
+$$ 
+So for spring $D1$ = 1, and $D2$ = 0. And, for summer $D1$ = 0, and $D2$ = 1. The regression equations for these dummy variables is shown below. Note that first dummy variable has been dropped (i.e. there is no $\beta_1$) and the intercept captures this effect.
+
+因此，春季 $D1$ = 1，$D2$ = 0。夏季 $D1$ = 0，$D2$ = 1。這些虛擬變數的迴歸方程式如下所示。請注意，第一個虛擬變數已被刪除（即沒有 $\beta_1$），而截距捕捉到了這一效應。
+
+$$
+\begin{align*}
+\hat{y} &= \widehat{\text{EGGS}}=\beta_0 +\beta_2{D}_2
+\end{align*}
+$$ 
+
+where, $\beta_0$ is the intercept for the first level in the category (spring), and $\beta_2$ is the offset for summer.
+
+So for the situation where SEASON is spring, the regression equation only includes $\beta_0$ or the intercept is the average EGG production for spring, which happens to be 2.664. We can look at all the betas (or coefficients) by running the regression model below. We are using the `tidy()` function from the `broom` package to tidy the coefficients table up a little.
+
+其中，$\beta_0$ 是類別（春季）第一個等級的截距，$\beta_2$ 是夏季的偏移。
+
+因此，對於 SEASON 為春季的情況，迴歸方程式僅包含 $\beta_0$，或截距是春季的平均蛋產量，恰好是 2.664。我們可以透過執行下面的迴歸模型來查看所有的 beta 值（或係數）。我們使用 `broom` 套件中的 `tidy()` 函數對係數表進行了一些整理。
+
+```{r}
+tidy(M3)[, c("term", "estimate")] # we extract two objects from the model list
+```
+
+Now we have that we can calculate the intercepts for each category in SEASON variable. We only have one left, that is summer and the intercept for that is 2.626 + -0.736 = 0.774.
+
+現在我們可以計算 SEASON 變數中每個類別的截距了。只剩下一個類別，那就是夏季，它的截距為 2.626 + -0.736 = 0.774。
+
+Now we have solid understanding of how the factorial regression is working let's run the model. We can see why is sometimes called an *additive model* because we add in the explanatory variables using a '$+$' in the R formula.
+
+现在我们对阶乘回归有了深入的了解 让我们运行模型。我们可以明白为什么有时被称为 *加性模型*因为我们使用 R 公式中的“$+$”。
+
+We need to validate this model (Fig. 5.12). 我們需要驗證這個模型 (Fig. 5.12)。
+
+```{r}
+#set up the plot window to receive 4 plots in a 2 by 2 matrix
+par(mfrow=c(2,2)) # par sets the graphics window and mfrow=c(2,2) argument sets the window to four panels in a 2 x s grid. We need this because the plot() function generates four plots
+#Plot the graphs
+plot(M3)
+par(mfrow=c(1,1))
+```
+
+**Fig. 5.12: validation plots for M3**
+
+This looks pretty good. We ought to look at the residual spreads on the explanatory factors too, but we need to move on. The next step is to look at the interactive of multiplicative model.
+
+看起來不錯。我們也應該看看解釋因素的殘差差幅，但我們需要繼續。下一步是研究乘法模型的交互作用。
+
+### The interactive (multiplicative model)
+
+The model specification is:
+
+```{r}
+M4 <- lm(EGGS ~ DENSITY * SEASON, data = limpet)
+```
+
+We look at the model summary.
+
+```{r}
+summary(M4)
+```
+
+The table is the same as the additive model, although the coefficients differ a little. It also has on additional line, line 4 `DENSITY:SEASONsummer`. This is the difference in slopes between the two regression lines i.e. spring(slope) - summer(slope). You can also see that DENSITY is highly significant (line 2) and that there is a difference between egg production in summer from spring (-0.8 eggs), with a less significant p = 0.023 (line 3). The difference in slopes is tiny at 0.003114 and not significant.
+
+表與加法模型相同，儘管係數略有不同。它還增加了一行，即第 4 行“DENSITY:SEASONsummer”。這是兩條迴歸線（即春季（斜率）- 夏季（斜率））之間的斜率差。您還可以看到，DENSITY 非常顯著（第 2 行），並且夏季和春季的產蛋量存在差異（-0.8 個產蛋），但 p = 0.023（第 3 行）的顯著性較低。斜率差異很小，為 0.003114，並不顯著。
+
+We are almost there. But how do we know which of these two models in the best? We could use a number of approaches to compare them, such as the **Akaike's Information Criterion (AIC)**.
+
+我們快完成了。但是，我們如何知道這兩個模型中哪一個是最好的呢？我們可以使用多種方法來比較它們，例如**赤池資訊準則 (AIC)**。
+
+```{r}
+AIC(M3,M4)
+```
+
+We'll revisit AIC later in the module. For the time being, we select the model with the **lowest** AIC as the best fitting model. As you can see here, that is model M3. But @Burnham2002 suggest that all models with 2 AIC points are equally likely.
+
+我們將在本模組的稍後部分重新討論 AIC。目前，我們選擇 AIC **最低** 的模型作為最佳擬合模型。正如您在此處所見，該模型是 M3。但 @Burnham2002 建議，所有 2 個 AIC 點的模型都具有同等可能性。
+
+```{r}
+AIC1 <- AIC(M3) # Paste m3 aic into an object
+AIC2 <- AIC(M4) # Paste m4 aic into an object
+AIC2 - AIC1 # subract the smallest from the largest
+```
+
+Either model is acceptable. 兩種模型都是可以接受的。
+
+Or we can use ANOVA to check, if the models are nested. 或者我們可以使用變異數分析來檢查模型是否嵌套。
+
+```{r}
+anova(M3,M4)
+```
+
+M4 does not differ significantly from M3, indicating that M4 is not an improvement on M3 i.e. it confirms the AIC contrast. However, we need to think about this. Remember what we are trying to understand here? We are interested in whether the effect of density depends on season, so we need the interaction term, on top the effects of density and season on their own. That is, we need a term in which the effect of density on egg production *could* depend on season. So we let our hypotheses do the selection, and settle for model M4.
+
+M4 與 M3 並無顯著差異，這表明 M4 並非 M3 的改進，即它證實了 AIC 對比。然而，我們需要思考一下這一點。還記得我們在這裡試圖理解的內容嗎？我們感興趣的是密度的影響是否依賴季節，因此除了密度和季節本身的影響之外，我們還需要交互項。也就是說，我們需要一個項，其中密度對產蛋量的影響*可能*依賴於季節。因此，我們根據假設進行選擇，最終選擇了模型 M4。
+
+Finally, we need to validate model M4 (Fig. 5.13). 最後，我們需要驗證模型M4 (Fig. 5.13)。
+
+```{r}
+#set up the plot window to receive 4 plots in a 2 by 2 matrix
+par(mfrow=c(2,2)) 
+plot(M4)
+par(mfrow=c(1,1))
+```
+
+\*\* Fig. 5.13: Validation plots for model M4\*\*
+
+These look fine. Now we need to check each individual explanatory variable. 這些看起來不錯。現在我們需要檢查每個單獨的解釋變數。Here is the DENSITY residual spreads (Fig. 5.14)
+
+```{r}
+res <- rstandard(M4) # strip out the residuals
+plot(res ~ limpet$DENSITY) # DENSITY validation
+```
+
+**Fig. 5.14: Residual plot for the DENSITY variable (for M4)**
+
+These look okay, perhaps the density levels pinch out on (Fig. 5.14) but the boxplots look okay (Fig. 5.15). Overall, the plots are fine. We can accept the model.
+
+```{r}
+boxplot(res~limpet$SEASON) # SEASON validation
+```
+
+**Fig. 5.15: Residual boxplots for the SEASON variable (for M4)**
+
+The last thing we need to do is create the final supporting figure with some predicted values.
+
+```{r}
+# Create a Grid of Predictor Values. We need to tell the model *what* values to predict at. This grid should contain all the combinations of predictors in your model.
+prediction_grid <- expand.grid(
+  # Create a smooth sequence of 100 DENSITY values from the minimum to the maximum
+  DENSITY = seq(min(limpet$DENSITY), max(limpet$DENSITY), length.out = 100),
+  # Include BOTH levels of the SEASON factor
+  SEASON = c("spring", "summer")
+)
+
+
+# Generate the Predictions
+# Use the predict() function with your model and the new grid of data. interval = "confidence" creates the confidence intervals
+prediction_values <- predict(M4, newdata = prediction_grid, interval = "confidence")
+
+
+# Combine the Grid and the Predictions into a Final Data Frame. The output of predict() is a matrix, so we'll combine it with our grid using cbind.
+predictions_df <- cbind(prediction_grid, prediction_values)
+
+
+# Create the Plot Using the New Prediction Data Frame -
+ggplot() +
+  
+  # Add raw data points from the original 'limpet' data frame
+  geom_point(data = limpet, aes(x = DENSITY, y = EGGS, color = SEASON), alpha = 0.7) +
+  
+  # Add the regression lines from our 'predictions_df'
+  geom_line(data = predictions_df, aes(x = DENSITY, y = fit, color = SEASON), linewidth = 1) +
+  
+  # Add the confidence interval ribbons from our 'predictions_df'
+  geom_ribbon(data = predictions_df, aes(x = DENSITY, ymin = lwr, ymax = upr, fill = SEASON), alpha = 0.2) +
+  
+  # Manually set your desired colors for both scales
+  scale_color_manual(values = c("spring" = "red", "summer" = "black")) +
+  scale_fill_manual(values = c("spring" = "red", "summer" = "black")) +
+  
+  # Add labels and a title
+  labs(
+    title = "Egg Count vs. Density by Season",
+    x = expression(paste("Density of Limpets (m"^2, ")")),
+    y = "Egg Count"
+  ) +
+  
+  theme_bw() +
+  theme(
+    legend.position = "top",# put the legend on the top
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank() # remove the plot border 
+  )
+```
+
+A few words are needed here to explain the code above. The `expand.grid()` is the key function. It creates a data frame with all possible combinations of the values you select to use. In this case, we opt for 100 DENSITY values (you could have used fewer if need be). The functions pairs DENSITY with 'spring' and 'summer', creating a 'prediction' grid. `predict(M4, newdata = prediction_grid, ...)`generates the prediction values by taking the final model 'M4' and matching each row in the 'prediction grid' to calculate the predicted EGGS value (fit) and the confidence interval (lwr, upr) for each combination of DENSITY and SEASON. The other element worth explaining is the `expression(paste("Density of Limpets (m"^2, ")"))`. This pastes in an expression allowing you to use special characters, in this case a superscript created with the `^` character. The rest of the code you've seen before.
+
+這裡需要簡單解釋一下上面的程式碼。 「expand.grid()」是關鍵函數。它會建立一個資料框，其中包含你選擇使用的所有可能值的組合。在本例中，我們選擇了 100 個 DENSITY 值（如果需要，你可以使用更少的值）。此函數將 DENSITY 與「spring」和「summer」配對，建立一個「預測」網格。 「predict(M4, newdata = prediction_grid, ...)」透過採用最終模型「M4」並匹配「預測網格」中的每一行來產生預測值，從而計算出 DENSITY 和 SEASON 每種組合的預測 EGGS 值（擬合值）和置信區間（lwr, upr）。另一個值得解釋的元素是「expression(paste("Density of Limpets (m"\^2, ")"))」。這會貼上一個允許你使用特殊字元的表達式，在本例中，這個表達式是用「\^」字元建立的上標。其餘代碼您之前已經看過。
+
+### Interpretation of regression analyses
+
+It is important to remember the old adage that states **correlation does not equal causation**. What we have done in this workshop is generate statistical linear regression models using three different datasets. We need be careful how far we are willing to push our inferences from these analyses. As Nick (Prof. Kettridge) will tell you at great length (and at my expense); *these are not mechanistic models*!
+
+務必牢記一句古老的格言：相關性不等於因果關係。在本次研討會上，我們利用三個不同的資料集建構了統計線性迴歸模型。我們需要謹慎考慮，究竟該如何從這些分析中得出推論。正如 Nick（Kettridge 教授）會詳細地（並且以我為代價）告訴大家的那樣：*這些並非機械模型*！
+
+## Class Exercises
+
+TASKS - repeat for all the datasets:
+
+-   Create plots to assess the assumptions:
+    -   
+
+        (a) On the raw data;
+
+    -   
+
+        (b) Run the model;
+
+    -   
+
+        (c) Validate it.
+-   Create a final model plot with predicted data, 95% CIs, regression equation, R-squared value;
+-   Interpret the model output.
+
+任務 - 對所有資料集重複此操作：
+
+-   建立圖表以評估假設：
+
+(a) 基於原始資料；
+(b) 運行模型；
+(c) 驗證模型。
+
+-   使用預測資料、95% 信賴區間、迴歸方程式和 R 平方值建立最終模型圖；
+-   解釋模型輸出。
+
+### EXERCISE 1
+
+These data come from from @Peake1993; and were analysed in @Quinn2023 and @Logan2010.
+
+-   FILE: mussel.csv
+-   RESPONSE: Species richness of invertebrates (SPECIES).
+-   EXPLANATORY: area of mussel beds patches (AREA).
+
+這些數據來自\@Peake1993；並由\@Quinn2023 和\@Logan2010 進行了分析。
+
+-   檔：mussel.csv
+-   反應：無脊椎動物物種豐富度（物種）。
+-   解釋：貽貝床斑塊面積（面積）。
+
+### EXERCISE 2
+
+These data relate to apple yield (kg) from cultivars grafted onto rootstocks of varying basal diameters (mm). The orchard design further incorporates two management regimes: plots either exposed to cattle grazing or maintained as grazing-free controls. Grazing is hypothesised to reduce understory grass biomass, thereby potentially mitigating competitive interactions for soil resources between grasses and apple trees. The data are covered extensively used in @Beckerman2017.
+
+FILE: compensation.csv
+
+-   RESPONSE: Apple yield (fruit)
+-   EXPLANATORY 1: Root stock diameter (root)
+-   EXPLANATORY 2: Grazing (ungrazed/grazed) (Grazing)
+
+這些數據指的是嫁接到不同基部直徑（毫米）砧木上的蘋果品種的產量（公斤）。果園設計進一步包含兩種管理方案：要麼進行牛放牧，要麼作為無放牧對照。據推測，放牧會減少林下草類生物量，這可能會減輕草類和蘋果樹之間對土壤資源的競爭。此數據在\@Beckerman2017中被廣泛使用。
+
+文件：compensation.csv
+
+-   反應：蘋果產量（果實）
+-   解釋 1：砧木直徑（根）
+-   解釋 2：放牧（非放牧/放牧）（放牧）
+
+## Follow-up work
+
+-   Complete the tasks / exercises if you haven't done so in class.
+
+-   Read chapter 6 in @Beckerman2017.
+
+-   如果課堂上沒有完成任務/練習，請完成。
+
+-   閱讀\@Beckerman2017的第6章。
+
+## Next week
+
+Next week we will introduce you to multivariate linear regression where two or more explanatory variables. We will also examine how we might select the best possible fitting model in such circumstances i.e. **model selection**.
+
+下週我們將介紹多元線性迴歸，其中有兩個或多個解釋變數。我們還將研究在這種情況下如何選擇最佳擬合模型，即**模型選擇**。
+
+## References

@@ -1,60 +1,873 @@
 # Comparing groups: Means and related tests
 
-Looking at this pattern it looks possible that the two factors might be interacting. We can check this, as we might do if we were planning to analyse the data using two-way ANOVA (Analysis of Variance). We return to this in next week, but lets create a plot that visualises that. It's called an **interaction plot**.
+## Introduction
+
+Last week, while learning how to create effective plots that display the patterns in your data as effectively as possible, you used a run of graphical tools to depict data structure. This week we are going to put that 'plot prowess' to good use by using it to test the assumptions that need to be met when we are comparing groups of things. That might be, for example, the differences in water quality indices (e.g. Total Organic Carbon (TOC), or Biological Oxygen Demand (BOD)) in groups of lakes with different nutrient loads (i.e. eutrophic, mesotrophic and oligotrophic). We will also be exploring how apply appropriate statistical tests to grouped data using the following tests (t-tests, ANOVA, Wilcoxon and Kruskal-Wallis tests).
+
+上週，在學習如何創建有效的圖表以盡可能有效地顯示資料中的模式時，你使用了一系列圖形工具來描繪資料結構。本週，我們將充分利用這種“繪圖能力”，並用它來檢驗在比較多組事物時需要滿足的假設。例如，這些假設可能是不同營養負荷（即富營養、中營養和貧營養）的湖泊組之間水質指標（例如總有機碳 (TOC) 或生物需氧量 (BOD)）的差異。
+
+### Learning Outcomes
+
+At the end of this workshop your will be able to:
+
+-   Use ggplot to visualise data to look for normal distributions and homogeneity of variance.
+-   Carry out parametric and non-parametric tests for situations where you are comparing two groups.
+-   Carry out parametric and non-parametric tests for situations where you are comparing three or more groups.
+-   Use statistical tests to assess normality and homogeneity of variance.
+-   Use R's in built validation plots to assess normality and homogeneity of variance, as well as the influence of potential outlier points.
+
+### Load your libraries
 
 ```{r}
-# --- Step 1: Create the summary data frame with ordered factors ---
+# List of packages
+packages <- c("skimr","readxl","tidyverse","janitor","car","patchwork","coin")
 
-Rye_summary <- Rye %>%
-  # Convert 'Grazing' to a factor with a specific order
-  mutate(Grazing = factor(Grazing, levels = c("Low", "Mid", "High"))) %>%
-  
-  # Group by both categorical variables
-  group_by(Grazing, Field) %>%
-  
-  # Calculate the mean, count, standard deviation, and standard error
-  summarise(
-    n = n(),
-    mean_abund = mean(Abund),
-    sd_abund = sd(Abund),
-    sem = sd_abund / sqrt(n),
-    .groups = 'drop' # Recommended to drop grouping after summarise
-  ) %>%
-  
-  # Calculate the 95% confidence interval boundaries
-  mutate(
-    ic = sem * 1.96, # Interval of confidence
-    upper_ci = mean_abund + ic,
-    lower_ci = mean_abund - ic
+# Load all packages and install the packages we have no previously installed on the system
+lapply(packages, library, character.only = TRUE)
+```
+
+Our new packages for today are:
+
+-   `car. Companion to Applied Regression` [@Fox2019]. Details of its use can be found [here](https://cran.r-project.org/web/packages/car/index.html). And,
+-   `coin` [@Hothorn2008]. This a package that allow permutation of mean type tests.
+
+## Some statistical theory
+
+Mean tests look for differences in either the group means, or in some cases the medians, and they differ depending upon the number of groups you are wishing to compare (i.e. two groups or more than two groups) and the structure of your data. Tests that use group means are known as **parametric** tests and test that use medians, or rank order, **non-parametric** tests. The main differences are:
+
+這些檢定會尋找組別平均值（在某些情況下是中位數）的差異，並且會根據您希望比較的組數（即兩組或兩組以上）和資料結構而有所不同。使用組別平均數的檢定稱為**參數**檢驗，而使用中位數或秩次的檢定稱為**非參數**檢定。主要區別在於：
+
+-   Parametric tests assume that the data come from a specific distribution (commonly a normal distribution), have known or estimable parameters (e.g. mean and variance), and require assumptions such as homogeneity of variances. They tend to be more powerful when those assumptions are met and give precise estimates of error or confidence intervals. If you have two groups you'd use a **t-test**. If you have more than two groups you'd use **Analysis of Variance (ANOVA)**.
+
+-   Non-parametric tests do not rely on distributional assumptions; instead, they often use ranks or medians rather than means. They’re more robust and flexible in the face of non-normal data or unequal variances, though they may be less powerful when parametric assumptions hold. The 2-sample equivalents here are **Wilcoxon signed-rank** test or **Mann–Whitney U** test. If you have three or more sample groups then you'd use a **Kruskal-Wallis** test.
+
+-   參數檢定假設資料服從特定分佈（通常是常態分佈），具有已知或可估計的參數（例如平均值和變異數），並且需要方差齊性等假設。當滿足這些假設時，參數檢定的效力往往更高，並能提供精確的誤差估計值或信賴區間。如果有兩個組，則可以使用**t檢定**。如果有兩個以上的組別，則可以使用**變異數分析 (ANOVA)**。
+
+-   非參數檢定不依賴分佈假設；它們通常使用秩或中位數，而不是平均數。在處理非常態資料或變異不均勻時，它們更加穩健且靈活，但在參數假設成立時，它們的效力可能較低。此處的雙樣本等效項是**Wilcoxon符號秩檢定**或**Mann-Whitney U**檢定。如果您有三個或更多樣本組，那麼您可以使用**Kruskal-Wallis**檢定。
+
+### Testing assumptions
+
+There are two key assumptions that need to be met to decide whether it is sensible to use a parametric test on your data:
+
+-   Normality of data. Tested for graphically with Q-Q plots, histograms and boxplots. The statistical test for this is a **Shapiro-Wilk** test. The test's null hypothesis is that the data are normally distributed, and a low p-value ($p \le 0.05$) suggests that the null hypothesis should be rejected, indicating the data are not normally distributed.
+-   Homogeneity of variance between the groups. Test for graphically using boxplots or scatterplot. The statistical test for this is a **Levene** test. The test's null hypothesis is that the variance is homogeneous, or displays **homoscedasticity**, and a low p-value ($p \le 0.05$) suggests that the null hypothesis should be rejected, indicating the variance is heterogeneous, ie. it displays **heteroscedasticity**. The figures below provide flow charts indicating what graphics and tests to use for your data, for both two (Fig. 4.1), and three or more sample situations (Fig. 4.2).
+
+要確定是否適合對資料進行參數檢驗，需要滿足兩個關鍵假設：
+
+-   資料的常態性。使用Q-Q圖、直方圖和箱型圖進行圖形檢定。用於此目的的統計檢定是**Shapiro-Wilk**檢定。此檢定的零假設是資料服從常態分佈，較低的p值（\< 0.05）表示應該拒絕虛無假設，即資料服從非常態分佈。
+-   組間變異數齊性。使用箱線圖或散佈圖進行圖形檢定。用於此目的的統計檢定是**Levene**檢定。此檢定的零假設是方差齊性，即表現出**同方差性**，較低的p值（\< 0.05）表示應該拒絕零假設，即方差異質性，即表現出**異方差性**。下圖提供了流程圖，指示針對兩個（圖 4.1）和三個或更多樣本情況（圖 4.2）應使用哪些圖形和測試來處理您的資料。
+
+```{r}
+#| label: two_sample
+#| echo: false
+#| fig-cap: "**Fig. 4.1: Two group comparisons**"
+
+knitr::include_graphics("images/two_samples.png") # image in images with handbook folder
+```
+
+```{r}
+#| label: three_sample
+#| echo: false
+#| fig-cap: "**Fig. 4.2: Three or more group comparisons**"
+
+knitr::include_graphics("images/three_samples.png") # image in images with handbook folder
+```
+
+### Analysis of Variance (ANOVA)
+
+We'll consider how means tests work by outlining how **AN**alysis **O**f **VA**riance (ANOVA) operates. The t-test is very similar. We'll start with the basics by defining the **mean**. Like, the **median** and **mode**, the mean is a measure of central tendency. Unlike the other two, it susceptible to movement due to extreme values.
+
+You should all know how this is calculated. You measure a run of things ($x_1$, $x_2$, $x_3$ to $x_n$) then sum them ($\Sigma$) and divide by the number of variables ($n$).
+
+我們將透過概述變異數分析 (ANOVA) 的工作原理來探討平均值檢定的工作原理。變異數分析 (ANOVA) 的全名為「變異數分析 (AN)」。它是基於一種稱為變異數的統計數據，但我們不妨從最基本的層面開始，先定義一個平均值。大家都知道，變異數分析的原理是：測量一系列變數（$x_1$、$x_2$、$x_3$ 到 $x_n$），然後對它們求和（$\Sigma$），再除以變數個數（$n$）。
+
+Or: $$ \mu = \frac{\sum_{i=1}^{N} x_i}{N} $$ ANOVA uses both the mean, but crucially a statistic called variance. This is statistic that shows the spread of measured values around mean (or variability). Others statistics exist that do this, such as the **range** and **standard deviation**. You will cover on those as you move through the workshop code. The equation for variance is below, and, as you might expect, R has a function that calculates it, called `var`.
+
+它透過計算變異數來運作，變異數是一個顯示測量值圍繞平均值分佈的變數。 $$ \sigma^2 = \frac{\sum_{i=1}^{N}(x_i - \mu)^2}{N} $$ ANOVA calculates two types of variance to establish if there is a statistically significant difference between our sample groups (Fig. 4.3):
+
+-   **Between Group Variance**. This is how much the mean of each group varies from the overall mean for all the data points. Think of it as the *signal* across the groups. A high "between-group" outcome indicates that the means of each group are highly different from each other. A low "between-group" outcome suggests that the means of all three groups are very close to each other.
+-   **Within Group Variance**. This is the amount of natural, random variation among data points inside a single group. So in many ways it is a measure of *noise* in our measurements. A low "within-group" outcome (Low Noise) suggests all the data in very similar to each i.e. there is low variability. A high "within-group" outcome (high noise) means that there is a lot of natural variation. The data are very messy.
+
+變異數分析計算兩種類型的方差，以確定樣本組之間是否存在統計上的顯著差異（圖 4.3）： - 組間方差. 這是指每組平均值與所有數據點的總體平均值之間的差異。可以將其視為跨組訊號。較高的「組間變異數」結果表示每組的平均值彼此差異很大。較低的「組間變異數」結果表示所有三組的平均值彼此非常接近。 - 組內方差. 這是指單一組內資料點之間自然、隨機變異的量。因此，在很多方面，它是我們測量中訊號雜訊的度量。較低的「組內方差」（低雜訊）表示所有資料都非常相似，即變異性較低。較高的「組內方差」（高雜訊）表示存在很大的自然變異。數據非常混亂。
+
+```{r, echo=FALSE}
+# Create ANOVA plot
+# Define parameters for the three groups
+library(ggplot2)
+library(patchwork)
+group_means <- c(0, 4, 8) 
+group_sd <- 1.2 
+group_labels <- c("group 1", "group 2", "group 3")
+
+# Create the data for the normal distribution curves
+plot_data <- data.frame()
+for (i in 1:3) {
+  x_vals <- seq(group_means[i] - 5 * group_sd, group_means[i] + 5 * group_sd, length.out = 200)
+  y_vals <- dnorm(x_vals, mean = group_means[i], sd = group_sd)
+  plot_data <- rbind(plot_data, data.frame(x = x_vals, y = y_vals, group = group_labels[i]))
+}
+
+# Create a common theme for both plots
+common_theme <- theme_classic() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    axis.line = element_blank(),
+    # MODIFIED: Slightly reduced font size for better spacing
+    axis.text.x = element_text(color = "black", size = 11), 
+    plot.title = element_text(hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 11),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA)
   )
 
+# Between-group variation
+arrow_offset <- 0.2 # Adjusted offset slightly for the new scale
 
-# --- Step 2: Create the interaction plot ---
-
-ggplot(Rye_summary, aes(x = Grazing, y = mean_abund, group = Field, color = Field)) +
+p1 <- ggplot(plot_data, aes(x = x, y = y)) +
+  geom_line(aes(group = group), color = "gray40") +
+  geom_hline(yintercept = 0, color = "black") +
   
-  # --- Add the error bars ---
-  # This geom will draw the vertical lines for the confidence intervals
-  geom_errorbar(
-    aes(ymin = lower_ci, ymax = upper_ci),
-    width = 0.1,  # Width of the horizontal caps on the error bars
-    linewidth = 0.8
-  ) +
+  # Arrows with an offset so they don't meet
+  annotate("segment", x = group_means[1], y = 0.2, xend = group_means[2] - arrow_offset, yend = 0.2, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") + 
+  annotate("segment", x = group_means[2] + arrow_offset, y = 0.2, xend = group_means[3], yend = 0.2, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") + 
   
-  # --- Add the lines connecting the means ---
-  geom_line(linewidth = 1.2) +
+  # The long arrow at the bottom
+  annotate("segment", x = group_means[1], y = 0.1, xend = group_means[3], yend = 0.1, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") +
   
-  # --- Add the points for the means ---
-  geom_point(size = 4) +
-  
-  # --- Add labels, colors, and a clean theme ---
+  scale_x_continuous(breaks = group_means, labels = group_labels) +
   labs(
-    title = "Interaction of Grazing and Field Position on Mean Abundance",
-    subtitle = "Error bars represent 95% confidence intervals",
-    x = "Grazing Level",
-    y = "Mean Abundance",
-    color = "Field Position"
+    title = "Between-group variation",
+    subtitle = "(i.e., differences among group means)"
   ) +
-  scale_color_brewer(palette = "Set1") +
-  theme_bw(base_size = 14)
+  common_theme
+
+# Within-group variation (with staggered arrows)
+p2 <- ggplot(plot_data, aes(x = x, y = y)) +
+  geom_line(aes(group = group), color = "gray40") +
+  geom_hline(yintercept = 0, color = "black") +
+  
+  # Arrows are at different y-heights to prevent overlap
+  annotate("segment", x = group_means[1] - group_sd * 1.5, y = 0.16, xend = group_means[1] + group_sd * 1.5, yend = 0.16, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") +
+  annotate("segment", x = group_means[2] - group_sd * 1.5, y = 0.13, xend = group_means[2] + group_sd * 1.5, yend = 0.13, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") +
+  annotate("segment", x = group_means[3] - group_sd * 1.5, y = 0.16, xend = group_means[3] + group_sd * 1.5, yend = 0.16, arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "gray20") +
+  
+  scale_x_continuous(breaks = group_means, labels = group_labels) +
+  labs(
+    title = "Within-group variation",
+    subtitle = "(i.e., deviations from group means)"
+  ) +
+  common_theme
+
+# Combine the two plots into one image
+p1 + p2
+
 ```
+
+**Fig. 4.3: The two components of variation in an ANOVA calculation**
+
+ANOVA compares these by calculating a ratio called the F-statistic.
+
+**F-statistic = (Between group variance) / (Within group variance)**
+
+Think of it as a *Signal-to-Noise* ratio. If the F-statistic is large, it means the variation between the groups (the signal) is larger than the (random) variation within the groups (the noise). This provides strong evidence that there is a real difference between the groups. Or, put another way, between group variance is larger than within group variance. If the F-statistic is small, it means the variety between the groups is similar to the background noise. This suggests that any difference you see in the averages is probably just due to chance. Or, the within group variance is larger than between group variance.
+
+可以將其視為“信噪比”。如果 F 統計量較大，則表示組間變異（訊號）大於組內（隨機）變異（雜訊）。這有力地證明了組間存在真實差異。或者換句話說，組間變異數大於組內變異數。如果 F 統計量較小，則表示組間變異與背景雜訊相似。這表明您在平均值中看到的任何差異可能只是偶然造成的。或者，組內變異數大於組間變異數。
+
+The F-statistic is then used to calculate a **p-value**. A small p-value (usually set at threshold of $p \le 0.05$) means it very unlikely we would see such a big difference between the groups by pure chance so we conclude that there is a statistically significant difference somewhere among the groups. A large p-value means it is likely that any difference is governed by random chance and we conclude that there is no significant difference between the group averages.
+
+然後使用 F 統計量計算 **p 值**。較小的 p 值（通常設定為 \<=0.05 的閾值）意味著我們不太可能純粹偶然地看到組間出現如此大的差異，因此我們得出結論，各組之間存在統計學上的顯著差異。較大的 p 值意味著任何差異都可能由隨機因素控制，我們得出結論，各組平均值之間沒有顯著差異。
+
+ANOVA can be hand calculated in a series of simple steps. We will use an example to illustrate this. Imagine you want to compare the effectiveness of three different fertilizers on plant growth. You take three groups of plants:
+
+-   Group A gets Fertilizer A.
+-   Group B gets Fertilizer B.
+-   Group C gets only water (this is your control group).
+
+After a month, you measure the height of all the plants. You calculate the average height for each group. You notice the average height for Group A is the tallest, followed by B, then C.
+
+ANOVA allows you test whether that visual difference is statistically significant. Let's walk through the process again.
+
+方差分析可以透過一系列簡單的步驟手動計算。我們將用一個例子來說明這一點。假設您想比較三種不同肥料對植物生長的有效性。 您選取三組植物：
+
+-   A組施用肥料A。
+-   B組施用肥料B。
+-   C組只澆水（這是您的對照組）。
+
+一個月後，您測量了所有植物的高度。您計算了每組植物的平均高度。您注意到A組的平均高度最高，其次是B組，最後是C組。
+
+變異數分析可以檢驗這種視覺差異是否具有統計意義。讓我們再回顧一下這個過程。
+
+**Step 1: Measuring the Total Variation (Total Sum of Squares - SST)**
+
+First, we forget about the groups and view all the plants as one big dataset. We start by calculating the grand (overall) average (or **Population Mean**) height of all the plants combined:
+
+首先，我們先不考慮植物的分組，將所有植物視為一個大數據集。我們首先計算所有植物的總平均高度（或**族群平均值**）： $$
+\mu = \frac{\sum_{i=1}^{N} x_i}{N}
+$$ For every single plant, we measure the difference between its height and the population mean (we'll call these values **residuals**). Some plants will be positive (taller than average) and some negative (shorter). If you just add them up, they will cancel each other out and sum to zero, so we square every single distance and then sum all of those squared distances together. This final number is known at the **Total Sum of Squares (SST)**. It represents the overall variation in your dataset.
+
+對於每株植物，我們測量其高度與總體平均值之間的差異（我們將這些值稱為**殘差**）。有些植物會為正值（高於平均值），有些則為負值（低於平均值）。如果直接將它們相加，它們會相互抵消，總和為零，因此我們需要對每個距離求平方，然後將所有平方距離相加。最終的數字稱為**總平方和 (SST)**。它代表了數據集的整體變異。 $$
+SST = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (x_{ij} - \bar{\bar{x}})^2
+$$ where,
+
+-   $\sum_{i=1}^{k}$ is the total number of groups.
+-   $\sum_{j=1}^{n_i}$ is the number of observations in group $i$.
+-   $x_{ij}$ is the $j$-th observation in the $i$-th group.
+-   $\bar{\bar{x}}$ is the population mean of all observations.
+
+其中：
+
+-   $\sum_{i=1}^{k}$ 是組總數。
+-   $\sum_{j=1}^{n_i}$ 是組 $i$ 中的觀測值個數。
+-   $x_{ij}$ 是第 $i$ 組中的第 $j$ 個觀測值。
+-   $\bar{\bar{x}}$ 是所有觀測值的總體平均值。
+
+**Step 2: Measuring the Explained Variation (Between-Group Sum of Squares - SSB or Signal)**
+
+Now, let's measure the variation that we think by the application of fertilizers to the plants. We calculate the average height for each fertilizer group (Group A, Group B, Group C) and measure the difference of this to the population mean. We square each of these differences and multiply each squared difference by the number of plants in that group (an important step that gives more weight to larger groups). Finally, we sum these values together. This number is the **Between-Group Sum of Squares (SSB)**:
+
+現在，讓我們來測量一下施肥對植物造成的變異。我們計算每組肥料（A組、B組、C組）的平均高度，並測量其與總體平均值的差異。我們將這些差值平方，再乘以該組中植物的數量（這一步很重要，因為它賦予較大的組更高的權重）。最後，我們將這些值相加。這個數字就是**組間平方和（SSB）**： $$
+SSB = \sum_{i=1}^{k} n_i (\bar{x}_i - \bar{\bar{x}})^2
+$$ where,
+
+-   $\bar{x}_i$ is the mean of group $i$.
+-   and the other terms are as above.
+
+It represents the portion of the total variation that is explained by the differences between the group means. Or the *signal*.
+
+其中：
+
+-   $\bar{x}_i$ 是組 $i$ 的平均數。
+-   其他項同上。
+
+它表示總變異中可由組別平均值之間的差異解釋的部分。或者說，*信號*。
+
+**Step 3: Measuring the Unexplained Variation (Within-Group Sum of Squares - SSW or Error)**
+
+This is the most important part i.e. the calculation of the errors.
+
+-   We focus on one group at a time (e.g., just Group A).
+-   Calculate the average height for just that group (the group or sample mean).
+-   For every plant within Group A, we then measure the difference between its height and the Group A mean and square all of those distances.
+-   Final we sum them up. This gives you the Sum of Squares for Group A.
+-   We repeat this process for Group B and Group C.
+
+Finally, we add the Sum of Squares from all the groups together. This is the Within-Group Sum of Squares (SSW). It is also called the Error Sum of Squares (SSE) because it represents the random, inherent variation that our model (the fertilizer type) cannot explain (i.e the *noise*). We can also think of it as the leftover or **residual error**.
+
+這是最重要的部分，即誤差的計算。
+
+-   我們一次只專注於一個群組（例如，只專注於 A 組）。
+-   計算該組的平均高度（組或樣本平均值）。
+-   對於 A 組中的每一株植物，我們測量其高度與 A 組平均值之間的差異，並計算所有差異的平方。
+-   最後，我們將這些差值相加。這就得到了 A 組的平方和。
+-   我們對 B 組和 C 組重複此程序。
+
+最後，我們將所有組別的平方和相加。這就是組內平方和 (SSW)。它也被稱為誤差平方和 (SSE)，因為它代表了我們的模型（肥料類型）無法解釋的隨機固有變異（即*雜訊*）。我們也可以將其視為剩餘誤差或**殘差**。 $$
+SSW = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (x_{ij} - \bar{x}_i)^2
+$$ where,
+
+-   all terms are defined above.
+
+**Step 4: Calculating the mean squares**
+
+The mathematics of ANOVA means that these terms balance:
+
+SST = SSB + SSW (Total Variation = Explained Variation + Unexplained Variation)
+
+Although the Sum of Squares gives us the components of the raw variation, to compare them appropriately, we need to find the average variation of each one. To do this, we divide by the degrees of freedom (df), which is the number of items used to calculate the sum.
+
+變異數分析的數學原理保證了這些項之間的平衡：
+
+SST = SSB + SSW（總變異 = 解釋變異 + 未解釋變異）
+
+雖然平方和給出了原始變異的各組成部分，但為了正確地比較它們，我們需要找到每個組成部分的平均變異。為此，我們將平均值除以自由度 (df)，即用於計算和的項數。
+
+**Mean Square Between (MSB)**
+
+MSB = SSB / $df_{between}$
+
+where,
+
+$df_{between}$ = number of groups - 1).
+
+This is the average explained variance, our final "Signal" measure.
+
+MSB = SSB / $df_{between}$
+
+其中，
+
+$df_{between}$ = 組數 - 1)。
+
+這是平均解釋方差，也是我們最終的「訊號」指標。
+
+**Mean Square Within (MSW or MSE)**
+
+MSE = SSW / $df_{within}$
+
+where,
+
+$df_{within}$ = total number of plants - number of groups)
+
+This is the average unexplained variance, our final "Noise" or "Error" measure.
+
+MSE = SSW / $df_{within}$
+
+其中，
+
+$df_{within}$ = 植物總數 - 組數)
+
+這是平均未解釋方差，也是我們最終的「雜訊」或「誤差」指標。
+
+**Step 5: The F-statistic**
+
+The F-statistic is the ratio of these two "average" variances:
+
+F = Mean Square Between / Mean Square Within
+
+or
+
+$MSB / MSW$
+
+From here, the F-statistic is used to generate the p-value, which tells us if the *signal* from our fertilizers is strong enough to be heard over the background *noise* of random error.
+
+That's all the theory for today!! Let's get on with some coding.
+
+F 統計量是這兩個「平均」變異數的比值：
+
+F = 組間均方 / 組內均方
+
+或
+
+$MSB/MSW$
+
+由此，F 統計量用於產生 p 值，該 p 值告訴我們肥料發出的*訊號*是否足夠強，足以在隨機誤差的背景*雜訊*中被檢測到。
+
+今天的理論講解就到這裡！讓我們開始編寫程式碼吧。
+
+## Exploring variability in data
+
+We create some basic data to play with. 我們創建了一些基本數據來使用.
+
+```{r}
+y <- c(13, 7, 5, 12, 9, 15, 6, 11, 9, 7, 12) # create some basic data
+```
+
+Let's plot it. We will use base R as ggplot doesn't accept vectors (Fig. 4.4). 讓我們來繪製它。我們將使用基礎 R，因為 ggplot 不接受向量（圖 4.4）。
+
+```{r}
+plot(y, ylim = c(0, 20))    # plot it as a scatter limiting the axis 0 - 20
+```
+
+**Fig. 4.4: XY plot of simulated data**
+
+For reference, the ggplot code is featured below (Fig. 4.5). Note it just needs the data placing in a dataframe. 供參考，ggplot 程式碼如下所示（圖 4.5）。注意，它只需要將資料放置在資料框中即可。
+
+```{r}
+# ggplot2 needs a data frame.
+# We create one with the 'y' values and their 'index'.
+df <- data.frame(
+  index = seq_along(y),
+  value = y
+)
+
+# 3. Create the ggplot
+ggplot(data = df, aes(x = index, y = value)) +
+  geom_point() +  # The equivalent of the default plot type
+  coord_cartesian(ylim = c(0, 20)) + # Sets the visible y-axis range
+  labs(
+    title = "ggplot2 equivalent of plot(y)",
+    x = "Index",
+    y = "Value" 
+  ) +
+  theme_bw()
+```
+
+\*\* Fig. 4.5: Simulated data plotted with ggplot\*\*
+
+How can we quantify this scatter? We could use the range `range()` which returns the minimum and maximum values. Check out the `min()` and `max()` R functions. The difference is 10 units and we can use that as an measure of variability in our data. 我們如何量化這種散度？我們可以使用範圍函數 range()，它會傳回最小值和最大值。查看 R 函數 min() 和 max()。差異是 10 個單位，我們可以用它來衡量資料的變異性。
+
+```{r}
+range(y)
+```
+
+This is okay but we really need to understand how each measured $y$ value varies against the mean of each one. These numbers are the **residuals** were discussing earlier today. To do this we need to calculate the mean. 這沒問題，但我們真正需要了解的是，每個測量的 $y$ 值相對於每個值的平均值是如何變化的。這些數字就是我們今天早些時候討論過的**殘差**。為此，我們需要計算平均值。
+
+```{r}
+mean(y)
+```
+
+Now we subtract the mean for each value of $y$ giving us a new vector. 現在我們減去 $y$ 每個值的平均值，得到一個新的向量。
+
+```{r}
+y - mean(y)  # The result shows both negative and positive values (not ideal when we sum it)
+```
+
+You see they are positive and negative so is we sum them they'll zero out. So we square and sum it, which gives us the **sum of squares**. 你看，它們有正有負，所以如果我們把它們相加，它們就會歸零。所以我們求平方，再求和，就得到了**平方和**。
+
+```{r}
+sum((y-mean(y))^2)
+```
+
+Remember above how needed to standardise our ANOVA error terms to make them comparable? Well, we need to the same here or this value is going to increase every time we add to it! We need to standardise it by dividing the value by the number of samples ($n$). 還記得上面提到的如何將變異數分析的誤差項標準化，使它們具有可比性嗎？好吧，我們需要在這裡保持一致，否則每次增加這個值時，它都會增加！我們需要將數值除以樣本數（$n$）來標準化它。
+
+```{r}
+sum((y - mean(y))^2)/(length(y) - 1)
+```
+
+Notice we are subtracting one from the number of samples to give us the degrees of freedom (df). What we have done here is hand calculate the variance. Obviously, can just call the `var()` function from R. 請注意，我們從樣本數減去 1 得到自由度 (df)。我們在這裡手動計算的是方差。顯然，可以直接從 R 中呼叫 `var()` 函數。
+
+```{r}
+var(y)
+```
+
+## Comparisons of two independent samples
+
+Refer to Fig. 4.1 above to support this section of code. We are going to start by carrying a **t-test**. The data you need is called ozone.csv.請參閱上圖 4.1 來支援這部分程式碼。我們將首先進行 t 檢定。您需要的資料是 ozone.csv。
+
+```{r}
+o3 <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/ozone.csv") # load datafile. Use YOUR directory.
+```
+
+Have look at it.
+
+```{r}
+glimpse(o3)
+skim(o3)
+```
+
+It is a simple df of 20 rows and 2 columns. O3 is ozone concentrations and 'garden' is a character variable with two levels, gardens A and B - R correctly interprets this as a factor variable but there are occasions when we need to tranform the variable from the character class to a factor class variable. We'll cover this in later workshops. Please note the upper and lowercase 'o' and 'O' in the code. These are not zeros! We'll start out by testing the assumption of normality using a histogram and a Q-Q plot (Figs. 4.6, 4.7) and running a Shapiro-Wilk test (Fig. 4.1 above). 這是一個簡單的 20 行 2 列的自由度函數。 O3 表示臭氧濃度，「garden」是一個具有兩個等級的字元變數。花園 A 和 B - R 正確地將其解釋為因子變量，但有時我們需要將其從字元類變數轉換為因子類變數。我們將在後續的研討會中討論這個問題。請注意程式碼中的大小寫“o”和“O”。它們不是零！我們將先使用直方圖和 Q-Q 圖（圖 4.6、4.7）來檢定常態性假設，並執行 Shapiro-Wilk 檢定（上圖 4.1）。
+
+```{r}
+# plot histogram
+ggplot(o3,aes(x=O3)) +
+  geom_histogram(binwidth=1, colour="black", fill="grey90") +
+  labs(x="Ozone levels") + # add a label
+theme_bw() + # change default scheme to black and white....this removes axes and other things!
+ theme(
+  panel.grid.minor = element_blank(), #remove the minor grids
+  panel.grid.major = element_blank(), #remove the minor grids
+  panel.border = element_blank(), # remove the plot border
+  axis.line = element_line(colour = "black") # Add axis lines back for a cleaner look
+ )
+# add Q-Q plot
+ggplot(o3, aes(sample=O3)) +
+  stat_qq() + 
+  stat_qq_line(
+  ) +
+  theme_bw()
+
+```
+
+**Figs. 4.6-4.7: Histogram and Q-Q plot of the Ozone dataset**
+
+**TASK: What do you think these plots indicate? Make a few notes on each one.**
+
+We can use the Shapiro-Wilk test to check for normality to confirm your thoughts. I am not a fan of these sort of tests for lots of reasons. The main one is that these tests, because of how the null hypothesis is framed, is the opposite way to a standard means test and this causes a fair bit of confusion. In this instance we are looking for an outcome that is **not** significant i.e. $p\ge 0.05$. A significant finding i.e. $p\le 0.05$ means that the data do not fit a normal distribution. 我們可以使用 Shapiro-Wilk 檢定來檢驗常態性，以驗證你的想法。我不太喜歡這類檢驗，原因有很多。最主要的是，由於零假設的建構方式，這些檢驗與標準的經濟狀況檢驗相反，這很容易造成混淆。在本例中，我們尋找的是**不**顯著的結果，即 $p\ge 0.05$。顯著的發現，即 $p\le 0.05$，表示資料不符合常態分佈。
+
+```{r}
+shapiro.test(o3$O3)
+```
+
+Is the outcome of this test confirmation of what you thought looking at the histogram and Q-Q plot? So that is our first assumption test out of the way. The second one relates to **homoscedasticity**, or homogeneity of variance across the groups (which are defined by the factor variable). To do this we'll plot a boxplot to visually inspect (Fig. 4.8) it and run a **Levene test** to check. 這項檢驗的結果是否證實了你透過直方圖和Q-Q圖所想？所以，我們的第一個假設檢定已經完成。第二個假設檢定與**同方差性**有關，即各組（由因子變數定義）之間的變異數齊性。為此，我們將繪製一個箱線圖進行視覺化檢查（圖4.8），並執行**Levene檢定**進行驗證。這項檢驗的結果是否證實了你透過直方圖和Q-Q圖所想？所以，我們的第一個假設檢定已經完成。第二個假設檢定與**同方差性**有關，即各組（由因子變數定義）之間的變異數齊性。為此，我們將繪製一個箱線圖進行視覺化檢查（圖4.8），並執行**Levene檢定**進行驗證。
+
+```{r}
+#create a boxplot
+ggplot(o3, aes(x = Garden, y = O3)) + 
+  geom_boxplot() +
+  theme_bw() +
+      theme(
+        panel.grid.minor = element_blank(), #remove the minor grids
+        panel.grid.major = element_blank(), #remove the minor grids
+     )
+```
+
+**Fig. 4.8: Boxplot of the Ozone data**
+
+**TASK: You have the code from week 3 to overlay the data points onto boxplots. Can you adapt it to fit this plot? \[\~ 5 mins\].**
+
+It should look like this when you are done (Fig. 4.9).
+
+```{r, echo=FALSE}
+#create a boxplot
+ggplot(o3, aes(x = Garden, y = O3)) + 
+  geom_boxplot(outlier.shape = NA) +
+  # plot all points.
+  geom_jitter(
+    width = 0.2,
+    alpha = 0.5,
+    col = "blue"
+  ) +
+  theme_bw() +
+      theme(
+        panel.grid.minor = element_blank(), #remove the minor grids
+        panel.grid.major = element_blank(), #remove the minor grids
+     )
+```
+
+**Fig. 4.9: Boxplot with data points**
+
+The indicates that the variance is likely to be homogeneous. The boxplots a very similar. They both are symmetrical with central median, balanced interquartile ranges and symmetrical and equal whiskers, with no potential outliers.
+
+We can confirm with a test. Here is the code for the Levene test. The function is called `leveneTest` and it is in the `car` package. We don't really need to do this but we ensure R treats the O3 variable as a factor class by adding in the `as.factor()` argument.
+
+這表示方差很可能是同質的。箱線圖非常相似。它們都是對稱的，具有中心中位數、平衡的四分位距、對稱且相等的須線，並且沒有潛在的異常值。
+
+我們可以透過測試來確認。這是 Levene 測試的程式碼。此函數名為 `leveneTest`，位於 `car` 套件中。我們實際上不需要這樣做，但我們透過添加 `as.factor()` 參數來確保 R 將 O3 變數視為因子類別。
+
+```{r}
+leveneTest(O3 ~ as.factor(Garden), data = o3)
+```
+
+The p-value is returned as 1, so the data do exhibit **homoscedasticity**. We can are secure that both assumptions have been met: data normality and homogeneity of variance. So we are good to use a parametric test, which is a t-test. Our **null** hypothesis here is that the *there is no difference in ozone concentrations in the two gardens*.
+
+p 值傳回為 1，因此資料確實表現出**同方差性**。我們可以確信兩個假設都已滿足：資料常態性和變異數齊性。因此，我們最好使用參數檢驗，也就是 t 檢定。我們這裡的**零**假設是*兩個花園的臭氧濃度沒有差異*。
+
+```{r}
+# t-test with using a grouping factor
+t.test(O3 ~ Garden, data = o3) # Note - the data argument and '~' (tilde) operator (you'll see a lot of this)
+```
+
+We see that the p-value = 0.001115 so we accept the alternative hypothesis that the *ozone concentrations in the two gardens are significantly different to each other*.
+
+**If our data failed both, or one or the other of the assumption tests we'd need to use a** non-parametric\*\* version of which is called a **Wilcoxon test**. We'll illustrate it here using the same data (even though it fits the criteria for a t-test). The function is `wilcox_test` and it is in the `coin` package. Note: base R also has a variant of this test called `wilcox.test`.
+
+我們看到 p 值 = 0.001115，因此我們接受備擇假設，即*兩個花園的臭氧濃度彼此之間存在顯著差異*。
+
+**如果我們的資料未能通過兩個或其中一個假設檢驗，我們需要使用一種**非參數**版本，稱為**Wilcoxon 檢定\*\*。我們將在這裡使用相同的數據（即使它符合 t 檢定的標準）來說明這一點。該函數是 `wilcox_test`，它位於 `coin` 套件中。注意：基礎 R 語言中也有此檢定的變體，稱為 `wilcox.test`。
+
+```{r}
+wilcox_test(O3 ~ as.factor(Garden), data = o3)
+```
+
+We see a similar significant difference between ozone concentrations in the gardens. Note, though, the p-value is higher. That is because the test has less has less statistical power than a t-test.
+
+我們發現花園中的臭氧濃度也有類似的顯著差異。不過請注意，p值更高。這是因為此檢定的統計效力低於t檢定。
+
+## Means tests for more than two groups
+
+We will return to the fertilizer example to do this and create a data set that fits it using R's simulation functions. **You do not need to understand this code - it's means to an end!**. 我們將回到肥料範例來執行此操作，並使用 R 的模擬函數建立一個適合該範例的資料集。 **您無需理解這段程式碼 - 它只是達到目的的手段！** 。
+
+```{r}
+# Set.seed() to make our "random" data reproducible i.e. if we select 42 here it will create the exact same data! Cool eh?
+set.seed(42)
+
+# Define group parameters
+n <- 30                # Number of plants in each group (our sample size)
+sd_within <- 5         # The noise which is the standard deviation in height each group (in cm)
+
+# Define the signal. The sample means (of height) for each group (in cm)
+mean_a <- 65           # Fertilizer A (best)
+mean_b <- 58           # Fertilizer B (good)
+mean_c <- 50           # Water control (baseline)
+
+# Create random data using rnorm()
+heights_a <- rnorm(n, mean = mean_a, sd = sd_within)
+heights_b <- rnorm(n, mean = mean_b, sd = sd_within)
+heights_c <- rnorm(n, mean = mean_c, sd = sd_within)
+
+
+# A tidy data frame is the standard format for analysis and plotting in R.
+fertilizer_data <- data.frame(
+  # Combine all the height measurements into one column
+  height = c(heights_a, heights_b, heights_c),
+  
+  # Create a corresponding group label for each measurement. Treat = the fertilizer Treatments
+  group = factor(rep(c("TreatA", "TreatB", "Control"), each = n))
+)
+
+# look at the data
+glimpse(fertilizer_data)
+skim(fertilizer_data)
+```
+
+So 90 rows = 90 plants, two columns (height and group):
+
+-   height = measurements of plant height in cm
+-   group = the fertilizer treatments A and B, and the control (water only)
+
+We'll check for the assumptions graphically (Fig. 4.10) and confirm with a test.
+
+因此，90 行 = 90 株植物，兩列（高度和組）：
+
+-   高度 = 植物高度測量值（公分）
+-   組 = 施肥處理 A 和 B，以及對照（僅澆水）
+
+我們將透過圖表（圖 4.10）驗證這些假設，並透過測試進行確認。
+
+```{r}
+# Normality check using a Q-Q plot
+ggplot(fertilizer_data, aes(sample=height)) +
+  stat_qq() + 
+  stat_qq_line(
+  ) +
+  theme_bw() +
+  theme(
+        panel.grid.minor = element_blank(), #remove the minor grids
+        panel.grid.major = element_blank(), #remove the minor grids  
+  )
+
+# check with shapiro.test
+shapiro.test(fertilizer_data$height)
+```
+
+**Fig. 4.10: Q-Q plot of the plant height from the fertilizer example**
+
+Looks pretty good. And the Shapiro-Wilk test confirms this with a p-value of 0.2614. Now to visualise it for homogeneity of variance and the Levene test. We'll use a boxplot (Fig.4.11). 看起來不錯。 Shapiro-Wilk 檢定的 p 值為 0.2614，證實了這一點。現在，為了將其視覺化，以顯示方差齊性和 Levene 檢定的結果，我們將使用箱線圖（圖 4.11）。
+
+```{r}
+ggplot(fertilizer_data, aes(x = group, y = height, fill = group)) +
+  geom_boxplot(outlier.shape = NA) + # make sure the outliers are not added twice as points
+  geom_jitter(width = 0.1, alpha = 0.5) + # Add individual points for clarity
+  labs(
+    title = "Simulated Plant Growth by Fertilizer Treatment",
+    x = "Treatment Group",
+    y = "Plant Height (cm)"
+  ) +
+  theme_bw() +
+  guides(fill = "none") + # Hide the redundant legend 
+ theme(
+    panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank(), #remove the minor grids 
+ )
+
+# Levene test
+leveneTest(height ~ as.factor(group), data = fertilizer_data)
+```
+
+**Fig.4.11: Boxplot of fertilizer experiment data**
+
+This show a little more variability. Treatments A and B are a little skewed and their variation is greater than the Control group. No potential outliers are present. It looks okay. The Levene test confirms this with p-value of 0.2431. Because the data conform to both assumptions we can run a parametric test, which because there are more than two groups, is an ANOVA test (Fig. 4.2). We use the function `aov()` from base R to do this. Note this is a single factor ANOVA, because we only have one grouping variable (called group). Here is code; notice the similarities with the Shapiro-Wilk test syntax. The first element of the code is our Y (or **response**) variable and the second one is an X (or **explanatory**) variable. the tilde operator `~` separates them and the `data=` argument tells R what the dataframe is called. 這表示變異性略大一些。處理組 A 和 B 略有偏差，且其變異大於對照組。不存在任何潛在異常值。結果看起來還不錯。 Levene 檢定證實了這一點，其 p 值為 0.2431。由於數據符合這兩個假設，我們可以進行參數檢定；由於組數多於兩組，因此檢定為變異數分析 (ANOVA) 檢定（圖 4.2）。我們使用 R 中的函數 `aov()` 來執行此操作。請注意，這是單因子變異數分析，因為我們只有一個分組變數（稱為組別）。程式碼如下；請注意它與 Shapiro-Wilk 檢定語法的相似之處。程式碼的第一個元素是我們的 Y（或**回應**）變量，第二個元素是 X（或**解釋**）變數。波浪號運算子 `~` 將它們分隔開，`data=` 參數告訴 R 資料框的名稱。
+
+```{r}
+M1 <- aov(height ~ group, data = fertilizer_data)
+```
+
+We have piped this into an object called M1 (it is in the environment window - top right). To see the results we use the `summary()` function and call the object. 我們將其透過管道傳輸到名為 M1 的物件中（它位於環境視窗的右上角）。為了查看結果，我們使用 `summary()` 函數並呼叫該物件。
+
+```{r}
+summary(M1)
+```
+
+The table lists the results. The first line is the group (or factor variable). The degrees of freedom are 2 (because there are three levels in the factor and 3-1 =2). Then we have the error terms we discussed above, the Sum of Squares, the Mean Sum of Squares, the F value the p-value. The latter shows a highly significant difference, p=2e-16, or 0.0000000000000002 to be exact. 2e-16 tells you to add 16 elements to the right of the decimal point. The last one is a 2. So that's 15 zeros! The chances of the difference we see between the treatments is almost zero! The second line shows the number of residuals. 表格列出了結果。第一行是組別（或因子變數）。自由度為 2（因為因子有三個水平，3-1 = 2）。然後是上面討論過的誤差項，分別是平方和、平均平方和、F 值和 p 值。 p 值顯示出高度顯著的差異，p=2e-16，準確地說是 0.0000000000000002。2e-16 表示在小數點右邊加入 16 個元素。最後一個是 2。所以有 15 個零！我們看到不同處理之間存在差異的可能性幾乎為零！第二行顯示殘差的數量。
+
+The Df is 87. Remember there are 90 rows in our data and the residuals represent the difference in height between each measured data point and the population mean. So where have three points gone? Degrees of freedom are calculated here by substraction the group Df from 90 (-88) and subtracting another Df for the number of factors in the test, so 1 in this case (88-1=87). The global Sum of Squares error and mean global sum of squares is also reproduced. 自由度 (Df) 為 87。記住，我們的數據中有 90 行，殘差表示每個測量數據點與總體平均值之間的身高差。那麼，這三個點去哪了呢？這裡計算自由度的方法是：用 90（-88）減去組別自由度 (Df)，再減去檢驗因子數對應的自由度 (Df)，在本例中為 1（88-1=87）。全域平方和誤差和全域平方和平均值也重現了。
+
+Because `aov` is a global ANOVA model the summary table does not show us the `contrasts`. These are differences between the baseline, which is our control (labelled control in the group variable), and the other levels (Treat1 and Treat2). We can analyse this with a `lm()` model and then `summary()` will provide them. Or we can use a **posthoc** test to provide them. This is usually a **Tukey test**. The function to call it is `TukeyHSD()`. Remember R lists the levels in the factor alphabetically and level closest to A will be listed first. In this instance, it doesn't matter because our control level comes before the TreatA, TreatA levels in the alphabet. So it makes sense. If it didn't we need to reorder the levels. We will do this in the two-factor ANOVA example below. 由於 `aov` 是一個全域變異數分析模型，因此總表不會顯示 `對比`。這些是基線（即我們的對照組（在組別變數中標記為 control））與其他水平（Treat1 和 Treat2）之間的差異。我們可以使用 `lm()` 模型進行分析，然後 `summary()` 會提供這些差異。或者，我們可以使用 **posthoc** 檢定來提供這些差異。這通常是 **Tukey 檢定**。呼叫它的函數是 `TukeyHSD()`。請記住，R 按字母順序列出因子中的水平，最接近 A 的水平將首先列出。在本例中，這並不重要，因為我們的控制水平在字母表中位於 TreatA、TreatA 水平之前。所以這是合理的。如果不是這樣，我們需要重新排序這些水平。我們將在下面的雙因子變異數分析範例中執行此操作。
+
+```{r}
+TukeyHSD(M1)
+```
+
+The summary table above now show the differences between the levels of the factor **contrast**ing all the possible pairs:
+
+-   TreatA-Control. This is 14.38. So Treatment A plants are \~ 14.4 cm taller than the Control plants.
+-   TreatB-Control. This is 6.436611. Treatment B plants are \~6.4 cm taller
+-   TreatB-TreatA. And Treatment B plants are 7.95 cm smaller than Treatment A plants.
+
+All the contrasts are significant. See the adjusted p-values (`p adj`).
+
+### Graphical validation of ANOVA analyses
+
+Every time we run a statistical model, we need to validate the outcomes. This is standard practice and generally done after we have run the model. We do this the `plot()` command, where we add the object name between the `()`. But first we are going to make R plot 4 graphs in a 2 x 2 matrix (Fig. 4.12). We do this by setting the graphic parameters using the `par` function with the `mfrow()` argument. 每次運行統計模型時，我們都會驗證結果。這是標準做法，通常在模型運行後進行。我們使用 `plot()` 命令執行此操作，並在 `()` 之間新增物件名稱。但首先，我們將使用 R 在一個 2 x 2 矩陣中繪製 4 個圖形（圖 4.12）。我們使用 `par` 函數和 `mfrow()` 參數來設定圖形參數來實現。
+
+```{r}
+par(mfrow = c(2, 2)) # set the plotting window to a 2 x 2 frame
+plot(M1)
+par(mfrow = c(1, 1)) # reset the window back to 1 x 1 panel
+```
+
+**Fig. 4.12: Standard R validation plots for a linear object**
+
+Wow! Let's talk through each panel. The table below identifies what each panel is testing and what to look out for if there are issues. I know this is difficult, but you'll have seen lots of these by the end of the module and it will become second nature. 哇！讓我們來逐一討論一下每個面板。下表列出了每個面板的測試內容以及出現問題時需要注意的事項。我知道這很難，但在本模組結束時，你會看到很多類似的面板，這將成為你的第二天性。
+
+```{r echo=FALSE}
+# Load necessary libraries
+library(knitr)
+
+# Create a data frame for the summary table
+summary_table <- data.frame(
+  "Plot" = c("Residuals vs Fitted", "Normal Q-Q", "Scale-Location", "Residuals vs Leverage"),
+  "Key.Assumption" = c("Linearity and Homoscedasticity", "Normality of Residuals", 
+                       "Homoscedasticity", "Influence of Points"),
+  "Signs.of.a.Problem" = c("Curves, funnels, or patterns", 
+                           "Deviations from the 45-degree line",
+                           "Systematic trends or increasing spread", 
+                           "Points outside Cook's distance lines")
+)
+
+# Rename the columns to remove periods
+names(summary_table) <- c("Plot", "Key Assumption", "Signs of a Problem")
+
+# Print the table using kable
+kable(summary_table)
+```
+
+**Table 4.1: Interpreting the panels in the R `plot` function**
+
+Back to our plot. The **Residual v Fitted** plot compares the residuals against the fitted values from the ANOVA calculation. There are no patterns in the points, aside of a slight indication of increasing residual spread across the three treatments (this was visible in the boxplots). The **Q-Q residual plot** shows sufficient normality. The **Scale - Location** plot is fine the spreads are similar, but the control is slightly lower. The **Residuals v Leverage** shows no visible outlier points. I am comfortable with these patterns; others may have different views. We will run with that and turn our attention to a situation where there are more than one explanatory variables. 回到我們的圖。 **殘差與擬合值**圖將殘差與變異數分析計算的擬合值進行比較。除了三種處理之間殘差分佈略有增加（這在箱線圖中可見）外，這些點沒有任何規律。 **Q-Q殘差圖**顯示出足夠的常態性。 **尺度-位置**圖很好，分佈相似，但對照組略低。 **殘差與槓桿率**圖沒有顯示可見的異常點。我對這些規律感到滿意；其他人可能有不同的看法。我們將以此為基礎，並將注意力轉向存在多個解釋變數的情況。
+
+If the validation plots had shown significant patterns in the residual spreads, then we would need to act by either standardising the response variable (height) with a Log10 or square-root transformation (not my preferred option but you'll see examples of this in the literature) or apply an **non-parametric** test (Fig. 4.2). The test we use is a **Kruskal Wallis** rank test. The code is straightforward and we'll use the same data. As above, contrast the p-values on the ANOVA with this test. The function call from the `coin` package is `kruskal_test()`. The base R versions is `kruskal.test()`. This test requires the grouping variables to be factor class variables. We know the group variable is a factor. If we didn't we'd use `mutate()` from `dplyr` to change it. 如果驗證圖在殘差差分中顯示出顯著的模式，那麼我們需要採取行動，要么使用 Log10 或平方根變換對響應變量（身高）進行標準化（這不是我的首選，但您會在文獻中看到相關示例），要么應用**非參數**檢驗（圖 4.2）。我們使用的檢定是**Kruskal Wallis**秩檢定。程式碼很簡單，我們將使用相同的數據。如上所述，將變異數分析的 p 值與此檢定進行比較。來自 `coin` 套件的函數呼叫是 `kruskal_test()`。基本 R 版本是 `kruskal.test()`。此檢定要求分組變數是因子類變數。我們知道組變數是一個因子。如果不知道，我們會使用 `dplyr` 中的 `mutate()` 來更改它。
+
+```{r}
+kruskal_test(height ~ group, data = fertilizer_data)
+```
+
+We see it is still highly significant with p=0.000000000004312. But not as significant as the ANOVA above. 我們看到它仍然高度顯著，p=0.000000000004312。但不如上面的變異數分析顯著。
+
+### Two-way ANOVA
+
+There are many occasions when our dataset has more than one grouping variable, especially in experimental biology/ecology where we might use simulation experiments to understand ecological processes. Have a look at the work of Dr Mark Ledger, who manages GEES's [EcoLaboratory](https://www.birmingham.ac.uk/research/centres-institutes/ecolaboratory) facility on campus for excellent examples ofthis. 在許多情況下，我們的資料集會包含多個分組變量，尤其是在實驗生物學/生態學中，我們可能會使用模擬實驗來理解生態過程。您可以參考馬克‧萊傑博士（Dr Mark Ledger）的研究成果，他負責管理GEES校園內的[生態實驗室](https://www.birmingham.ac.uk/research/centres-institutes/ecolaboratory)設施，其中就有一些絕佳的例子。
+
+We will use a simple two-way example to illustrate the application of multiple grouping factors but there are very many variants of these types of ANOVA designs. Please look at chapters 12-14 in @Logan2010 for the range of possibilities. 我們將使用一個簡單的雙向範例來說明多分組因子的應用，但這類變異數分析設計有許多變異。請參閱\@Logan2010的第12-14章，以了解各種可能性。
+
+The data set we need for this is called 'Grazing.csv'.
+
+```{r}
+Rye <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/Grazing.csv")
+```
+
+Look at it. The data relates to how rye grass abundance varies in relation to two variables, the level of grazing (Grazing) and the location of the sample plots in the field (Field). 看看這個。這些數據與黑麥草豐度如何隨兩個變數而變化有關，即放牧水平（放牧）和田地中樣地的位置（田地）。
+
+```{r}
+glimpse(Rye)
+skim(Rye)
+```
+
+Two-way ANOVA with the default error structure requires the grouping factors to be balanced. We check for this using the `table()` function. 採用預設誤差結構的雙因子變異數分析要求分組因子保持平衡。我們使用 `table()` 函數來檢查這一點。
+
+```{r}
+table(Rye$Field,Rye$Grazing)
+```
+
+The results show that we have the same number of replicate samples i.e. it is *balanced* so we can proceed. The next step is to examine some of the patterns, as they are factors we'll do this with some boxplots (Fig. 4.13). 結果表明，我們擁有相同數量的重複樣本，即*平衡*，因此我們可以繼續進行。 下一步是檢查一些模式，因為它們是因子，我們將使用一些箱線圖來做到這一點（圖 4.13）。
+
+```{r}
+# Boxplots to look at difference of factors - we are using base R graphics here. They are a little quicker to generate. For nice plots for projects and publications we'd use ggplot (you have the code to do this already)
+par(mfrow = c(1,2))
+boxplot(Abund ~ Field, data = Rye)
+boxplot(Abund ~ Grazing, data = Rye)
+
+# rest the graphics
+par(mfrow = c(1,1))
+```
+
+**Fig. 4.13: Boxplot of Rye grass dataset**
+
+Each plot shows a different factor. You can see abundance is variable between the lower and top parts of the field. There is also a difference between the levels of grazing, with some variability within the groups. We can see that the grazing groups are ordered alphanumerically, which makes no sense; we want to order by the magnitude of grazing, Low - Mid - High. 每個圖都顯示了不同的因素。您可以看到，田地下部和上部的豐度有差異。不同放牧程度之間也存在差異，不同組別內也存在一些差異。我們可以看到，放牧組是按字母數字順序排列的，這沒有道理；我們希望按放牧強度排序，即低 - 中 - 高。
+
+```{r}
+# Reorder the categorical variable. R plots factorial variables alphabetically - not useful when your factors relate to a quantity of something!!!!
+Rye$Grazing <- factor(Rye$Grazing, levels = c("Low", "Mid", "High"), ordered = TRUE)
+```
+
+The code to run the 2-way ANOVA is similar but includes one more term. We will run the straight 2-way ANOVA.
+
+```{r}
+M2 <- aov(Abund ~ Grazing + Field, data = Rye)
+```
+
+Let's look at the summary table.
+
+```{r}
+summary(M2)
+```
+
+You see that there is an additional row: one for each factor (Grazing and Field). The results show a significant difference between the Grazing levels with a p-value of 1.54e-08. There is no difference between the different Field locations. When dealing two variables we need to check for one additional thing, whether there is an interaction between the two factors. We can do this graphically using an interaction plot (Fig. 4.14). The function is `interaction.plot()`. This can be done in ggplot if you want a nicer looking result but it requires a lot more code. 您會看到多出了一行：每個因素（放牧和田地）各一行。結果顯示，放牧水平之間存在顯著差異，p值為1.54e-08。田地不同位置之間沒有差異。處理兩個變數時，我們還需要檢查另一項：兩個因素之間是否有交互作用。我們可以使用交互作用圖（圖4.14）以圖形方式執行此操作。函式是“interaction.plot()”。如果您想要更美觀的結果，也可以使用ggplot來實現，但這需要更多的程式碼。
+
+```{r}
+interaction.plot(Rye$Grazing, Rye$Field, Rye$Abund, col=c(2,3), xlab = "Grazing Regime", ylab = "Rye Grass abundance", trace.label = "Field")
+```
+
+**Fig. 4.14: An interaction plot for the Rye grass ANOVA model**
+
+The lines here converge initially and eventually cross. The plot shows that rye grass abundance is higher in the lower field at higher levels of grazing intensity (this is the interaction effect). We can test for it statistically using an interaction term in the `aov` model. 此處的線條最初匯合，最終相交。此圖顯示，在較高的放牧強度下，低地黑麥草豐度較高（這是交互效應）。我們可以使用「aov」模型中的交互項對此進行統計檢定。
+
+```{r}
+M3 <- aov(Abund ~ Grazing * Field, data = Rye)
+```
+
+We are just replacing the `+` symbol with a `*`. The summary call reveals the results. 我們只是用 `*` 取代了 `+` 符號。摘要呼叫會顯示結果。
+
+```{r}
+summary(M3)
+```
+
+The interaction effect is shown as third row in the results. And it is significant, p=0.00178. The last thing we need to do is validate the model with the `plot()` function (Fig. 4.15). 交互效應顯示在結果的第三行。它顯著，p=0.00178。最後，我們需要使用 `plot()` 函數來驗證模型（圖 4.15）。
+
+```{r}
+par(mfrow = c(2,2)) # set the graphics parameter
+plot(M3)
+par(mfrow = c(1,1)) # reset the parameter.
+```
+
+**Fig. 4.15: Validation plots for the two-way Rye grass ANOVA model**
+
+The plots look good, with no clear patterns, despite the variability shown in the boxplots! Had we seen issues in our plot we could use **permutation ANOVA**, as a form of non-parametric two-way comparisons. This method uses computational resampling to build a distribution and calculate p-values without assuming normality. The `lmPerm package` provides the `aovp()` function, which is a 'drop-in' replacement for the standard `aov()`. 儘管箱線圖顯示了變量，但這些圖看起來不錯，沒有明顯的模式！如果我們發現圖中有問題，可以使用置換變異數分析（Permutation ANOVA）作為非參數雙向比較方法。此方法使用計算重採樣來建立分佈並計算 p 值，而無需假設正態性。 “lmPerm”套件提供了“aovp()”函數，它是標準“aov()”函數的“嵌入式”替代品。
+
+## Class Exercises
+
+Do the following for all data files:
+
+-   Load in the data and examine it's structure (including experimental balance)
+-   Posit your hypotheses (null and alternative)
+-   play with some pictures
+-   draw a contingency table to figure out how the data are structured
+-   Select an appropriate ANOVA-based model (NOTE: we have more than 2 samples...so no t tests!)
+-   Validate the model
+-   Briefly interpret the results - in your script file!!!!
+
+對所有資料檔案執行以下操作：
+
+-   載入資料並檢查其結構（包括實驗平衡）
+-   提出假設（零假設和備擇假設）
+-   玩圖片
+-   繪製列聯表以了解資料的結構
+-   選擇合適的基於變異數分析的模型（注意：我們的樣本超過 2 個…因此無法進行 t 檢定！）
+-   驗證模型
+-   簡要解釋結果 - 在您的腳本文件中！ ！ ！ ！
+
+### EXERCISE 1
+
+-   Filename: Hoglouse.csv - a file of water louse distribution along a rivers in Devon response - hoglouse numbers.
+-   File contents: explanatory variable - Upper, Mid and lower sites (i.e. longitudinal profile).
+-   檔案名稱：Hoglouse.csv - 德文郡某河流水蝨分佈狀況文件 - 豬蝨數量
+-   檔案內容：解釋變數 - 上游、中游和下游站點（即縱向剖面）
+
+### EXERCISE 2
+
+-   Filename: Medley.csv (from Medley and Clements (1998) investigated the impact of zinc contamination (and other heavy metals) on the diversity of diatom species in the USA Rocky Mountains (from Box 8.1 of Quinn and Keough (2002).
+-   File contents: DIATOM - number of different species of diatoms on the a known area of rocks in streams (continous variable). ZINC - mpm of zinc in the water column (background, low, medium, high) (factor - explanatory variable).
+-   文件名：Medley.csv（源自 Medley 和 Clements (1998) 研究的鋅污染（及其他重金屬）對美國落基山脈矽藻物種多樣性的影響（源自 Quinn 和 Keough (2002) 的 Box 8.1）
+-   文件內容：DIATOM - 溪流中已知岩石區域內不同種類矽藻的數量（連續變數）。 ZINC - 水體中鋅的含量（單位：毫升/分鐘）（背景、低、中、高）（因子 - 解釋變數）
+
+### EXERCISE 3
+
+-   Filename: Quinn.csv (data from By G. P. Quinn and M. J. Keough, 2002 - "Experimental Design and Data Analysis for Biologists" ).
+-   File contents: DENSITY - urchin density treatment (L1 = 8 individuals per 225 cm2 enclosure, L2 = 15, L3 = 30 and L4 = 45) (factor - explanatory variable). SEASON - Season of the year (Spring or summer) (factor - explanatory variable). EGGS - egg production by limpets (continuous response variable).
+-   檔案名稱：Quinn.csv（資料來自 G. P. Quinn 和 M. J. Keough，2002 年出版的《生物學家實驗設計與資料分析》）
+-   文件內容：密度 - 海膽密度處理（L1 = 每 225 平方公分圍欄 8 只，L2 = 15 只，L3 = 30 只，L4 =​​ 每 45 隻）（因子 - 解釋變數）。季節 - 季節（春季或夏季）（因子 - 解釋變數）。卵 - 帽貝產卵量（連續反應變數）
+
+### EXERCISE 4 \[WILL BE YOUR FORMATIVE EXERCISE\]
+
+-   Filename: fish_pred.csv (data from Doncaster and Davey, 2002, p. 50) fish predation experiment - using enclosures of two species of fish to assess their impact on predation on chironomids.
+-   File contents: Density - density of chironomids left activity fish predation exercise (response variable - continuous). Loach - Presence of a loach in the enclosure (factor - 0 = absent, 1 = present). Bullhead - Presence of a bullhead in the enclosure (factor - 0 = absent, 1 = present).
+-   檔案名稱：fish_pred.csv（資料來自 Doncaster 和 Davey，2002，第 50 頁）魚類捕食實驗 - 使用兩種魚類的圍欄來評估它們對搖蚊捕食的影響。
+-   檔案內容：密度 - 搖蚊在活動性魚類捕食練習中的密度（反應變數 - 連續型）。泥鰍 - 圍欄內是否有泥鰍（因數 - 0 = 不存在，1 = 存在）。牛頭魚 - 圍欄內是否有牛頭魚（因子 - 0 = 不存在，1 = 存在）。
+
+## Next Week
+
+We will introduce you to linear regression in R. We will revisit many of the plotting and model validation functions you have examined today, so do not be overwhelmed. Things will become easier and clearer as the module progresses! 我們將向您介紹 R 中的線性迴歸。我們將重新回顧您今天學習的許多繪圖和模型驗證函數，所以不要感到不知所措。隨著模組的進展，事情會變得越來越簡單和清晰！
+
+## Follow-up work
+
+-   Complete the class exercises if you haven't already done so.
+-   Understanding how to interpret means tests errors is an important skill. This wonderful paper by @Cumming2007 will assist you. Please make sure you read it.
+-   For a more in depth understanding to the wide variety of ANOVA type models refer to chapters 12-14 in @Logan2010. We have online access to this book.
+-   Revisit the section on linear regression in chapter 5 of @Beckerman2017 in preparation for next week's class.
+-   如果您還沒有完成課堂練習，請完成。
+-   了解如何解讀平均值檢定誤差是一項重要技能。 @Cumming2007 的這篇精彩論文將對您有所幫助。請務必閱讀。
+-   如需更深入了解各種變異數分析類型的模型，請參閱 @Logan2010 的第 12-14 章。我們可以在線訪問這本書。
+-   重溫 @Beckerman2017 第五章關於線性迴歸的部分，為下週的課程做準備。 
+
+## References

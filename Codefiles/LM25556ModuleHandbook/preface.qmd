@@ -8,13 +8,15 @@ The class materials are written as a [Quarto](https://quarto.org/) book which is
 
 The module is structured into 10 weeks of content, with each week introducing you to different aspects of using R to analyse environmental datasets. Chapter 10 or week 10 will introduce you to the datasets for Part A of the module assessment, which is worth 50% of the module mark.
 
-该模块包含10周的内容，每周将向您介绍使用R分析环境数据集的不同方面。第10章或第10周将向您介绍模块评估A部分的数据集，该部分占模块总分的50%。
+As the year progresses I will add bonus material to appendices for different analytical tasks, such as GIS mapping, timeseries analyses, binomial GLMs and perhaps some new and emerging multivariate approaches, such as Generalised Linear Latent Variable Models (GLLVMs).
+
+隨著時間的推移，我將在附錄中添加針對不同分析任務的獎勵資料，例如 GIS 映射、時間序列分析、二項式 GLM 以及一些新興的多元方法，例如廣義線性潛變數模型 (GLLVM)。
 
 ## How to use this document {.unnumbered}
 
 The instructions are self-evident. The instructions and code are interlinked, please:
 
--   Navigate around the chapter materials by clicking on the left hand list. When you open a chapter the sections in it are displayed on the the drop list on the right.
+-   Work through the workshop materials and click on the code link icon which are located on the top right of each link. This will copy the code from the chunk to your computer clipboard.
 -   Work through the workshop materials and click on each code link which will copy the code from the chunk to your computer clipboard.
 -   Paste the code into the relevant weekly codefile;
 -   Remember to use the **\#** symbol to add comments to your code. Please use comments extensively.

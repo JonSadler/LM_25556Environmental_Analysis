@@ -1,6 +1,6 @@
 # Data exploration strategies using R
 
-This week we are going to make a start on data visualisation and exploration. To do this we will use graphical techniques that visualize and transform to explore data in a systematic way, a task that statisticians call **exploratory data analysis**, or EDA for short.
+This week we are going to make a start on data visualisation and exploration. To do this we will use graphical techniques that visualize and transform to explore data in a systematic way, a task that statisticians call **exploratory data analysis**, or EDA for short. @Zuur2010a provides an excellent outline of EDA strategies. Please read the paper!
 
 Data exploration is an important and integral part of data analysis. The process is iterative and evaluative and may take several cycles until you in a position to finalise your analytical route (Fig. 3.1). If you read around this you will find that people suggest it is appropriate to spend `~ 50%` of your analytical time engaged in exploring your datasets to identify (sometimes hidden) issues.
 
@@ -128,7 +128,7 @@ knitr::include_graphics("images/ggplot_grammar.jpg")
 knitr::include_graphics("images/ggplot_code.png")
 ```
 
-Reading from left to write. All ggplots begin with the function call (in green), and we pull in the data with the `data=` argument. Next you layer the `geom_function`. This is the argument that selects the type of graphics (e.g. boxplot, histogram etc), and finally you map the aesthetics, `aes()` (i.e. the X and Y elements). There are other layer arguments for adding titles, captions, varying axes etc. We'll keep it simple to start with and expand the range of arguments as you become more experienced.
+Reading from left to write. All ggplots begin with the function call (in green), and we pull in the data with the `data=` argument. Next you layer the `geom` function. This is the argument that selects the type of graphics (e.g. boxplot, histogram etc), and finally you map the aesthetics, `aes()` (i.e. the X and Y elements). There are other layer arguments for adding titles, captions, varying axes etc. We'll keep it simple to start with and expand the range of arguments as you become more experienced.
 
 从左到右依次阅读。所有 ggplot 都以函数调用（绿色）开始，然后使用 **data=** 参数导入数据。接下来，对 geom_function 进行分层。该参数用于选择图形类型（例如箱线图、直方图等），最后绘制图形的视觉效果（即 X 和 Y 元素）。还有其他分层参数可用于添加标题、说明、不同的轴等。我们将从简单的开始，随着您经验的积累，逐步扩展参数的范围。
 
@@ -423,7 +423,7 @@ theme_bw() + # change dafualt scheme to black and white....this removes axes and
 
 **Fig. 3.13: A tidier ggplot version**.
 
-So what does this mean? We can see a number of things. First, on the right we so a number of bin counts that may be 'outliers' (we'll come back to that later). Second the data **right** or **positive** skewed so unlikely to be normally distributed. Right skew means there is a tail of higher values to the right and lump sits to the left (see Fig. 3.14 for more information). The plot in the middle is a classic bell-shaped normal curve. Pay attention to what's happening with the mean, median and mode!
+So what does this mean? We can see a number of things. First, on the right we so a number of bin counts that may be 'outliers' (we'll come back to that later). Second the data show a **right** or **positive** skew, so not normally distributed. A right skew means there is a tail of higher values to the right and lump sits to the left (see Fig. 3.14 for more information). The plot in the middle is a classic bell-shaped normal curve. Pay attention to what's happening with the mean, median and mode!
 
 那么这意味着什么呢？我们可以看出一些情况。首先，右侧有一些可能是“异常值”的箱体计数（我们稍后会讨论这个问题）。其次，数据**右**或**正**倾斜，因此不太可能呈正态分布。右倾斜意味着右侧有较高值的​​尾部，而左侧则有块状（更多信息请参见图 3.14）。中间的图是一条典型的钟形正态曲线。注意平均值、中位数和众数的变化！
 ```{r, echo = FALSE}
@@ -694,22 +694,20 @@ ggplot(Benthic, aes(x = NAP, y = Richness)) +
 **Fig. 3.21: A comparison of linear and loess fits to the beach dataset**.
 
 We see from this that the lines are very similar and that the confidence intervals sit on top of each other so a linear fit is fine in this instance.
+由此我們可以看出，這些線非常相似，並且置信區間彼此重疊，因此在這種情況下線性擬合是可以的。
 
 ## Using one continuous and one factor variable
+
 Boxplots using factors (grouping or categorical) factors come into their own when mixed with continuous variables. We might wish to know how the samples on each beach differ in terms of their species richness. We can accomplish this in the following way. Lots of additional code her show other things. Read the comments in the code chunk. **Important note** - `ggplot` deals with different classes of variable in a difference manner. We want the Beach variable to be a grouping variable (or factor) here. It is currently an integer. To make sure we use a factor we add `factor(Beach)` to our code (see first line) (Fig. 3.22). We could use the `mutate()` function from `dplyr` to add a new variable to the dataframe called `FBeach.` **Have a go**. If you are successful you need to add `FBeach` in line one instead of `factor(Beach)`.
 
-由此可见，这些线非常相似，而且置信区间彼此重叠，因此在本例中线性拟合是可以的。
-
-## 使用一个连续变量和一个因子变量
-使用因子（分组或分类）的箱线图在与连续变量混合时效果更佳。我们可能想知道每个海滩上的样本在物种丰富度方面有何不同。我们可以通过以下方式实现这一点。这里还有许多额外的代码展示了其他内容。请阅读代码块中的注释。**重要提示** - `ggplot` 以不同的方式处理不同类别的变量。我们希望 Beach 变量在这里成为一个分组变量（或因子）。它目前是一个整数。为了确保我们使用了因子，我们在代码中添加了 `factor(Beach)`（参见第一行）（图 3.22）。我们可以使用 `dplyr` 中的 `mutate()` 函数向名为 FBeach 的数据框中添加一个名为 FBeach 的新变量。**试一试**。如果成功，则需要在第一行添加“FBeach”而不是“factor(Beach)”。
+使用因子（分組或分類）的箱線圖在與連續變數混合時會發揮作用。我們可能希望了解每個海灘上的樣本在物種豐富度上有何不同。我們可以透過以下方式實現此目的。許多額外的程式碼展示了其他內容。閱讀程式碼區塊中的註解。 **重要提示** - `ggplot` 以不同的方式處理不同類別的變數。我們希望 Beach 變數在這裡成為分組變數（或因子）。它目前是一個整數。為了確保我們使用了一個因子，我們在程式碼中加入了 `factor(Beach)`（見第一行）（圖 3.22）。我們可以使用 `dplyr` 中的 `mutate()` 函數在資料框中新增一個名為 `FBeach` 的新變數。 **試一試**。如果成功，則需要在第一行新增 `FBeach` 而不是 `factor(Beach)`。
 ```{r}
 ggplot(Benthic, aes(x = factor(Beach), y = Richness)) +
 
 geom_boxplot(
     fill = "skyblue",
     alpha = 0.7,
-    # This tells the boxplot geom to NOT draw the outlier points.
-    # THISMIS CRUCIAL OTHERWISE IT WILL PLOT TOO MANY POINTS - IT'LL ADD ADDITIONAL POINTS - WHAT IT THINKS ARE OUTLIERS.
+    # This tells the boxplot geom to NOT draw the outlier points. THIS IS CRUCIAL OTHERWISE IT WILL PLOT TOO MANY POINTS - IT'LL ADD ADDITIONAL POINTS - WHAT IT THINKS ARE OUTLIERS.
     outlier.shape = NA 
   ) +
   
@@ -731,25 +729,19 @@ geom_boxplot(
 
 **Fig. 3.22: Boxplot showing the pattern of species richness in our beach samples**.
 
-
-**TASK: To see why replace line one with the code below. Make sure the line ends with the plus `+` symbol**.
+**TASK: To see why replace line one with the code below. Make sure the line ends with the plus `+` symbol `[1-2 mins]`**
 
 `ggplot(Benthic, aes(x = Beach), y = Richness) +`
 
 Looking at the plot you can see that a lot of the patterning in our regression (Fig. 3.21) is being driven by the data points in beaches 1 and 2 that have much higher values than beaches 3-9. You can also see that there is a lot of heterogeneous variability in the samples within each of the beaches.
 
-### Examining a mixture of three variables (continuous and factor)
-
-To do this we'll import a new dataset, `Grazing.csv`.
-
-**任务：要了解原因，请将第一行替换为以下代码。确保该行以加号 `+` 结尾**。
-
 `ggplot(Benthic, aes(x = Beach), y = Richness) +`
 
 查看图表，您会发现回归模型（图 3.21）中的许多模式是由海滩 1 和 2 中的数据点驱动的，这些数据点的值远高于海滩 3-9。您还可以看到，每个海滩内的样本都存在大量的异质性变异。
 
-### 检查三个变量（连续变量和因子变量）的混合
+### Examining a mixture of three variables (continuous and factor)
 
+To do this we'll import a new dataset, `Grazing.csv`.
 为此，我们将导入一个新的数据集 `Grazing.csv`。
 ```{r}
 Rye <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/Grazing.csv")
@@ -894,5 +886,18 @@ Return to the beach dataset (called Benthic). Recall it has three continuous var
 
 ### 练习 4：在一张图上绘制三个连续变量。
 回到海滩数据集（名为“底栖”）。回想一下，它有三个连续变量：丰富度、净水量 (NAP) 和暴露度（你没有使用这个变量）。参考上面的水文示例（即图 3.11），并创建一个类似的图表，使用底栖生物数据中的所有三个变量。注意：丰富度为 y 轴，NAP 为 x 轴。您将如何在图表中使用暴露度？
+
+## Next Week
+
+We will be introducing you to means tests (i.e. t-tests and ANOVA), techniques used to test the assumptions surrounding their use and the alternatives that are available to them.
+
+## Follow-up work
+
+- Finish the class exercises if you haven't already done so.
+- Read chapter 5 of [@Beckerman2017].
+- Read @Zuur2010a.
+- 如果還沒有完成課堂練習，請完成。
+- 閱讀[@Beckerman2017]的第 5 章。
+- 閱讀 @Zuur2010a。
 
 ## References

@@ -731,6 +731,10 @@ Using BirdData2 find the following by using the `[ ]` brackets to subset data.
 
 **提示：要执行此操作，您需要先使用 `c()` 创建所有变量！**
 
+## Post class work
+
+- Complete the class exercises,if you haven't already done so.
+
 ## Final reflection on surviving the module!
 
 Effort is everything here. Programming is time intensive and involves a lot of problem solving. To to spend a little time learning R each day. The pay off will be high in the long run. Here are a couple of excellent resources to stay abreast of things that are happening:
@@ -743,7 +747,11 @@ Effort is everything here. Programming is time intensive and involves a lot of p
 
 ## Next Week
 
-We'll be delving deeper into data imports, data manipulation and the murky world of data tidying and wrangling. Have a quick look at Chapters 3, 4, 5, 7, 19 and 20 in @Wickham2023.
+We'll be delving deeper into data imports, data manipulation and the murky world of data tidying and wrangling. 
+
+- Have a quick look at Chapters 3, 4, 5, 7, 19 and 20 in @Wickham2023.
+- Read Chapter 3 of the @Beckerman2017 book. We have online access to this book. 
+
 
 我们将深入探讨数据导入、数据操作以及数据整理和整理的复杂世界。请快速浏览\@Wickham2023的第3、4、5、7、19和20章。
 

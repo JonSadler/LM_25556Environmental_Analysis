@@ -1,1 +1,1408 @@
-# Chapter 7:
+# An Introduction to Generalised Linear Models (GLMs)
+
+## Outline:
+
+Today we are going to introduce you to Generalised Linear Models (GLMs). These were developed in the 1970s but popularised in 80s by @McCullagh1989 in their seminal book '*Generalised Linear Models*' (1982, 2nd edition 1989). They are a group of regression models from the exponent family that generalise classical linear models. They are used in situations when the data you have collected have properties that do not conform to the requirements of linear regression. These sorts of data are much more common that you'd imagine, as we'll explore below.
+
+今天，我们将向您介绍广义线性模型（GLMs）。这些模型最初在 **1970 年代** 被提出，并在 **1980 年代** 由 **McCullagh 和 Nelder** 在其经典著作《广义线性模型》（**1982 年，第二版 1989 年**）中推广。GLMs 是**指数族**回归模型的一类，它们对经典线性模型进行了推广。当您收集到的数据**不符合线性回归的假设**时，就可以使用 GLMs 进行建模。事实上，这类数据比您想象的要普遍得多，我们将在下面进一步探讨这一点。
+
+### Learning Outcomes:
+
+-   Outline the four main error structures (poisson, quasipoisson and negative binomial) associated with GLMs.
+-   Establish when to use them during analyses.
+-   Validate their outcomes.
+-   Plot the summary tables and visualise the relationships of the models.
+
+## Generalised Linear Models (GLMs)
+
+I don't propose to work through the mathematics of these in any depth but you need to have a solid understanding of mechanics of linear regression models, hence the level of detail in last two workshops. GLMs are an extension of classic linear models with additional link functions and error structures that provides more flexibility in their application to different types of response variables.
+
+我不打算深入探讨这些模型的数学原理，但您需要对**线性回归模型的机制**有扎实的理解，这也是前两次研讨会中详细讲解的原因。GLMs 是**经典线性模型的扩展**，通过**引入链接函数（link function）和不同的误差结构**，使其在处理不同类型的响应变量时更加灵活。
+
+### GLM structure
+
+There are three components to any GLM:
+
+-   *Random component or error structure* - specifies the probability distribution of the response variable; e.g., normal (gaussian) distribution for in the case of a classical linear regression model, a binomial distribution for binary, or multinominal, ordinal logistic regression models, poisson, quasipoisson or negative binomial, in the case of a count data (there are other variants!) (Fig. 1).
+
+-   *Systematic component* - specifies the explanatory variables in the model, more specifically, their linear combination; e.g., as we have seen in a linear regression. This will be familiar to you as it is the same as in linear regression.
+
+-   *Link function* which specifies the link between the random and the systematic components. It indicates how the expected value of the response relates to the linear combination of explanatory variables; e.g., for classical regression, or for logistic regression. In all our cases this involves a log exponent link.
+
+该部分指定**响应变量的概率分布**，例如：
+
+-   **正态（高斯）分布**——适用于经典线性回归模型。
+
+-   **二项分布**——用于二分类、多项式或序数逻辑回归模型。
+
+-   **泊松（Poisson）、准泊松（Quasi-Poisson）或负二项（Negative Binomial）分布**——适用于计数数据（当然，还有其他变体！）（见图 1）。
+
+该部分指定**模型中的解释变量**，更具体地说，是它们的**线性组合**。
+
+-   例如，在**线性回归**中，我们已经见过类似的形式。
+
+-   这部分对您来说应该很熟悉，因为它与**经典线性回归**的结构相同。
+
+该部分**建立随机成分与系统成分之间的联系**，即**响应变量的期望值**如何与解释变量的**线性组合**相关联，例如：
+
+-   **经典回归**使用恒等函数。
+
+-   **逻辑回归**使用\*\*对数几率（logit）\*\*函数。
+
+-   在我们所有的案例中，都涉及一个**对数指数（log-exponent）链接函数**。
+
+### GLM assumptions
+
+GLMs share some assumptions with linear regression models, such as:
+
+-   The data are independently distributed, i.e., the cases are independent. Just a in a linear regression.
+-   There is a linear relationship between the transformed expected response between the link function and the explanatory variables, for binary logistic regression and poisson regression.
+
+广义线性模型（GLMs）与**线性回归模型**共享一些假设，例如：
+
+-   **数据是独立分布的**，即各个观测值之间**相互独立**，这与线性回归的假设相同。
+
+-   **转换后的期望响应值**（通过**链接函数**转换）与**解释变量之间存在线性关系**，例如在**二元逻辑回归**和**泊松回归**中。
+
+But not others:
+
+-   The response variable does **not** need to be normally distributed, rather it must fits a distribution from an exponential family (e.g. Poisson, multinomial, normal, gamma etc.).
+
+-   Explanatory variables can be nonlinear transformations of some original variables.
+
+-   The homogeneity of variance does **not** need to be satisfied.
+
+-   Errors need to be independent but **not** normally distributed.
+
+-   Parameter estimates use maximum likelihood estimation (MLE) rather than ordinary least squares (OLS) (do not worry about the details of this).
+
+-   **响应变量不需要服从正态分布**，但必须符合**指数族分布**（如泊松、多项式、正态、伽马等）。
+
+-   **解释变量可以是原始变量的非线性变换**，不必严格是线性关系。
+
+-   **不需要满足方差齐性（homogeneity of variance）**。
+
+-   **误差需要独立**，但不需要服从正态分布。
+
+-   **参数估计使用最大似然估计（MLE），而不是普通最小二乘法（OLS）**（不必担心具体细节）
+
+As a result of the above GLMs have two key advantages over traditional linear regression:
+
+-   The choice of link is separate from the choice of random component, giving us flexible models models which can be fitted to response data of different formats.
+-   They allow for different error structures, accommodating heteroscedasticity and other complexities in the data and providing a more accurate representation of the variance.
+-   We do not need to transform the response to have a normal distribution.
+-   The models are fitted via maximum likelihood estimation, so likelihood functions and parameter estimates benefit from asymptotic normal and chi-square distributions.
+-   All the inference tools and model checking that we will discuss for logistic and Poisson regression models (below) apply for other GLMs too; e.g., Deviance, residuals, confidence intervals, and overdispersion.
+
+✅ **链接函数的选择独立于随机成分的选择**，因此模型更加灵活，可以适用于**不同格式的响应变量**。 ✅ **允许不同的误差结构**，能够处理**异方差性（heteroscedasticity）和其他数据复杂性，更准确地表示方差。 ✅ 不需要对响应变量进行转换以满足正态分布假设。 ✅ 模型通过最大似然估计拟合，其似然函数和参数估计**受益于**渐近正态分布和卡方分布**。 ✅ **所有的推断工具和模型检验方法**（如**逻辑回归**和**泊松回归**中的\*\*偏差（Deviance）、残差（Residuals）、置信区间、过度离散（Overdispersion）\*\*等），**同样适用于其他 GLMs**。
+
+Let's conclude this theory section by reviewing types of data which GLMs can use, and their respective error structures and link functions. We will also suggest what kinds of social science datasets might fit these models (Fig. 7.1).
+
+让我们通过回顾 GLM 可以使用的数据类型及其各自的误差结构和链接函数来结束本理论部分。我们还将建议哪些类型的社会科学数据集可能适合这些模型 (Fig. 7.1).
+
+```{r echo=FALSE}
+# Create a data frame of error structures, links, and data types
+library(ggplot2)
+glm_links <- data.frame(
+  ErrorStructure = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson", "Negative Binomial", "Binomial", "Multinomial"),
+  Link = c("Identity", "Inverse", "Log", "Log", "Log", "Logit", "Logit"),
+  DataExamples = c(
+    "Continuous",
+    "Continuous",
+    "Count",
+    "Count",
+    "Count",
+    "Binary",
+    "Categorical"
+  ),
+  DataType = c("Continuous", "Continuous", "Count", "Count", "Count", "Binary", "Categorical")
+)
+
+# Reorder levels 
+glm_links$ErrorStructure <- factor(glm_links$ErrorStructure,
+                                   levels = c("Gaussian", "Gamma", "Poisson", "Quasi Poisson", 
+                                              "Negative Binomial", "Binomial", "Multinomial"))
+
+# Create a faceted text-based plot with boundary boxes for tiles and margins
+ggplot(glm_links, aes(x = Link, y = ErrorStructure, label = DataExamples)) +
+  geom_tile(fill = "lightblue", color = "black", linewidth = 0.8, alpha = 0.5) + # Add boundary box to tiles
+  geom_text(size = 4) + # Add text annotations
+  labs(
+    title = "GLM Error Structures, Links, and Data Types",
+    x = "Link",
+    y = "Error Structure"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1), # Add margin boundary box
+    plot.margin = margin(10, 10, 10, 10) # Adjust margins if needed
+  )
+```
+
+**Fig. 7.1: The mains types Error structures and their link functions mapped onto the different types of data that a GLM can be used to model.**
+
+As you can see we have 4 main data types (there are more of course!): continuous, counts, binary, and categorical.
+
+-   Continuous data relate phenomena that are measurable in some way e.g. height, body mass, temperature, river discharge, ppt, nutrients (e.g. total phosporus).
+-   Count data have particular properties as they cannot be negative and range from zero to infinity (theoretically at least!). Examples might include, diatom counts in lake, fish counts in rivers, counts of insects on riverbanks and so on; they also could be rates e.g. rates of fish deaths, births of birds etc.
+-   binary data relate to yes/no categories. e.g. males or females in fish populations, bird species presence or absence at a site (used for species distribution models), presence of chytrid fungus on amphibians, pollinator visits to flowers and so on. These are depicted as either a 1 or a 0, so we are effectively modelling the probability of a particular outcome.
+-   categorical data relate to multiclass outcomes of say plant community type at a site (Grassland, Forest, Wetland, Heathland), or animal diets (Herbivore, Carnivore or Omnivore). The can also be ordered, e.g. disturbance severity after a flood (None, Low, Medium, High) and so on.
+
+連續資料與某種可測量的現象相關，例如身高、體重、溫度、河流流量、ppt、營養物質（例如總磷）。
+
+計數資料具有特殊屬性，因為它們不能為負數，且範圍從零到無限大（至少理論上是如此！）。例如湖泊中的矽藻數量、河流中的魚類數量、河岸上的昆蟲數量等等；它們也可以是速率，例如魚類死亡率、鳥類出生率等。
+
+二元資料與是/否類別相關，例如魚類族群中的雄性或雌性、某個地點鳥類的存在或不存在（用於物種分佈模型）、兩棲動物身上壺菌的存在、傳粉者對花朵的訪問等等。這些被表示為 1 或 0，因此我們實際上是在模擬特定結果的機率。
+
+分類資料與多類別結果相關，例如某一地點的植物群落類型（草原、森林、濕地、石楠叢生地）或動物飲食（草食動物、食肉動物或雜食動物）。資料也可以依序排列，例如洪水後的干擾嚴重程度（無、低、中、高）等等。
+
+Observe also that the link functions for the count, binary and categorical data are log based. This keeps the values as positives as required by the error structure. It also means that to make meaningful inferences you need to back transform (exponentiate) the logged response values to their raw form.
+
+也要注意，計數、二分類和分類資料的連結函數都是基於對數的。這使得這些值保持為誤差結構所要求的正值。這也意味著，為了做出有意義的推斷，你需要將記錄的反應值反向轉換（指數化）為原始形式。
+
+[TASK: Now take a few minutes to think about what other different types of data there are and what error structure and link functions you might apply to them \[\~ 5 min\]]{style="color:red;"}.
+
+[任务：现在花几分钟思考一下还有哪些不同类型的数据，以及您可能对它们应用哪些错误结构和链接函数\[\~ 5 分钟\]]{style="color:red;"}。
+
+## Mathematical Formulation of Poisson Regression
+
+The general form of a Poisson regression model is:
+
+$\text{log}(\lambda_i) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \ldots + \beta_k x_k$
+
+Where: - $\lambda_i$ is the expected count (mean) for observation $i$. - $\beta_0$ is the intercept. - $\beta_1, \beta_2, \ldots, \beta_k$ are the coefficients corresponding to predictor variables $x_1, x_2, \ldots, x_k$.
+
+泊松迴歸模型的一般形式為：
+
+$\text{log}(\lambda_i) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \ldots + \beta_k x_k$
+
+其中：- $\lambda_i$ 是觀測值 $i$ 的預期計數（平均值）。 - $\beta_0$ 是截距。 - $\beta_1, \beta_2, \ldots, \beta_k$ 是預測變數 $x_1, x_2, \ldots, x_k$ 對應的係數。
+
+### Interpretation of Coefficients:
+
+-   $\beta_0$: The log of the expected count when all predictors are zero.
+-   $\beta_1, \beta_2, \ldots, \beta_k$: The change in log(count) associated with a one-unit increase in predictor $x_1, x_2, \ldots, x_k$.
+
+The key to using GLMs is mapping the error structure to the structure of your response variable. We can only explore continuous data in today's class. While this is a little limiting, we cannot realistically work through all the possible permutations of GLMs in one class. Please check the 'Vignettes' at the end of the workbook for an example of using binary data, analysed by logistic regression.
+
+$\beta_0$：所有預測變數均為零時，預期計數的對數。
+
+$\beta_1, \beta_2, \ldots, \beta_k$：預測變數 $x_1, x_2, \ldots, x_k$ 每增加一個單位，對數（計數）的變化量。
+
+使用廣義線性模型 (GLM) 的關鍵在於將誤差結構對應到反應變數的結構。今天的課程我們只能探索連續數據。雖然這有一定的局限性，但我們實際上無法在一個課程中涵蓋所有可能的廣義線性模型 (GLM) 排列組合。請查看練習冊末尾的“範例”，其中有一個使用邏輯迴歸分析二值資料的範例。
+
+## Essential reading:
+
+-   <https://en.wikipedia.org/wiki/Generalized_linear_model>.
+-   Read chapter 6 in @Zuur2007. We have a online copy available via information services.
+-   <https://www.utstat.toronto.edu/brunner/oldclass/2201s11/readings/glmbook.pdf>. This is a download of the second edition of @McCullagh1989. You are not required to read it cover to cover!
+
+## Today's Session
+
+### Load/install libraries
+
+List and install packages we need to today's session.
+
+```{r}
+# List of packages
+packages <- c("dplyr", "ggplot2","tidyverse", "moderndive", 
+"ggfortify", "performance", "car", "skimr", "gridExtra", "broom", 
+"ggeffects","MASS","MuMIn")
+# Load all packages and install the packages we have no previously installed on the system
+lapply(packages, library, character.only = TRUE)
+```
+
+These are the new packages for today's session:
+
+-   **ggfortify** [@Tang2016] - Creates validation plots for a range regression model outputs using ggplot wrappers: <https://cran.r-project.org/web/packages/ggfortify/index.html>
+-   **performance** [@Ludecke2021] - Part of the 'easystats' ecosystem and provides tools for evaluating, comparing, and reporting statistical models. It is particularly useful for assessing the quality, assumptions, and goodness-of-fit of a wide range of regression models, including linear models, generalized linear models, and mixed-effects models: <https://cran.r-project.org/web/packages/performance/readme/README.html>
+-   **MASS** - [@Venables2002] short for Modern Applied Statistics with S, authored by Venables and Ripley, provides functions and data sets related to modern statistical methods. The package is widely used for applied statistics and contains tools for various types of statistical analysis: <https://cran.r-project.org/web/packages/MASS/index.html>
+
+这些是今天课程的新软件包：
+
+-   **ggfortify** - 使用 ggplot 包装器为范围回归模型输出创建验证图：<https://cran.r-project.org/web/packages/ggfortify/index.html>
+-   **performance** - “easystats”生态系统的一部分，提供用于评估、比较和报告统计模型的工具。它对于评估各种回归模型的质量、假设和拟合优度特别有用，包​​括线性模型、广义线性模型和混合效应模型：<https://cran.r-project.org/web/packages/performance/readme/README.html>
+-   **MASS** - 带有 S 的现代应用统计学的缩写，由 Venables 和 Ripley 编写，提供与现代统计方法相关的函数和数据集。该软件包广泛用于应用统计，包含各种类型的统计分析工具：<https://cran.r-project.org/web/packages/MASS/index.html>
+
+### Create your code file
+
+You should know how to do this by now! Create it and call it something memorable that links to the week and it the content of the workshop and save to your 'Codefiles directory'.
+
+您现在应该知道该怎么做了！创建它并将其命名为与本周和研讨会内容相关的令人难忘的名字，然后保存到您的“Codefiles 目录”。我使用了一种新方法，即使用 Quarto 文档创建 html 文档。您现在可以单击代码链接，代码将被复制到剪贴板。
+
+### Set Working Directory
+
+**Your WD will be different.** This is mine:
+
+```{r}
+setwd("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Codefiles/LM25556ModuleHandbook")
+```
+
+## GLMs for count data (poisson, negative binomial and quasipoisson)
+
+### Generalised Linear (Poisson) regression with no overdispersion
+
+We'll start with an example of poisson regression using multiple predictors that is not **overdispersed**! @Gotelli2002a investigated the biographical determinants of ant species richness at a regional scale. We're going to replicate their poisson regression of ant species richness against latitude, elevation and habitat type. The code here is from @Logan2010 with modification by JPS. These data are 'counts' so we need to use a GLM [@Zuur2007]. All the same checks are necessary in a poisson regression:
+
+我們將從一個使用多個預測因子且分佈不過度離散的泊松回歸範例開始！ @Gotelli2002a 研究了區域尺度上螞蟻物種豐富度的傳記決定因素。我們將複製他們的泊松回歸模型，該模型將螞蟻物種豐富度與緯度、海拔和棲息地類型關聯起來。此處的代碼來自\@Logan2010，並由 JPS 修改。這些數據是“計數”，因此我們需要使用廣義線性模型 [@Zuur2007]。所有相同的檢查在泊松回歸中都是必要的：
+
+Specifically these are (note the acronym **LINE**) [@Ismay2025]:
+
+-   **L**inear regression fits a straight line so it assumes linearity of the data.
+
+-   **I**ndependence of observations. We assume each observation has no relationship to another one. This isn't always the case. We'll cover this sort of situation later in the module (in week 9).
+
+-   **N**ormality of distributions. Our expectation is that the data are drawn from a random pool of potential observations so conform to a normal distribution, which is usually depicted as a 'bell-shaped' curve.
+
+-   **E**quality or homogeneity of variances, called **homoscedasticity**. The assumption is that the variability between the data points is homogeneous and residuals from the regression are not patterned in any way.
+
+-   線性迴歸擬合的是一條直線，因此它假設資料呈線性。
+
+    觀測值的獨立性。我們假設每個觀測值與其他觀測值之間沒有關聯。但情況並非總是如此。我們將在本模組的後續部分（第 9 週）討論這種情況。
+
+    分佈的常態性。我們預期資料來自隨機的潛在觀測值池，因此符合常態分佈，通常以「鐘形」曲線來表示。
+
+    變異數相等或同質性，稱為同方差性。假設資料點之間的變異性是同質的，且迴歸殘差沒有任何模式。
+
+But we need to add some other checks for:
+
+-   Multicollinearity. We will use Variation Inflation Factors (VIFs) to do that (see week 6).
+-   Over- or underdispersion. We will test for that using the dispersion parameter (new for this week).
+-   The presence of outliers (this is relevant to all regression) which can have a large influence on poisson regression. We'll use Cook's Distances $D$ to check for that.
+
+但我們需要添加一些其他檢查：
+
+-   多重共線性。我們將使用變異膨脹因子 (VIF) 來檢驗（請參閱第 6 週）。
+-   過度離散或欠離散。我們將使用離散度參數（本週新增）來檢驗。
+-   異常值的存在（這與所有迴歸分析都相關），它會對泊松迴歸產生很大影響。我們將使用庫克距離來檢驗。
+
+First need load the datafiles:
+
+```{r}
+# Load data
+gotelli <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/gotelli.csv")
+```
+
+#### Exploratory Data Analysis (EDA)
+
+Recall from last week that we did three exploratory steps [@Zuur2010a]:
+
+1.  Inspecting a sample of raw values.
+2.  Computing summary statistics.
+3.  Creating data visualizations.
+
+回想一下上周我们做了三个探索性步骤：
+
+检查原始值样本。
+
+计算汇总统计数据。
+
+创建数据可视化。
+
+We'd need `glimpse()` and `skim()` for steps 1 and 2.
+
+[TASK: Now take a few minutes to look at the datafile. Pay attention to the data classes, missing values and so on \[\~ 5 min\]]{style="color:red;"}.
+
+[任務：現在花幾分鐘時間查看資料檔。注意資料類別、缺失值等\[\~ 5 分鐘\]]{style="color:red;"}。
+
+```{r}
+glimpse(gotelli)
+```
+
+Now let's do some summaries to get a sense of missing data and the variability of the dataset.
+
+```{r}
+skim(gotelli)
+```
+
+We do not have any missing data but some of our variables appear to be quite variable and are likely to be not normally distributed (see the histograms).
+
+看看这些指标。我们没有任何缺失数据，但我们的一些变量似乎变化很大，可能不呈正态分布（见直方图）。 看看这些指标。我们没有任何缺失数据，但我们的一些变量似乎变化很大，可能不呈正态分布（见直方图）。
+
+#### Visualisation
+
+To examine the variables in this file quickly, and simultaneously, we'll use `scatterplotMatrix()` from the `car` package to visualise them and their relationships to each other (Fig. 7.2). We use the `diagonal` argument `list(method ="qqplot")` to create the QQ-plots. `regLine` and `smooth` set the colour, line type and line width for the regression and smoother lines.
+
+為了快速、同步地檢查此檔案中的變量，我們將使用 car 套件中的 scatterplotMatrix() 函數來視覺化它們及其相互關係（圖 7.2）。我們使用對角線參數 list(method ="qqplot") 來建立 QQ 圖。 regLine 和 smooth 分別設定迴歸線和平滑線的顏色、線型和線寬。
+
+```{r}
+scatterplotMatrix(~Srich 
+  + Latitude + Elevation,
+  diag = list(method = "qqplot"),
+  regLine = list(col = "blue", lwd = 2),   # Linear regression line in blue
+  smooth = list(col.smooth = "blue", lty.smooth = 2, lwd.smooth = 2), # Loess in blue, dashed
+   data = gotelli)
+```
+
+**Fig. 7.2: Scattermatrix plot of the full suite of variables. The diagonal line shows the QQ-plots for each variable**
+
+This plot (Fig. 7.2) isn't nearly as confusing at it looks! Firstly, look at the diagonal down middle. This shows a QQ-plot of all the variables in the dataset. Latitude and Srich do not conform to a normal distribution. Look up from the diagonal and you see the paired correlations of the variables against each other. Srich declines with increasing Latitude and increasing Elevation. This is pretty much what what macroecological theories might predict i.e. latitude and elevation gradient theories. There is a slightly humped relationship between Latitude and Elevation. Both the linear (solid blue line) and loess smoother (dashed blue line) sit within the CIs, indicating that a simple linear fit will suffice for the analysis.
+
+這張圖（圖 7.2）並沒有看起來那麼令人困惑！首先，看一下中間的對角線。它顯示了資料集中所有變數的 QQ 圖。緯度和 Srich 不符合常態分佈。從對角線上看，您會看到變數之間的成對相關性。 Srich 隨著緯度和海拔的增加而下降。這幾乎就是宏觀生態理論（即緯度和海拔梯度理論）可能預測的結果。緯度和海拔之間有略微駝峰的關係。線性（藍色實線）和 Loess 平滑線（藍色虛線）都位於信賴區間 (CI) 內，表示簡單的線性擬合足以進行分析。
+
+We will plot a boxplot for the factor variable (Habitat) as it is not a numerical variable and scatterplotMatrix is meant for $x~y$ variables (Fig. 7.3). 我們將為因子變量（棲息地）繪製一個箱線圖，因為它不是數值變量，而散點圖矩陣適用於 $x~y$ 變量。
+
+```{r}
+# boxplot
+ggplot(gotelli, aes(x=as.factor(Habitat), y=Srich)) + 
+geom_boxplot() +
+  theme_bw() +
+  theme(
+     panel.grid.minor = element_blank(), #remove the minor grids
+    panel.grid.major = element_blank(), #remove the minor grids 
+  )
+```
+
+**Fig. 7.3: Boxplot of ant species richness differences between Forest and Bog habitat**
+
+The boxplot shows that the Srich-Habitat response is likely to conform to homogeneous variability across the groups. The median is fairly central and the IRs are fine. Only one potential outlier is visible. We see that there are more ant speciea in Forest than Bog habitats.
+
+箱線圖顯示，豐富棲地反應很可能符合各組間的同質性變異。中位數相當居中，IR 也很好。只有一個潛在的異常值可見。我們發現森林棲息地的螞蟻種類比沼澤棲息地多。
+
+While EDA is an important step, allowing to visual likely relationships in the data and modify our analyses accordingly, what really matters is whether to model residuals conform to the assumptions we list above. So we'll get on and run the model, testing for **multicollinearity** and **overdispersion** *en route*.
+
+雖然 EDA 是重要的一步，它能夠直觀地展現數據中可能的關係，並相應地修改我們的分析，但真正重要的是殘差模型是否符合我們上面列出的假設。因此，我們將開始運行模型，並在過程中測試**多重共線性**和**過度離散**。
+
+#### Multicollinearity
+
+First up, we'll check for multicollinearity. In week 5 we used some correlations to look at the relationships between our pool of explanatory variables but this is better explored using Variation Inflation Factors (VIFs) as we discussed last week: <https://online.stat.psu.edu/stat462/node/180/>.
+
+首先，我們將檢查多重共線性。在第 5 週，我們使用了一些相關性來考察解釋變數池之間的關係，但更好的方法是使用變異膨脹因子 (VIF)，正如我們上週討論的那樣：<https://online.stat.psu.edu/stat462/node/180/>。
+
+There is a debate about the use of VIFs in data science, especially where you have large numbers of data points. This dataset is tiny and has only 44 rows (i.w. n=44). As datasets become smaller `<`100 we need to make some decisions about collinear predictor/explanatory variables. But how do we make a decision? If we are using VIFs then there is a rule of thumb that says if the values are 3 or less we retain the variables [@Zuur2016a]. Let's have a look; we use the **vif()** function from the **car** package. But even here, there is much debate. Some people suggest `<`10 for as inclusion parameter. I am minded to be more conservative, especially with small datafiles, so will apply a *rule of `<`3* for inclusion.
+
+關於在數據科學中使用 VIF 存在爭議，尤其是在數據點數量眾多的情況下。這個資料集很小，只有 44 行（即 n=44）。隨著資料集變得越來越小（小於 100），我們需要對共線預測變數/解釋變數做出一些決策。但該如何做出決策呢？如果我們使用 VIF，那麼有一條經驗法則：如果值小於或等於 3，則保留變數 [@Zuur2016a]。讓我們來看看；我們使用 **car** 套件中的 **vif()** 函數。但即使在這裡，也存在著許多爭議。有些人建議使用小於 10 的包含參數。我傾向於更加保守，尤其是在資料檔案較小的情況下，因此將應用「小於 3」的包含規則。
+
+To check the VIFs we run the glm regression. This is straightforward as it uses the same code as the last week except we replace the **lm** function with **glm**. The only other difference is that we need to specify what error structure we need to use with the **family =** argument. In this case it is **poisson**.
+
+这很简单，因为它使用的代码与上周相同，只是我们用 **glm** 替换了 **lm** 函数。唯一的区别是我们需要使用 **family =** 参数指定我们需要使用什么错误结构。在本例中它是 **poisson**。
+
+We use the full model with all possible interactions. 我們使用具有所有可能交互作用的完整模型。
+
+```{r}
+gotelli.glm <- glm(Srich ~ as.factor(Habitat) + Latitude + Elevation, 
+                family = poisson, data  = gotelli)
+```
+
+We use the `check_collinearity()` function from the `performance` package for the calculations. Because provides **generalised VIFs** [@Ludecke2021]. I prefer this to the VIF function in `car` but it is up to you.
+
+我們使用 performance 套件中的 check_collinearity() 函數進行計算。因為它提供了**廣義方差函數** [@Ludecke2021]。相較於 car 中的 VIF 函數，我更喜歡這個函數，但最終還是由你決定。
+
+```{r}
+gvif_values <- performance::check_collinearity(gotelli.glm)
+print(gvif_values)
+```
+
+These are all fine. We can run with them. Had we used the interactions, the numbers would have been huge because the habitats are distributed unevenly along the elevation and latitudinal gradients. Have a go, replace the `+` with `*` in the script and rerun the model and the `check_collinearity()` function.
+
+這些都沒問題。我們可以用它們來運行。如果我們使用了交互作用，數字會非常大，因為棲息地在海拔和緯度梯度上的分佈並不均勻。試一試，將腳本中的“+”替換為“\*”，然後重新運行模型和“check_collinearity()”函數。
+
+We decide to **centre** the numerical predictor variables to reduce the impact of any model interactions, and we also they are **scale** them. This means we can directly compare the coefficients in the model with each other becauses the units are standard deviations. This is done with `scale` function and the `scale` and `centre` arguments from Base R with `mutate()` function. We add the two new 'centre-scaled' variables to our dataframe.
+
+我們決定將數值預測變數**居中**，以便它們被縮放到相同的值。這意味著我們可以直接比較模型中的係數。這可以透過 Base R 中的 `scale` 函數來實現。我們將兩個新的「縮放」變數加入到我們的資料框中。
+
+```{r}
+gotelli <- gotelli %>%
+  mutate(
+    cLatitude  = as.numeric(scale(Latitude,  center = TRUE, scale = TRUE)),
+    cElevation = as.numeric(scale(Elevation, center = TRUE, scale = TRUE))
+  )
+```
+
+No need to repeat the VIF code. They will be same. 無需重複 VIF 程式碼。它們將是相同的。
+
+Now we know there are no collinearity problems we move on and fit the full model with interactions. We continue to overwrite the model object name! 現在我們知道不存在共線性問題，我們繼續進行，並用交互項擬合整個模型。我們繼續覆蓋模型物件名稱！
+
+```{r}
+gotelli.glm <- glm(Srich ~ as.factor(Habitat) * cLatitude * cElevation, 
+                family = poisson, data  = gotelli)
+```
+
+Lets look at the summary table.
+
+```{r}
+summary(gotelli.glm)
+```
+
+Look at the table. You'll notice that (unlike a linear regression) we do not have F or T values, or an R-squared or an adjusted R-squared. We have something called **deviance** $D$. In a Generalized Linear Model (GLM), deviance is a measure of the goodness-of-fit of the model. It compares the fit of the specified model to a saturated model, which is a hypothetical model that fits the data perfectly. i.e. if we drew the regression line it would be a 1:1 fit. The lower the deviance the better the model fit to the data. You can see that our model has a $D$ of 102.763
+
+We can estimate the fit by using the following equation which gives us something akin to an $R^2$ value:
+
+看一下表格。你會注意到（與線性迴歸不同），我們沒有 F 值或 T 值，也沒有 R 平方或調整後的 R 平方。我們有一個叫做**偏差** $D$ 的東西。在廣義線性模型 (GLM) 中，偏差是衡量模型適配優度的指標。它將指定模型的適配度與飽和模型進行比較，飽和模型是一個假設的模型，可以完美地擬合資料。也就是說，如果我們畫出迴歸線，擬合度將是 1:1。偏差越低，模型與資料的適合度就越高。你可以看到，我們的模型的 $D$ 為 102.763。
+
+我們可以使用以下公式估算擬合度，公式給出的值類似於 $R^2$ 的值：
+
+$$
+\text{Proportion of Deviance Explained} = \frac{\text{Null Deviance} - \text{Residual Deviance}}{\text{Null Deviance}}
+$$
+
+$$
+\text{偏差解释比例} = \frac{\text{零偏差} - \text{残差}}{\text{零偏差}}
+$$ 我们可以计算它： We can calculate it.
+
+```{r}
+null_deviance <- gotelli.glm$null.deviance #
+residual_deviance <- gotelli.glm$deviance
+proportion_explained <- (null_deviance - residual_deviance) / null_deviance
+
+# Print result
+cat("Proportion of Deviance Explained:", proportion_explained, "\n")
+```
+
+The estimate of deviance explained is moderately high at 0.6129791, indicating our model accounts for around 61% of the variation ant species richness across the global sample.
+
+解釋的偏差估計值較高，為 0.6129791，顯示我們的模型可以解釋全球樣本中螞蟻物種豐富度變異的約 61%。
+
+Now let's return to the summary table. Because this is a Poisson GLM with a log link, the Estimate values are on the **log scale**. They represent the change in the log-count of species richness. When we finish our model selection we will exponentiate them to get the real values. Let's look at each line:
+
+現在讓我們回到匯總表。由於這是一個具有對數關聯的泊松廣義線性模型 (GLM)，因此估計值採用對數刻度。它們表示物種豐富度對數計數的變化。完成模型選擇後，我們將對它們求冪以獲得真實值。讓我們看一下每一行：
+
+-   **Intercept**: This is the predicted log-count of species richness when all other predictors are at their baseline or zero level. We centered (and scaled) cLatitude and cElevation, so their zero level is their mean. Since Habitat is a factor, its baseline is the first level alphabetically ( the Bog" habitat type). The intercept then is the log-count for the baseline habitat at the average latitude and elevation. It is highly significant.
+-   **as.factor(Habitat)Forest**: This is the difference in the log-count between the "Forest" habitat and the baseline "Bog" habitat, holding latitude and elevation constant at their means. The estimate is positive (0.628), so the log-count of species richness is significantly higher in forests compared to the baseline.
+-   **cLatitude** is the main effect of latitude. It shows that a one-unit increase in centered latitude (moving one unit north or south of the average), the predicted log-count of species richness decreases by 0.24. This is a significant main effect.
+-   **cElevation** is the main effect of elevation. For a one-unit increase in centered elevation, the log-count of species richness decreases by 0.11. However, the p-value (0.3391) is large, so not a statistically significant.
+-   **as.factor(Habitat)Forest:cLatitude**: This is the two-way interaction term. It tests whether the relationship between latitude and species richness is different in forests compared to bogs. The coefficient is very close to zero and the p-value (0.9460) is very large. This means there is no significant interaction here; the effect of latitude is roughly the same in both habitats.
+-   **as.factor(Habitat)Forest:cElevation**: This is the two-way interaction term. It tests whether the relationship between elevation and species richness is different in forests compared to bogs. This interaction term (-0.0975) is the additional change to that slope when you are in a forest. As you know to get the partial slope for Forests you add this term to the main elevation term: -0.1059 + (-0.0975) = -0.2034. It is not significant.
+-   **cLatitude:cElevation** is another two-way term testing whether the effect of latitude gets stronger or weaker as you go up in elevation. For example, a significant interaction could mean that latitude has a strong negative effect at high elevations, but almost no effect at sea level. It is a small coefficient and not significant.
+-   **as.factor(Habitat)Forest:cLatitude:cElevation** is the 3-way interaction. These are notoriously difficult to interpret. It goes something like this:
+    -   In the baseline habitat, the effect of latitude gets stronger as elevation increases (a significant two-way interaction).
+    -   But in forests, the effect of latitude is constant across all elevations (no two-way interaction). It is not significant.
+-   **截距**：當所有其他預測因子都處於基線或零水平時，這是物種豐富度預測的對數計數。我們將緯度和海拔居中（並進行了縮放），因此它們的零水平是它們的平均值。由於「棲息地」是一個因子，其基線按字母順序排列為第一級（「沼澤」棲息地類型）。截距是基線棲息地在平均緯度和海拔處的對數計數。該值高度顯著。
+-   **as.factor(Habitat)Forest**：這是「森林」棲息地與基線「沼澤」棲息地之間對數計數的差值，保持緯度和海拔平均值不變。估計值為正值（0.628），因此森林棲息地的物種豐富度對數計數顯著高於基線棲息地。
+-   **cLatitude** 是緯度的主效果。它表明，中心緯度每增加一個單位（即在平均值以北或以南移動一個單位），預測的物種豐富度對數計數就會減少 0.24。這是一個顯著的主效果。
+-   **cElevation** 是海拔的主效果。中心海拔每增加一個單位，物種豐富度的對數數就會減少 0.11。然而，p 值（0.3391）很大，因此不具統計意義。
+-   **as.factor(Habitat)Forest:cLatitude**：這是一個雙向交互項。它檢驗森林與沼澤中緯度與物種豐富度之間的關係是否不同。此係數非常接近零，p值（0.9460）非常大。這意味著這裡不存在顯著的交互作用；緯度的影響在兩種棲息地中大致相同。
+-   **as.factor(Habitat)Forest:cElevation**：這是一個雙向交互項。它檢驗森林與沼澤中海拔與物種豐富度之間的關係是否不同。這個交互項（-0.0975）是當處於森林中時，該坡度的額外變化。眾所周知，要獲得森林的部分坡度，需要將此項添加到主海拔項：-0.1059 + (-0.0975) = -0.2034。結果並不顯著。
+-   **cLatitude:cElevation** 是另一個雙向項，用於檢驗緯度效應隨海拔升高而增強還是減弱。例如，顯著的交互作用可能意味著緯度在高海拔地區具有強烈的負面影響，但在海平面地區幾乎沒有影響。這是一個較小的係數，並不顯著。
+-   **as.factor(Habitat)Forest:cLatitude:cElevation** 是三向交互項。眾所周知，這類交互項很難解釋。其形式如下：
+-   在基線棲息地中，緯度效應隨海拔升高而增強（顯著的雙向交互作用）。
+-   但在森林中，緯度的影響在所有海拔高度上都是恆定的（沒有雙向交互作用）。因此並不顯著。
+
+We'll come back to model simplification after we have tested for over- or under-dispersion. 在測試了過度分散或不足分散之後，我們將回到模型簡化。
+
+#### Over-underdispersion
+
+Overdispersion occurs when the observed variability in the response variable is greater than what is expected given statistical model. It is only relevant to GLMs using count data or binary data, such as Poisson and binomial regressions.
+
+-   Poisson Regression: Assumes that the mean of the response variable equals its variance. Overdispersion occurs if the variance exceeds the mean. Underdispersion if the mean exceeds the variance.
+-   Binomial Regression: Assumes the variance is proportional to $p(1-p)$, where $p$ is the probability of success). Overdispersion arises if the observed variance is larger than this theoretical variance.
+
+當反應變數的觀測變異性大於給定統計模型的預期變異性時，就會出現過度離散。它只適用於使用計數資料或二元資料的廣義線性模型 (GLM)，例如泊松迴歸和二項迴歸。
+
+-   泊松迴歸：假設反應變數的平均值等於其變異數。如果變異數超過平均值，則會出現過度離散。如果平均值超過方差，則會出現欠離散。
+-   二項迴歸：假設變異數與 $p(1-p)$ 成正比，其中 $p$ 為成功機率。如果觀測到的變異數大於理論方差，則會出現過度離散。
+
+Overdispersion can be caused by a lot of things: an excessive numbers of zeros in our response data (i.e. zero inflation), lack of independence of data points (i.e. spatial structure or repeated measurements), missing covariates, clustering of correlated variables, non-linear relationships.
+
+We need to check for this in our regression model using either tests in packages, such the **performance** package or calculate it directly with an equation. We'll do both. First up the **performance** package.
+
+過度離散可能由多種因素造成：反應資料中零值數量過多（即零膨脹）、資料點缺乏獨立性（即空間結構或重複測量）、協變量缺失、相關變數聚類、非線性關係。
+
+我們需要在迴歸模型中檢查這些因素，可以使用套件中的檢定方法（例如 **performance** 套件）或直接用方程式計算。我們將兩種方法都用。首先使用 **performance** 套件。
+
+```{r}
+check_overdispersion(gotelli.glm)
+```
+
+And hand calculated. 并手工计算。
+
+```{r}
+dispersion_stat <- sum(residuals(gotelli.glm, type = "pearson")^2) / gotelli.glm$df.residual
+cat("Dispersion Statistic:", dispersion_stat, "\n")
+```
+
+If we find a value over 1 then we need to fix this. The dispersion parameter is only slightly over 1, so there is no issue.
+
+如果我們發現一個大於 1 的值，那麼我們需要修正它。色散參數僅略大於 1，所以沒有問題。
+
+#### Refining the best fit model
+
+Clearly, we have a model that is too complicated so it needs some simplification. We could do this using `MuMIn` as last week or you we can just chop out the interact terms and rerun the model. MuMIn does this anywhere!
+
+顯然，我們的模型過於複雜，需要進行一些簡化。我們可以像上週一樣使用「MuMIn」來實現，或者直接刪除交互項，重新運行模型。 MuMIn 可以在任何地方進行簡化！
+
+```{r}
+options(na.action=na.fail) # set options in Base R concerning missing values
+
+summary(model.avg(dredge(gotelli.glm), fit = TRUE, subset = TRUE))
+
+options(na.action = "na.omit") # reset base R options
+```
+
+Now we have our final model with all three variables in it 1,2 and 3 (or Habitat + Latitude + Elevation). We run it and look at the coefficients.
+
+現在我們有了最終的模型，其中包含三個變數：1、2 和 3（即棲息地 + 緯度 + 海拔）。我們運行它並查看係數。
+
+```{r}
+gotelli.glm <- glm(Srich ~ as.factor(Habitat) + cLatitude + cElevation, 
+                   family=poisson, data = gotelli)
+summary(gotelli.glm)
+```
+
+[TASK: Have a go at sorting out the proportion of deviance explain (the code is above) \[\~ 5 min\]]{style="color:red;"}.
+
+[任務：試著整理偏差解釋的比例（代碼在上面）\[\~ 5 分鐘\]]{style="color:red;"}。
+
+We need to validate the model before it can be interpreted.
+
+#### Model validation
+
+Poisson regression shares many of the properties of linear regression. Notwithstanding the flexibility of GLMs, we still have to validate the models by examining residual spreads (more below). @Zuur2016a provide a clear protocol to follow in respect to these steps. Note that because it is a GLM we need to use **Pearson residuals** not **standardised residuals** to do this. We will use the `autoplot()` function from the `ggfortify` package to create our validation plots. We will add a `method=` argument to specify we ran a GLM model for clarity, but the package checks for model type (Fig. 7.4).
+
+泊松迴歸與線性迴歸有許多共同的性質。儘管廣義線性模型 (GLM) 非常靈活，我們仍然需要透過檢查殘差差值來驗證模型（詳見下文）。 @Zuur2016a 提供了關於這些步驟的清晰協議。請注意，由於這是一個廣義線性模型 (GLM)，因此我們需要使用**皮爾遜殘差**而不是**標準化殘差**來執行此操作。我們將使用 `ggfortify` 套件中的 `autoplot()` 函數來建立驗證圖。為了清晰起見，我們將新增 `method=` 參數來指定我們執行的是 GLM 模型，但套件會檢查模型類型（圖 7.3）。
+
+```{r}
+## simulate residuals
+autoplot(gotelli.glm, method="glm")
+## plot simulated residuals
+```
+
+**Fig. 7.4: Validation plots for model gotelli.glm**
+
+This plot shows us a Q-Q plot output which we have seen before and plots the residuals as well. As before we do not want to see patterns in these. These look excellent.
+
+We check directly for outliers using Cook's distance (D) (Fig. 7.5). The `which=4` argument isolates this plot. The 'rule of thumb' here is that we don't want to see values of greater that 1.
+
+此圖展示了我們之前見過的 Q-Q 圖輸出，並繪製了殘差。和之前一樣，我們不希望在這些圖中看到任何模式。這些圖看起來非常棒。
+
+我們直接使用 Cook 距離 (D) 檢查異常值（圖 7.5）。 `which=4` 參數隔離了此圖。這裡的「經驗法則」是，我們不希望看到大於 1 的值。
+
+```{r}
+plot(gotelli.glm, which=4)
+```
+
+**Fig. 7.5: Cook's distance (D) plot for our model showing the lack of influential/outliers. The vertical bars on the X axis show the D for each data point.**
+
+We see no issues in terms of outliers, so now we have the final task of validating each variable in the model (Fig. 7.6). As this is a GLM with use the Pearson's residuals.
+
+我們沒有發現任何異常值問題，所以現在我們要做的最後一項任務是驗證模型中的每個變數（圖 7.6）。由於這是一個廣義線性模型 (GLM)，因此使用了皮爾遜殘差。
+
+```{r}
+pres <- residuals.glm(gotelli.glm, type="pearson") # strip the residuals
+#plot against the predictor variables in a panel plot
+par(mfrow = c(2, 2))  # Set 3 rows and 2 columns
+plot(pres ~ gotelli$cLatitude)
+plot(pres ~ gotelli$cElevation)
+boxplot(pres ~ as.factor(gotelli$Habitat))
+```
+
+**Fig. 7.6: Residual patterns for all the explanatory (or predictor) variables.**
+
+There residual spreads for cLatitude and cElevation are fine and exhibit a random spread, balanced around zero. The boxplots show a little more variability in the medians and IRs but are also fine.
+
+Remember to reset your graphics window to a 1 x 1 panel. 記得將圖形視窗重設為 1 x 1 面板。
+
+```{r}
+par(mfrow = c(1, 1))
+```
+
+#### Model interpretation
+
+We can see that there are significant effects for all variables:
+
+-   The Habitat (Bog v Forest) differs - Forests have higher species richness (Srich) values than Bogs (coefficient is a positive 0.63544).
+
+-   Increases in Latitude lead to a decrease in species richness (slope coefficient = -0.25229).
+
+-   Increases Elevation lead to a decrease in species richness (slope coefficient = -0.18390).
+
+我們可以看到，所有變數都存在顯著影響：
+
+棲息地（沼澤與森林）不同 - 森林的物種豐富度 (Srich) 值高於沼澤（係數為正 0.63544）。
+
+緯度的增加導致物種豐富度下降（坡度係數 = -0.25229）。
+
+海拔的增加導致物種豐富度下降（坡度係數 = -0.18390）。
+
+Remember the model coefficients are log values as a result of the log-link function the glm uses. We need to expontentiate them to interpret the model outcomes properly. We can do this in one line of code (see below). But before we do this, let's clarify what exponentiation does. It does not convert them to standard deviation units, created by our centreing and scaling. Instead, it converts them from the log scale to a **multiplicative scale**. When exponentiating a coefficient we get an **Incidence Rate Ratio (IRR)**.
+
+Before exponentiation, the model is additive, so a one-unit increase in X leads to a $\beta$ **addition** to the log-count (of ant species richness): log(Count) = Intercept + $\beta * X$
+
+After exponentiation, the relationship is multiplicative. A one-unit increase in X **multiplies** the expected count by exp($\beta$): Count = exp(Intercept) $* exp(\beta)^X$.
+
+請記住，模型係數是對數，這是 glm 使用的對數連結函數的結果。我們需要對它們進行指數運算才能正確解釋模型結果。我們可以用一行程式碼完成此操作（見下文）。但在執行此操作之前，讓我們先解釋一下指數運算的作用。它不會將它們轉換為由中心化和縮放產生的標準差單位。相反，它會將它們從對數刻度轉換為乘法刻度。對係數進行指數運算後，我們會得到發生率比 (IRR)。
+
+在指數運算之前，模型是加性的，因此 X 值每增加一個單位，對數計數（螞蟻物種豐富度）就會增加 $\beta$：log(Count) = Intercept + $\beta * X$
+
+指數運算之後，兩者的關係是乘性的。 X 值每增加一個單位，預期計數就會乘以 exp($\beta$)：Count = exp(Intercept) $* exp(\beta)^X$。
+
+```{r}
+tidy(gotelli.glm, exponentiate = TRUE)
+```
+
+A word on the code. The `exponentiate = TRUE` argument is in the `tidy()` function from the `broom` package and it creates a dataframe that automatically exponentiates the model coefficients from the `gotelli.glm` model object. We interpret the outcomes in this way:
+
+-   for the intercept,
+
+    -   **Log-scale Estimate**: 1.52744 (this number is the logged coefficient from the summary table)
+    -   **Exponentiated Value**: exp(1.52744) ≈ 4.6063520
+    -   **Interpretation**: At the baseline level (the first habitat type = Bog, at the mean latitude and mean elevation), the model predicts a mean species richness of **4.6 species**.
+
+-   for as.factor(Habitat)Forest,
+
+    -   **Log-scale Estimate**: 0.63544 (this number is the logged coefficient from the summary table)
+    -   **Exponentiated Value**: exp(0.63544) ≈ 1.8878505
+    -   **Interpretation**: Holding all other variables constant, the predicted species richness in a "Forest" habitat is 1.89 times that of the baseline habitat. It's an 89% increase on the Bog species richness.
+
+-   for cLatitude,
+
+    -   **Log-scale Estimate**: -0.25229 (this number is the logged coefficient from the summary table)
+    -   **Exponentiated Value**: exp(-0.25229) ≈ 0.7770181
+    -   **Interpretation**: For every one-unit increase in centered latitude, the predicted species richness is multiplied by 0.777. This is equivalent to a 22.3% decrease (since 1 - 0.777 = 0.223).
+
+-   for cElevation,
+
+    -   **Log-scale Estimate**: -0.18390 (this number is the logged coefficient from the summary table)
+    -   **Exponentiated Value**: exp(-0.18390) ≈ 0.8320179
+    -   **Interpretation**: For every one-unit increase in centered elevation, the predicted species richness is multiplied by 0.832. This is equivalent to a 16.8% decrease (since 1 - 0.832 = 0.168).
+
+關於程式碼，exponentiate = TRUE 參數位於 broom 套件的 tidy() 函數中，它會建立一個資料框，自動對 gotelli.glm 模型物件中的模型係數進行指數運算。我們這樣解釋結果：
+
+截距：
+
+對數尺度估計值：1.52744（此數字是總表中對數後的係數）
+
+指數值：exp(1.52744) ≈ 4.6063520
+
+解釋：在基線水平（第一個棲息地類型 = 沼澤，平均緯度和平均海拔），模型預測的平均物種豐富度為 4.6 個物種。
+
+對於 as.factor(Habitat)Forest，值為 1.8878505
+
+對數估計值：0.63544（此數字是總表中對數後的係數）
+
+指數值：exp(1.52744) ≈ 1.8878505
+
+解釋：假設其他變數保持不變，則「森林」棲息地的預測物種豐富度是基線棲息地的 1.89 倍。這比沼澤地的物種豐富度增加了 89%。
+
+對於 cLatitude，
+
+對數估計值：-0.25229（此數字是總表中對數後的係數）
+
+指數值：exp(-0.25229) ≈ 0.7770181
+
+解釋：中心緯度每增加一個單位，預測物種豐富度就會乘以 0.777。這相當於下降了 22.3%（因為 1 - 0.777 = 0.223）。
+
+對於 cElevation，
+
+對數尺度估計值：-0.18390（此數字是總表中對數後的係數）
+
+指數值：exp(-0.18390) ≈ 0.8320179
+
+解釋：中心海拔每增加一個單位，預測的物種豐富度就會乘以 0.832。這相當於下降了 16.8%（因為 1 - 0.832 = 0.168）。
+
+#### Plot a figure to support the story
+
+Our final task, now we have validated the model, is to create a figure that supports the story. To do this we need to calculate and plot each predictor to visualize their effect on the response variable while holding other predictors constant. This approach is called a marginal effects plot or partial dependence plot, and it's a useful way to interpret the model. And you have encountered it before. We hold cElevation as the constant and plot Srich against Latitude, with Habitat displayed as separate regression lines. We need to calculate the means and standard deviations to create the predictions for each explanatory variable then plot the outcome. Because it is a glm, we'll need to exponentiate them back to the measurement scale after calculating the predictions. Luckily, R has this covered with `` type = `response=` `` argument in the `predict()`\` function! The predictions **must** be calculated on the scales that the model was trained on - i.e. or run using i.e. centred and scaled, before the exponentiation. This process is instructive because it is effectively the same process we use to generate the partial slopes (we did that last week).
+
+現在我們已經驗證了模型，我們的最終任務是建立一個圖表來支持我們的研究。為此，我們需要計算並繪製每個預測變量，以視覺化它們對反應變量的影響，同時保持其他預測變量不變。這種方法稱為邊際效應圖或部分依賴圖，它是解釋模型的有效方法。您之前也遇過這種方法。我們將海拔高度設為常數，並繪製海拔高度與緯度的關係圖，棲息地則顯示為單獨的迴歸線。我們需要計算平均值和標準差來為每個解釋變數建立預測值，然後繪製結果。由於它是一個全域線性模型 (GLM)，因此在計算預測值後，我們需要將它們指數化回到測量尺度。幸運的是，R 在 predict() 函數中使用 type = `response=` 參數解決了這個問題！預測值必須在模型訓練的尺度上計算，即在指數化之前，使用中心化和縮放的尺度來運行。這個過程很有啟發性，因為它實際上與我們用來產生部分斜率的過程相同（我們上週就這樣做了）。
+
+We start by creating the predictions, ensuring that the data are centred and scaled.
+
+我們首先建立預測，確保資料居中且按比例縮放。
+
+```{r}
+# Ensure your categorical variable is a factor
+gotelli$Habitat <- as.factor(gotelli$Habitat)
+
+# Calculate the mean and sd directly from the RAW data columns in our gotelli dataframe
+lat_center <- mean(gotelli$Latitude, na.rm = TRUE)
+lat_scale  <- sd(gotelli$Latitude, na.rm = TRUE)
+elev_mean  <- mean(gotelli$Elevation, na.rm = TRUE)
+elev_center <- mean(gotelli$Elevation, na.rm = TRUE)
+elev_scale  <- sd(gotelli$Elevation, na.rm = TRUE)
+
+
+# Create a grid of predictor values for the plot
+prediction_grid <- expand.grid(
+  Latitude = seq(42, 45, length.out = 100),
+  Habitat = levels(gotelli$Habitat), # it is essential the variable is a factor not a character class
+  Elevation = elev_mean
+)
+
+# Transform the grid to match the model's predictors 
+prediction_grid_transformed <- prediction_grid |>
+  mutate(
+    cLatitude = (Latitude - lat_center) / lat_scale,
+    cElevation = (Elevation - elev_center) / elev_scale
+  )
+
+# Generate predictions 
+predictions <- predict(gotelli.glm, 
+                       newdata = prediction_grid_transformed, 
+                       type = "response", # this command exponentiates the logged values back to their measured state.
+                       se.fit = TRUE)
+
+# Combine everything into a final, clean prediction data frame
+predictions_df <- cbind(prediction_grid, 
+                        predicted_Srich = predictions$fit,
+                        se = predictions$se.fit) |>
+  mutate(
+    lwr = predicted_Srich - 1.96 * se,
+    upr = predicted_Srich + 1.96 * se
+  )
+```
+
+Now plot the figure (Fig. 7.7)! 現在繪製該圖形！
+
+```{r}
+# Create the plot 
+# Notice that the first layer now uses our initial 'gotelli' data frame.
+ggplot() +
+  
+  # Layer 1: The raw data points from the 'gotelli' data frame
+  geom_point(data = gotelli, aes(x = Latitude, y = Srich, shape = Habitat), size = 2.5) +
+  
+  # Layer 2 & 3: The predictions (from the new 'predictions_df')
+  geom_ribbon(data = predictions_df, 
+              aes(x = Latitude, ymin = lwr, ymax = upr, fill = Habitat), 
+              alpha = 0.2) +
+  geom_line(data = predictions_df, 
+            aes(x = Latitude, y = predicted_Srich, color = Habitat), 
+            linewidth = 1) +
+
+  # code for scales, labse) 
+  scale_color_manual(values = c("Forest" = "black", "Bog" = "black")) +
+  scale_fill_manual(values = c("Forest" = "gray50", "Bog" = "gray50")) +
+  scale_shape_manual(values = c("Forest" = 16, "Bog" = 21)) +
+  labs(
+    title = "A Comparison of Global Ant Species Richness in Forest / Bog Habitats and Latitude",
+    x = "Latitude",
+    y = "Ant Species Richness"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    legend.justification = "right",
+    legend.box.background = element_rect(color = "white")
+  )
+```
+
+**Fig. 7.7: The supporting graph for our gotelli.glm model**
+
+### Quasi-poisson and Negative Binomial regression: Dealing with Overdispersion
+
+We are now going to repeat an analysis on a dataset that is overdispersed. How do we overdispersion if we find it? In short, we either find the culprit of the overdispersion, fix it, and (re)apply **poisson regression**, or we apply a different error structure to the data (see Fig. 7.1 in the Introduction section, clickable link to the right!), either, **Quasi-poisson** or **Negative Binomial regression**.
+
+我們現在要對一個過度離散的資料集重複分析。如果發現過度離散，該如何解決？簡而言之，我們要么找到過度離散的根源，修復它，然後（重新）應用**泊松回歸**，要么對數據應用不同的誤差結構（參見引言部分的圖 7.1，右側可點擊鏈接！），**擬泊松**或**負二項式回歸**。
+
+We’re going to use a dataset on amphibian roadkills from @Zuur2009a. It was created for a study examining the impact of roads on amphibian habitat fragmentation. The dataset is called 'RoadKills.csv'.
+
+Load the data and do the normal run of 'look sees' - i.e. exploration.
+
+我們將使用來自\@Zuur2009a的兩棲類路殺資料集。該資料集是為一項研究道路對兩棲類棲息地破碎化影響的研究創建的。資料集名為「RoadKills.csv」。
+
+載入資料並進行常規的「檢視」操作，即探索。
+
+```{r}
+road <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/RoadKills.csv")
+```
+
+#### EDA work
+
+We will use the `glimpse()` and `skim()` functions to look at the variables.
+
+```{r}
+glimpse(road)
+```
+
+We have 52 rows (i.e. individual counts of squashed amphibians on roads) and 23 variables (or columns). It is worth describing each variable:
+
+-   sector. This is road survey sector (numbered 1-52) where the road kills were counted.
+
+-   X. This is the $x$ coordinate of the sector. UTM coordinates of the middle point of each segment (geographic location).
+
+-   Y. This is $y$ coordinate of the sector. UTM coordinates of the middle point of each segment (geographic location).
+
+-   BufoCalamita. The total number of kills of Natterjack Toad, *Bufo calamita* Laurenti, 1768.
+
+-   TOT.N. The total number of amphibian road kills counted during the survey work.
+
+-   S.RICH. The total number of different amphibian species killed.
+
+-   OPEN.L. Area (ha) of “Open lands” in the 2 km wide strip centred on the road segment.
+
+-   OLIVE. Area (ha) of olive groves in that strip.
+
+-   MONT.S. Area (ha) of “montado with shrubs” (i.e. open oak woodland with a shrub understory).
+
+-   MONT. Area (ha) of “montado without shrubs” (oak woodland without shrubs).
+
+-   POLIC. Area (ha) of “policulture” – i.e. mixed land uses/polyled land use class.
+
+-   SHRUB. Area (ha) of shrubland in the strip.
+
+-   URBAN. Area (ha) of urban land in the strip.
+
+-   WAT.RES. Area (ha) of water reservoirs in the strip.
+
+-   L.WAT.C. Length (km) of water courses in the strip.
+
+-   L.D.ROAD. Length (m) of dirty / unpaved roads in the strip.
+
+-   L.P.ROAD. Length (km) of paved roads in the strip.
+
+-   D.WAT.RES. Distance from the segment centre to the nearest water reservoir (m).
+
+-   D.WAT.COUR. Distance from the segment centre to the nearest water course (m).
+
+-   D.PARK. Distance (along the road) to the Natural Park (S. Mamede Natural Park) – essentially how far the segment is from the preserved park area, which is particularly humid and well‐preserved.
+
+-   N.PATCH. Number of habitat patches (in the strip) i.e. patch count – landscape structure variable.
+
+-   P.EDGE. Perimeter of edges between different land‐cover types (i.e. the total edge length between habitat patches) – a measure of habitat heterogeneity.
+
+-   L.SDI. Landscape Shannon Diversity Index (SDI) – a diversity index of land cover classes in each strip, measuring heterogeneity.
+
+All the variables are double (`dbl`) i.e. numerical; either decimal or integer. The response variable we will use is 'TOT.N', the total number of kills.
+
+所有變數均為雙精確度 (dbl)，即數值型；可以是小數，也可以是整數。我們將使用的反應變數是“TOT.N”，即總擊殺數。
+
+```{r}
+checks <- skim(road) # create tibble (a form dataframe created by dplyr)
+checks
+```
+
+We have no missing values, quite a number of zeros (see p0 column) is some variables, and the means an medians (p.50) are quite variable suggesting some normality issues. Click on the 'checks' tibble in 'Environment' window to `View()`\` it.
+
+我們沒有缺失值，但有些變數中有相當多的零（請參閱 p0 列），且平均值和中位數（參見第 50 頁）變化較大，表示存在一些常態性問題。點擊“環境”視窗中的“檢查”選項卡，即可“查看”它。
+
+We are scoping, so we could use `scatterplotMatrix()` to view them all at once (as we did above) but it would be a difficult to interpret with some many variables. Instead, we'll create a matrix of Q-Q plots using ggplot2 and the `facet_wrap()` argument to eyeball for normality and scatterplot and correlations to examine the relationships between the variables. The data are in wide format currently, so we need to transform it long format to use in ggplot2. Note the use of `dplyr::select()` to avoid the conflict with the `MASS` package which also has a `select()` function. We need to retain TOT.N and BufoCalamita as possible response variables in our new dataframe, so we exclude using the `cols` argument" `-c(TOT.N, BufoCalamita, S.RICH)`.
+
+我們正在確定範圍，因此可以使用 `scatterplotMatrix()` 一次查看所有資料（就像上面那樣），但如果變數太多，解釋起來會比較困難。因此，我們將使用 ggplot2 建立 Q-Q 圖矩陣，並使用 `facet_wrap()` 參數來觀察常態性，並使用散佈圖和相關性來檢查變數之間的關係。資料目前為寬格式，因此我們需要將其轉換為長格式以便在 ggplot2 中使用。請注意使用 `dplyr::select()` 以避免與 `MASS` 套件（它也包含 `select()` 函數）衝突。我們需要在新的資料框中保留 TOT.N 和 BufoCalamita 作為可能的反應變量，因此我們使用 `cols` 參數 `-c(TOT.N, BufoCalamita, S.RICH)` 進行排除。
+
+```{r}
+# Select only the columns you want to plot
+  # We need TOT.N (our response) plus all the desired X-variables (possible explanatories)
+eda <- road %>% 
+dplyr::select(
+    TOT.N, BufoCalamita, S.RICH, OPEN.L, OLIVE, MONT.S, MONT,
+    POLIC, SHRUB, URBAN, WAT.RES, L.WAT.C, L.D.ROAD, L.P.ROAD, 
+    D.WAT.RES, D.WAT.COUR, D.PARK, N.PATCH, P.EDGE, L.SDI
+  ) %>%
+  pivot_longer(
+    cols = -c(TOT.N, BufoCalamita, S.RICH),             # Pivot all columns EXCEPT TOT.N,BufoCalamita,S.RICH
+    names_to = "variables",    # New column for the name of the X-predictor
+    values_to = "value"       # New column for the value of the X-predictor
+  )
+```
+
+Plot the Q-Q plots (Fig. 7.8). You done this before in week 3, have a look at the code. The only new element is the `scales = "free"` argument in the `fact_wrap()` function.
+
+繪製 Q-Q 圖（圖 7.8）。你之前在第 3 週已經完成過，請查看代碼。唯一的新元素是 `fact_wrap()` 函數中的 `scales = "free"` 參數。
+
+```{r}
+ggplot(eda, aes(sample = value)) +
+  stat_qq() + 
+  stat_qq_line(col="red") +
+  facet_wrap(~ variables, scales = "free")
+```
+
+**Fig. 7.8: Q-Q plots of the potential explanatory variables**
+
+Not many of these look to conform to the normality assumption. However, we are only really interested in our response variable, TOT.N, in this instance. We excluded it from the pivot because we need it for the scatterplots in the next step. Lets look at it now (Fig. 7.9). We return the wide data for this, i.e. the `road` dataframe. We would need to do the same for BufoCalamita or S.RICH if we planned to use those as response variables.
+
+```{r}
+ggplot(road, aes(sample = TOT.N)) +
+geom_qq(color = "black", shape = 1) + # shape = 1 gives open circles
+  # This line shows where the points *should* fall if the data were perfectly normal.
+  geom_qq_line(color = "blue", linewidth = 1)
+```
+
+**Fig. 7.9: Q-Q plot of our response variable TOT.N**
+
+It is a not looking great! Let's continue exploring the data. We look for linearity next. We have the data in long format we can run scatterplots for TOT.N against each potential explanatory to examine the patterns and look for a linear response (Fig. 7.9). This is an important assumption for glm (remember the **LINE** acronym we discussed above?). To make a sensible interpretation, we add a loess smoother as well creating an additional regression line with `method="loess"`. If the smooth line sits within the CIs of the linear fit then we can assume a linear relationship. We add `span = 1.2` to make the line wiggle less. Change it to, say 5, to see the difference and replot the figure.
+
+看起來不太好！讓我們繼續探索數據。接下來我們來尋找線性關係。我們有長格式的數據，可以針對每個潛在解釋變數繪製 TOT.N 的散點圖，以檢驗其模式並尋找線性響應（圖 7.9）。這是 glm 的一個重要假設（還記得我們上面討論過的 LINE 縮寫嗎？）。為了做出合理的解釋，我們還添加了一個 loess 平滑器，並使用 `method="loess"` 創建了一條額外的回歸線。如果平滑線位於線性擬合的置信區間 (CI) 內，那麼我們可以假設它們之間存在線性關係。我們加上 `span = 1.2` 以減少線條的擺動。將其變更為 5，以查看差異並重新繪製圖表。
+
+```{r}
+ggplot(eda, aes(x = value, y = TOT.N)) +
+ 
+# Layer 1: The scatter plot points
+  geom_point(alpha = 0.6) +
+  
+# Layer 2: The linear regression fit for each plot
+# se = TRUE for the linear model
+  geom_smooth(method = "lm", se = TRUE, color = "blue", formula = 'y ~ x') +
+# we add a smoother to compare against the linear plot
+ geom_smooth(method = "loess", se = FALSE, color = "red", formula = 'y ~ x',
+    span = 1.2) +
+# This creates a separate plot for each of the X-variables.
+  facet_wrap(~ variables, scales = "free") +
+  
+# Add labels and a title
+  labs(
+    title = "Total kills (TOT.N) v Explanatory Variables",
+    x = "Explanatory Variables",
+    y = "Total Road Kill per Sector of Road"
+  ) +
+  
+# Change the theme
+  theme_bw() +
+  theme(
+    strip.background = element_rect(fill = "lightblue") # Adds stip labels as the facet titles, in lightblue
+  )
+```
+
+**Fig. 7.9: Scatterplots of TOT.N against all the potential explanatory variables**
+
+Many of you might now be saying, "isn't that what `scatterplotMatrix()` does, but in much fewer lines of code!?". Yes, that's true but the output here is easier to visualise and now you know more about both approaches. The issue with `scatterplotMatrix()` where you have lots of variables is that you cannot switch off one side of the plot (i.e. the one below the diagonal), so it gets completely compressed.
+
+很多人現在可能會說：「這不就是 scatterplotMatrix() 的功能嗎，只不過程式碼行數少多了！？」 是的，沒錯，但這裡的輸出更容易可視化，而且現在你對這兩種方法有了更多的了解。如果變數很多，使用 scatterplotMatrix() 的問題在於，你無法關閉圖的某一側（即對角線下方的一側），所以它會被完全壓縮。
+
+So back to the figure (Fig. 7.9). What does it show us? It indicates that most of the explanatory variables have a linear fit to the TOT.N response i.e. the loess smoother sits within the bounds of the CIs on the linear fit, so a glm model is appropriate. We'll return to non-linear approaches next week. The scatters also indicate that some variables are likely to be poorly correlated due to amount of spread of points around the regression lines. We can see also that some variables have a lot of zeros counts (see the vertical clumps of points on the $x$ axis near zero), which can cause issues in regression-based analyses.
+
+回到圖 7.9。它向我們展示了什麼？它表明大多數解釋變數與 TOT.N 響應呈線性擬合，即 Loess 平滑器位於線性擬合的置信區間 (CI) 範圍內，因此 GLM 模型是合適的。下週我們將回到非線性方法。散點圖還表明，由於迴歸線周圍點的分佈範圍較大，因此一些變數的相關性可能較差。我們也可以看到，有些變數的零點數量較多（參見 x 軸上靠近零點的垂直點群），這可能會在基於迴歸的分析中造成問題。
+
+#### Fitting the model
+
+We are going to shortcut a number of the stages we went through above to move faster here. You will need to include them in your analyses for the module assessments, and any project work, or dissertation work you undertake subsequently. We have done some EDA so we select 7 variables that look to have reasonable relationships with the response variable.
+
+我們將簡化上述幾個步驟，以便更快完成。您需要將這些步驟納入模組評估的分析中，以及您隨後進行的任何專案工作或論文工作中。我們已經進行了一些 EDA，因此我們選擇了 7 個看起來與反應變數合理關係的變數。
+
+```{r}
+road.glm <- glm(TOT.N ~ OPEN.L + SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
+         D.WAT.COUR + D.PARK,family=poisson,data=road)
+summary(road.glm)
+```
+
+It all looks pretty fab, lots of significant relationships but we need to move through our tests for:
+
+-   multicollinearity.
+
+-   Overdispersion.
+
+-   Model simplification / selection.
+
+-   Model validation.
+
+#### Multicollinearity
+
+We use the 'performance' package for this.
+
+一切看起來都很棒，有很多重要的關係，但我們需要以下測試：
+
+-   多重共線性。
+
+-   過度離散。
+
+-   模型簡化/選擇。
+
+-   模型驗證。
+
+#### 多重共線性
+
+我們使用“性能”包進行此操作。
+
+```{r}
+gvif_values <- performance::check_collinearity(road.glm)
+print(gvif_values)
+```
+
+No problems with collinearity. We move on to overdispersion. 共線性沒有問題。我們繼續討論過度離散問題。
+
+#### Overdispersion test
+
+```{r}
+check_overdispersion(road.glm)
+```
+
+The ratio is 6.578. This is well above the threshold of `~` 1. Let's look at the residuals. Our hunch they'll be a mess, so the poisson model is a misspecification given the mean-variance relationships in the data. The validation plots will confirm this (7.10).
+
+比率為 6.578。這遠高於閾值“\~”1。我們來看看殘差。我們預感它們會很亂，因此考慮到資料的平均值-變異數關係，泊松模型是錯誤的。驗證圖將證實這一點（7.10）。
+
+```{r}
+autoplot(road.glm, method="glm")
+## plot simulated residuals
+```
+
+**Fig. 7.10: R validation plots of the amphibian road kill data our initial glm model**
+
+Some visible heterogeneity issues here. See the wedges in the 'Residuals v Fitted' and 'Scale-Location' plots? The Q-Q plot is not that terrible but samples 11 and 2 indicate a potential outliers problem (see the points are number isn't that clear). We can confirm by selecting a different plot (7.11).
+
+這裡有一些明顯的異質性問題。看到「殘差與擬合值」和「尺度-位置」圖中的楔形了嗎？ Q-Q 圖還不錯，但樣本 11 和 2 顯示有潛在的異常值問題（點數不太明顯）。我們可以選擇其他圖（7.11）來確認。
+
+```{r}
+plot(road.glm, which =4)
+```
+
+**Fig. 7.11: Cook's distance plot for the first glm model**
+
+Samples 1, 2 and especially 11 are way over 1. We need to something about it. How do we do this? Do we play around with the variables to seek a good model and then hope it isn't overdispersed, or do we run with them all and fit the different error structures, and recheck the residual spreads to validate the models. The latter is definitely the angle to take.
+
+樣本 1、2，尤其是 11，都遠遠超過了 1。我們需要採取措施。該怎麼做呢？是嘗試不同的變數來尋找一個好的模型，然後祈禱它不會過度離散，還是嘗試所有變量，擬合不同的誤差結構，然後重新檢查殘差差值來驗證模型。後者絕對是可行的。
+
+Let's fit a **quasi-poisson** error to the data. The code is essentially the same, we just select a different `family=` argument. We will rename the model object so we don't lose track of where we are going.
+
+讓我們對數據進行**擬泊松**誤差擬合。程式碼基本上相同，只是我們選擇了不同的 `family=` 參數。我們將重命名模型對象，這樣我們就不會忘記接下來要做什麼。
+
+```{r}
+road.glm1 <- glm(TOT.N ~ OPEN.L + SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
+         D.WAT.COUR + D.PARK,family=quasipoisson,data=road)
+summary(road.glm1)
+```
+
+You see we have fewer signifcant values, which is reassuring. We do not need to rerun the overdispersion tests because quasi-poisson accounts for it by setting the dispersion parameter to 6.577, which is effectively the overdispersion ratio we saw in the overdispersion test. To see if the model is good we need to plot the residuals (Fig. 7.12).
+
+可以看到，顯著值減少了，這令人放心。我們不需要重新運行過度離散檢驗，因為擬泊松模型透過將離散參數設為 6.577 來解釋這一點，這實際上就是我們在過度離散檢驗中看到的過度離散率。為了檢驗模型是否良好，我們需要繪製殘差圖（圖 7.12）。
+
+```{r}
+autoplot(road.glm1, method="glm")
+```
+
+**Fig. 7.12: R validation plots of the amphibian road kill data for our quasi-poisson model**
+
+Nope! It has not improved. We move onto a **negative binomial** model. This is fitted using the **MASS** package and `glm.nb()` function. The other bits of code are the same we just need to remove the `family=` argument.
+
+不行！它沒有改善。我們轉到負二項模型。這是使用 MASS 套件和 glm.nb() 函數擬合的。其他代碼相同，只需要刪除 family= 參數。
+
+```{r}
+road.nb <- glm.nb(TOT.N ~ OPEN.L + SHRUB + WAT.RES + L.WAT.C + L.P.ROAD +
+         D.WAT.COUR + D.PARK,data=road)
+```
+
+Look at the summary. 看一下摘要。
+
+```{r}
+summary(road.nb)
+```
+
+Looks fine. Let's check the residuals (Fig. 7.13). 看起來不錯。讓我們檢查一下殘差（圖 7.13）。
+
+```{r}
+autoplot(road.nb, method="glm.nb")
+
+```
+
+**Fig. 7.13: R validation plots of the amphibian road kill data for initial negative binomial model**
+
+These look much better so we'll push on with the model selection. 這些看起來好多了，所以我們將繼續進行模型選擇。
+
+```{r}
+options(na.action=na.fail) # set options in Base R concerning missing values
+summary(model.avg(dredge(road.nb), fit = TRUE, subset = TRUE))
+options(na.action = "na.omit") # reset base R options
+```
+
+If you look at the component models matrix you can see that three models lie within `<2` AIC points. In these instances, following the guidance in @Burnham2002, we select the model with the fewest terms and lowest AIC of the three. That models has variables 1,4 and 5 it it (i.e. D.PARK, L.WAT.C, OPEN.L).
+
+We select those and rerun the model.
+
+如果您查看組件模型矩陣，您會發現三個模型的 AIC 點數小於 2。在這些情況下，按照 @Burnham2002 中的指導，我們選擇三個模型中項數最少且 AIC 最低的模型。模型包含變數 1、4 和 5（即 D.PARK、L.WAT.C 和 OPEN.L）。
+
+我們選擇這些模型並重新運行模型。
+
+```{r}
+road.final <- glm.nb(TOT.N ~ D.PARK + L.WAT.C + OPEN.L, data=road)
+summary(road.final)
+```
+
+#### Model Validation
+
+We plot the normal plots and then assess each explanatory variable in turn (Fig. 7.14). 我們繪製常態圖，然後依序評估每個解釋變數（圖 7.14）。
+
+```{r}
+op <- par(mfrow = c(2, 2))
+plot(road.final) # no patterns....
+par(op)	
+```
+
+**Fig. 7.14: R validation plots of the amphibian road kill data for our final negative binomial model**
+
+These look excellent. No patterns and no high leverage (or outlier) points (see Residuals vs Leverage panel. We plot each term against the pearson residuals next (Fig. 7.15).
+
+這些看起來很棒。沒有模式，也沒有高槓桿率（或異常值）點（請參閱「殘差與槓桿率」面板）。接下來，我們將每一項與皮爾森殘差作圖（圖 7.15）。
+
+```{r}
+R <- resid(road.final, type='pearson') # extract the pearson residuals
+op <- par(mfrow = c(2, 2))
+plot(road$OPEN.L~R)
+plot(road$L.WAT.C~R)
+plot(road$D.PARK~R)
+par(op)	
+```
+
+**Fig. 7.15: Residual plots for the explanatory variables in the amphibian roadkill data for our final negative binomial model**
+
+No issues visible here either; we are able to interpret the model. 這裡沒有明顯的問題，我們能夠解釋該模型。
+
+#### Model interpretation
+
+The model still uses a log-link function so we still need to exponentiate the coefficients to interpret the outputs. We have not centred or scaled the explanatory variables so we need to be careful not to directly compare the slope terms as they are all measured differently. Each term is baselined against zero. Recall that we assessed model fit in our glm using the captured and null deviance values. We cannot do that with a negative binomial model so we need a different approach. Luckily for us the **performance** package does this for us with the `r()2` function. Here is the exponentiated data and a psuedo R-squared value.
+
+該模型仍然使用對數連結函數，因此我們仍然需要對係數進行指數運算來解釋輸出。我們沒有對解釋變數進行中心化或縮放，因此需要注意不要直接比較斜率項，因為它們的測量方式不同。每個斜率項都以零為基準。回想一下，我們在全域線性模型 (GLM) 中使用捕獲偏差值和零偏差值評估了模型擬合度。我們無法使用負二項式模型做到這一點，因此我們需要採用不同的方法。幸運的是，**performance** 套件使用 `r()2` 函數為我們完成了這項工作。以下是指數化資料和偽 R 平方值。
+
+```{r}
+tidy(road.final, exponentiate = TRUE)
+print(r2(road.final))
+```
+
+Nagelkerke's R2 for the model is 0.954. Shows a very high fit. I have my doubts about so we will hand calculate an alternative that is more conservative i.e. **McFadden's R-squared**. It's based on the ratio of the log-likelihoods of your full model versus a null (intercept-only) model. Its values are typically much lower than Nagelkerke's. A value between 0.2 and 0.4 for McFadden's is considered to represent a very good model fit.
+
+此模型的 Nagelkerke R² 為 0.954，表示適合度非常高。我對此表示懷疑，因此我們將手動計算一個更保守的替代方法，即**McFadden R 平方**。它基於完整模型與零模型（僅截距）的對數似然比。它的值通常遠低於 Nagelkerke R 平方。 McFadden R 平方在 0.2 到 0.4 之間通常被認為代表模型適配度非常好。
+
+```{r}
+# Get the log-likelihood of your full model
+logLik_full <- logLik(road.final)
+
+# To get the log-likelihood of the null model, we need to fit it first.
+# The null model has only an intercept (e.g., Srich ~ 1).
+model_null <- update(road.final, . ~ 1)
+logLik_null <- logLik(model_null)
+
+# Apply the formula and convert the final result to a simple number
+r2_mcfadden <- as.numeric(1 - (logLik_full / logLik_null))
+
+# Print the result - it will now be a clean number
+print(r2_mcfadden)
+# [1] 0.1564486
+```
+
+We have an R-squared of `~` 0.16, so our model fit is reasonable for McFadden's. You'll see why it is like this when we plot the partials plots shortly.
+
+我們的 R 平方約為 0.16，因此我們的模型適合度對於 McFadden 樣本來說是合理的。稍後繪製偏函數圖時，您就會明白為什麼會這樣。
+
+We interpret the model terms a little differently than above because we have not centred or scaled the data. Recall that centreing and scaling means the coefficients are centred on the mean and each unit change is measured in 1 SD units (useful for comparing model parameters). In this uncentred model (road.final) the parameters are baselined at zero. So here goes:
+
+由於我們沒有將資料中心化或縮放處理，因此我們對模型術語的解釋與上文略有不同。您還記得，中心化和縮放意味著係數以平均值為中心，每個單位的變化都以 1 個標準差為單位進行測量（這對於比較模型參數很有用）。在這個未中心化的模型（road.final）中，參數的基線為零。因此，如下圖所示：
+
+-   for the intercept, all the terms are set to zero so the logged term (4.467) is 87.0626208. This means that there is a count of 87.06 road kills. This is a little unlikely and why we really ought to at least centre data so it based on the mean.
+
+-   For D.PARK, where all other terms are held constant, the slope coefficient's exponentiated value is approximately 0.999. This means that for a one-unit increase in D.PARK, the predicted road kill count is multiplied by 0.999, which corresponds to a 0.1% decrease in counts.
+
+-   for or L.WAT.C, where all other terms are set to zero (held constant), the slope coefficient (1.867e-01) ≈ 1.2053157. So for one unit increase in L.WAT.C, the predicted kill is multiplied by 1.2053157, which corresponds to an 20% increase in kill counts.
+
+-   For OPEN.L, where all other terms are held constant, the slope coefficient is -1.071e-02. After exponentiating, this gives an incidence rate ratio of approximately 0.989. This means that for a one-unit increase in OPEN.L, the predicted road kill count is multiplied by 0.989, which corresponds to a 1.1% decrease in counts.
+
+-   對於截距，所有項均設為零，因此對數項 (4.467) 為 87.0626208。這意味著路斃車數量為 87.06 輛。這不太可能，這也是為什麼我們至少應該將數據以平均值為中心的原因。
+
+-   對於 D.PARK，當所有其他項保持不變時，斜率係數的指數值約為 0.999。這意味著，D.PARK 每增加一個單位，預測的路斃車數量就會乘以 0.999，相當於數量減少 0.1%。
+
+-   對於 L.WAT.C，當所有其他項都設為零（保持不變）時，斜率係數 (1.867e-01) ≈ 1.2053157。因此，L.WAT.C 每增加一個單位，預測的路斃動物數量就會乘以 1.2053157，相當於路斃動物數量增加 20%。
+
+-   對於 OPEN.L，在其他所有項不變的情況下，斜率係數為 -1.071e-02。取冪後，發生率比約為 0.989。這意味著，OPEN.L 每增加一個單位，預測的路斃動物數量就會乘以 0.989，相當於路斃動物數量減少 1.1%。
+
+#### Plot a figure to support the story
+
+We now need a nice plot to support our interpretation. We plot the slope partials, one for each variable in our model. We hand calculated them above and we can do so again (Fig. 7.16). There is a shortcut using the **ggeffects** package - have a look. This is a sequenced piece of code that:
+
+現在我們需要一個漂亮的圖來支持我們的解釋。我們繪製模型中每個變數的斜率偏函數。我們之前手動計算過，可以再重複一次（圖 7.16）。使用 **ggeffects** 套件有一個快捷方式——可以看看。這是一段依序排列的程式碼：
+
+-   creates three dataframes, one for each variable.
+
+    -   We sequence along for variable for 100 points.
+    -   Calculate the predictions for that variable when the others are held constant.
+    -   `type = "response"` exponentiates the data.
+
+-   We use **ggplot2** to create the plots adding geoms for the points, the regression lines, then ribbons for the CIs.
+
+-   We plot the final figure using the `grid.arrange()` function from the **gridExtra** package.
+
+-   建立三個資料框，每個變數一個。
+
+    我們對 100 個點進行排序。
+
+    當其他變數保持不變時，計算該變數的預測值。
+
+    type = "response" 對資料進行指數運算。
+
+    我們使用 ggplot2 建立圖表，為點新增幾何對象，為迴歸線新增迴歸線，然後為可信區間添加色帶。
+
+    我們使用 gridExtra 套件中的 grid.arrange() 函數繪製最終圖形。
+
+```{r}
+
+# ======================================================================
+# 1. Partial Effect for Distance to Park (D.PARK)
+# ======================================================================
+# Create a data frame where D.PARK varies and others are held at their mean
+partial_d_park <- data.frame(
+  D.PARK = seq(min(road$D.PARK, na.rm = TRUE), 
+               max(road$D.PARK, na.rm = TRUE), length.out = 100),
+  L.WAT.C = mean(road$L.WAT.C, na.rm = TRUE),
+  OPEN.L = mean(road$OPEN.L, na.rm = TRUE)
+)
+
+# Predict response and confidence intervals
+predictions_d_park <- predict(road.final, newdata = partial_d_park, type = "response", se.fit = TRUE)
+partial_d_park$predicted <- predictions_d_park$fit
+partial_d_park$lower_ci <- predictions_d_park$fit - 1.96 * predictions_d_park$se.fit
+partial_d_park$upper_ci <- predictions_d_park$fit + 1.96 * predictions_d_park$se.fit
+
+# Plot 1
+p1 <- ggplot() +
+  # --- ADDED: Raw data points in the background ---
+  geom_point(data = road, aes(x = D.PARK, y = TOT.N), alpha = 0.5) +
+  # --- Prediction line and ribbon on top ---
+  geom_line(data = partial_d_park, aes(x = D.PARK, y = predicted), color = "blue", linewidth = 1) +
+  geom_ribbon(data = partial_d_park, aes(x = D.PARK, ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Distance to Park",
+       x = "Distance to Park (D.PARK)", y = "Predicted Road Kills") +
+  theme_minimal()
+
+# ======================================================================
+# 2. Partial Effect for Length of Water Course (L.WAT.C)
+# ======================================================================
+# Create a data frame where L.WAT.C varies and others are held at their mean
+partial_l_wat_c <- data.frame(
+  L.WAT.C = seq(min(road$L.WAT.C, na.rm = TRUE), 
+                max(road$L.WAT.C, na.rm = TRUE), length.out = 100),
+  D.PARK = mean(road$D.PARK, na.rm = TRUE),
+  OPEN.L = mean(road$OPEN.L, na.rm = TRUE)
+)
+
+# Predict and add columns
+predictions_l_wat_c <- predict(road.final, newdata = partial_l_wat_c, type = "response", se.fit = TRUE)
+partial_l_wat_c$predicted <- predictions_l_wat_c$fit
+partial_l_wat_c$lower_ci <- predictions_l_wat_c$fit - 1.96 * predictions_l_wat_c$se.fit
+partial_l_wat_c$upper_ci <- predictions_l_wat_c$fit + 1.96 * predictions_l_wat_c$se.fit
+
+# Plot 2
+p2 <- ggplot() +
+  # --- ADDED: Raw data points in the background ---
+  geom_point(data = road, aes(x = L.WAT.C, y = TOT.N), alpha = 0.5) +
+  # --- Prediction line and ribbon on top ---
+  geom_line(data = partial_l_wat_c, aes(x = L.WAT.C, y = predicted), color = "blue", linewidth = 1) +
+  geom_ribbon(data = partial_l_wat_c, aes(x = L.WAT.C, ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Water Course Length",
+       x = "Length of Water Course (L.WAT.C)", y = "Predicted Road Kills") +
+  theme_minimal()
+
+# ======================================================================
+# 3. Partial Effect for Open Land (OPEN.L)
+# ======================================================================
+# Create a data frame where OPEN.L varies and others are held at their mean
+partial_open_l <- data.frame(
+  OPEN.L = seq(min(road$OPEN.L, na.rm = TRUE), 
+               max(road$OPEN.L, na.rm = TRUE), length.out = 100),
+  D.PARK = mean(road$D.PARK, na.rm = TRUE),
+  L.WAT.C = mean(road$L.WAT.C, na.rm = TRUE)
+)
+
+# Predict and add columns
+predictions_open_l <- predict(road.final, newdata = partial_open_l, type = "response", se.fit = TRUE)
+partial_open_l$predicted <- predictions_open_l$fit
+partial_open_l$lower_ci <- predictions_open_l$fit - 1.96 * predictions_open_l$se.fit
+partial_open_l$upper_ci <- predictions_open_l$fit + 1.96 * predictions_open_l$se.fit
+
+# Plot 3
+p3 <- ggplot() +
+  # --- ADDED: Raw data points in the background ---
+  geom_point(data = road, aes(x = OPEN.L, y = TOT.N), alpha = 0.5) +
+  # --- Prediction line and ribbon on top ---
+  geom_line(data = partial_open_l, aes(x = OPEN.L, y = predicted), color = "blue", linewidth = 1) +
+  geom_ribbon(data = partial_open_l, aes(x = OPEN.L, ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  labs(title = "Partial Effect of Open Land",
+       x = "Percentage of Open Land (OPEN.L)", y = "Predicted Road Kills") +
+  theme_minimal()
+
+# ======================================================================
+# Combine all plots into a grid
+# ======================================================================
+grid.arrange(p1, p2, p3, ncol = 2)
+```
+
+**Fig. 7.16: The partial (marginal) slope plots for our amphibian road kills data generated by the final negative binomial model**
+
+Fig. 7.16 shows the partial slopes each variable when the other terms are held constant. Recall from above that the psuedo $R^2$ is `~` 0.16, and this taken together with the other model outputs, shows a significant but noisy model.
+
+圖 7.16 顯示了當其他項保持不變時，每個變數的偏斜率。回想一下上文，偽 \$R\^2\$ 約為 0.16，將其與其他模型輸出結合起來，可以看出這是一個顯著但雜訊很大的模型。
+
+## Class Exercises
+
+Just one task this week. Create a GLM (of some form) with this dataset: Bham_birds.csv.
+本週只有一個任務。使用以下資料集建立一個（某種形式的）GLM：Bham_birds.csv。
+
+### Data description
+
+- These unpublished data from a UoB PhD thesis by Dr Emma Rosenfeld - available as an E-thesis from the library.
+- It is one summer study of 70 sites distributed across Birmingham and Black Country conurbation in the summer of 2010-12. These data relate to the 2011 summer census period only. Reduced to 66 for this work.
+- 70 500mx500m sites across the urban gradient were surveyed for birds using methods based on the BTO’s Breeding Bird Survey.There were two 500m transects per site, which were subdivided into 100m sections. 
+- The sites were statified by landuse using data from OS master map landuse and land cover (LULC) and remote sensing data from Landsat. The LULC classification is based on the methods of @Hale2012.
+
+- 這些未發表的資料來自伯明翰大學 Emma Rosenfeld 博士的博士論文，可從圖書館取得電子論文。
+- 這是一項夏季研究，研究對象為分佈在伯明罕和黑鄉都市圈的 70 個地點，研究時間為 2010-12 年夏季。這些數據僅與 2011 年夏季人口普查期相關。本研究將樣本量縮減至 66 個。
+- 使用基於英國鳥類調查局 (BTO) 繁殖鳥類調查的方法，對城市梯度範圍內 70 個 500 公尺 x 500 公尺的地點進行了鳥類調查。每個地點設置兩條 500 公尺長的橫斷面，並細分為 100 公尺長的橫斷面。
+- 使用來自 OS 主地圖土地利用和土地覆蓋 (LULC) 的數據以及來自 Landsat 的遙感數據，按土地利用情況對地點進行了統計。 LULC 分類是基於 @Hale2012 的方法。
+
+#### Response variables
+
+- Abundance. Abundance/counts of bird species per 500m square.
+- SR. Species richness or the number of different bird species in each square.
+
+- 豐富度。每500平方公尺範圍內鳥類物種的豐富度/數量。
+- SR。物種豐富度，即每個方格內不同鳥類物種的數量。
+
+#### Explanatory/predictive/Covariables
+
+- Site. The site number 66 in total.
+- Site_Name, Site names / label
+- Site_type. Type of site as indicated by the prevailing landuse.  URBAN = urban, DSU = Dense suburban, LSU = Light suburban, SUB = suburban, RURAL = rural land
+- Lat. Latitude of site.
+- Long. Longitude of the site.
+- TreeCover_500. Tree cover within 500m of the site centroid (%). NOTE: this is a subset of the green landuse cover emphasising structural diversity (canopy layer above 3m).
+- Built_Cov_500. Buildcover within 500m of the site centroid (%).
+- GreenCover_500. Green cover within 500m of the site centroid (%).
+
+- Site。共 66 個站點。
+- Site_Name，網站名稱/標籤
+- Site_type。根據目前土地利用情況所確定的站點類型。 URBAN = 城市，DSU = 密集郊區，LSU = 輕度郊區，SUB = 郊區，RURAL = 鄉村土地
+- Lat。站點緯度。
+- Long。站點經度。
+- TreeCover_500。站點質心 500 公尺範圍內的樹木覆蓋率 (%)。注意：這是綠色土地利用覆蓋的子集，強調結構多樣性（冠層高度超過 3 公尺）。
+- Built_Cov_500。站點質心 500 公尺範圍內的建築覆蓋率 (%)。
+- GreenCover_500。站點質心 500 公尺範圍內的綠色覆蓋率 (%)。
+
+#### Your analytical tasks
+
+- Import the data.
+- Centre the explanatory variables so the mean is zero and the SD is one.
+- Examine the data structure and summaries.
+- Do some visualisation. Create the pictures.
+- **Use Abundance as your response variable and Site_type, TreeCover_500, Built_Cov_500 and GreenCover_500 as your explanatory variables.**
+- Run an initial GLM.
+    - Check the summary.
+    - Check for multicollinearity.
+    - Check for Overdispersion.
+    - Validate the model.
+    - Select an appropriate error (model).
+    - Do some model selection.
+    - Validate your model.
+    - Create a final figure.
+    - Interpret the findings.
+
+You have all the code you need with some little twists in the code snippets above.
+
+- 導入資料。
+- 將解釋變數置中，使平均值為零，標準差為一。
+- 檢查資料結構和摘要。
+- 進行可視化。建立圖片。
+- **使用 Abundance 作為反應變量，Site_type、TreeCover_500、Built_Cov_500 和 GreenCover_500 作為解釋變數。**
+- 運行初始 GLM。
+- 檢查摘要。
+- 檢查是否有多重共線性。
+- 檢查是否有過度離散。
+- 驗證模型。
+- 選擇合適的誤差（模型）。
+- 選擇模型。
+- 驗證您的模型。
+- 建立最終圖表。
+- 解釋結果。
+
+您已擁有所需的所有程式碼，只需對上面的程式碼片段進行一些小改動即可。
+
+## Follow-up Work
+
+1.  Finish the class exercise.
+2.  Read chapter 7 in @Zuur2007. It is an introduction Generalised Additive Models (GAMs).
+
+1. 完成課堂練習。
+2. 閱讀@Zuur2007的第7章。這是一篇關於廣義可加模型（GAM）的介紹。
+
+## Next Week
+
+Next week we will be looking at **Generalised Additive Models (GAMs)**.
+下週我們將研究**廣義加性模型 (GAM)**。
+
+## References
