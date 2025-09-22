@@ -1,1 +1,255 @@
-# Chapter 9
+# Dealing with data heterogeneity using mixed models
+
+Last week we covered the application of **Generalised Additive Models (GAMs)** to data that did not fit a key assumption of GLMs, i.e. linearity or the $x$ `~` $y$ relationship. This week, for our final session, we focus how we might deal with situations where we have structural dependencies in our data that do no meet the key assumption for linear, GLM and GAM models: **independence of sample points**.
+
+Let's explore how this might come about. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We must accommodate this in our regression.
+
+[TASK: Take a few mins chatting with your neighbour thinking about why this is the case. **HINT: we know that co-located samples are much more likely to be similar to each other i.e. *within* each treatment and each treatment block than *between* treatments and blocks** (this characteristic is know as **spatial autocorrelation** \[\~ 5 min\]]{style="color:red;"}.
+
+Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal autocorrelation**).
+
+```{r}
+#| label: mixed_model
+#| echo: false
+knitr::include_graphics("images/mixed_models_examples.png")
+```
+
+**Fig. 9.1: Mixed model example sample designs where some form of mixed model (either ANOVA or regression) is necessary**
+
+## Today's Session
+
+Today's work is all about sorting out these potential analytical problems. And in doing so, hopefully supporting you in your project analyses over summer!
+
+### Learning Outcomes
+
+By the end of this session you will be able to:
+
+-   Explore data to look for dependencies and potential autocorrelative structures\\
+
+-   Use straightforward linear mixed effects models to resolve the potential issues
+
+-   Anything more complex and we will need to discuss options and approaches!
+
+### Load libraries
+
+```{r}
+# List of packages
+packages <- c("tidyverse", "ggfortify", "performance", "car", "skimr", "gridExtra", "broom", 
+"ggeffects","MASS","MuMIn", "lme4","glmmTMB", "DHARMa")
+# Load all packages and install the packages we have no previously installed on the system
+lapply(packages, library, character.only = TRUE)
+```
+
+The new packages this week are **lme4**, **glmmTMB** and **DHARMa:**
+
+-   **lme4** - The lme4 package provides functions to fit and analyze linear mixed models, generalized linear mixed models and nonlinear mixed models [@Bates2015].
+-   **glmmTMB** - An extremely powerful and complex multi-level modelling package for Generalised Linear Mixed Models (GLMMs) [@Brooks2017b]. Permits the application of zero-inflated mixed models.
+-   **DHARMa** - Provides functions that provide simulated residual diagnostics for mixed models along with numerous tests for zero-inflation, over dispersion and so [@Hartig2024].
+
+## Essential Reading
+
+Read these three introductory papers on mixed modelling, if you haven't already done so (after the class would make sense!):
+
+-   Start with chapter 8, 'Mixed Models', in @Zuur2007.
+
+-   Then @Harrison2018a.
+
+-   Finally, the classic introduction by @Bolker2009.
+
+## What are mixed models?
+
+You are all familiar with applying regression models to data using **fixed effects**, the $x$ (or explanatory) components in the models. **Fixed effects** are effects of predictors that are assumed to be the same across all units (e.g. treatment, temperature, altitude). A **mixed model** is a regression model that includes both:
+
+-   **Fixed effects** and
+-   **Random effects**. **Random effects** allow certain parameters to vary across groups / clusters / units (e.g. intercepts, slopes for individual subjects, plots, regions). They model correlation or non-independence in the data.
+
+They are useful when data are hierarchically structured (e.g. measurements nested within subjects, spatial clusters, repeated measurements over time) or when you have grouped / clustered observations.
+
+### The key Idea: Variance Partitioning
+
+-   Fixed effects explain systematic, population-wide variation.
+
+-   Random effects explain the clustering/nesting, and the
+
+-   Residuals capture leftover within-group variation.
+
+So the model partitions variance into:
+
+-   Between-groups (random effects)
+
+-   Within-groups (residuals).
+
+### Visualising a mixed model
+
+You will remember from numerous sessions that a regression generates two coefficients, an intercept and a slope (for all the explanatory variables). Mixed models use the random structure in the model to capture variability in two ways. You can use them to generate:
+
+-   a **random intercept model** - where we allow the intercepts of our explanatory variables to vary, or
+
+-   a **random intercept and slope model** - where both the intercept and slopes can vary (Fig. 9.2).
+
+```{r, echo=FALSE}
+# --- SIMULATION PARAMETERS: Define the rules for our data ---
+# Use set.seed() to make our "random" data reproducible.
+set.seed(42)
+
+# Define the basic parameters for the experiment
+n_groups <- 5      # Number of groups (e.g., 5 different individuals)
+n_obs_per_group <- 11 # Number of observations per group (from X=0 to X=10)
+x <- 0:10          # The predictor variable values
+
+# Define the "fixed" or population-level effects (the thick black line)
+pop_intercept <- 2.0  # The overall average intercept
+pop_slope <- 0.5     # The overall average slope
+residual_sd <- 0.8   # The random "noise" for each individual point
+
+# Define the variance of the "random" effects
+intercept_sd <- 2.0  # How much the group intercepts vary around the mean
+slope_sd <- 0.8      # How much the group slopes vary (increased for more visual difference)
+
+
+# --- DATA GENERATION: Create the two datasets ---
+
+# First, generate the unique random effects for each of the 5 groups
+random_intercepts <- rnorm(n_groups, mean = 0, sd = intercept_sd)
+random_slopes <- rnorm(n_groups, mean = 0, sd = slope_sd)
+
+# Generate the "Random Intercepts" dataset
+data_ri <- map_df(1:n_groups, ~{
+  tibble(
+    group = as.character(.x),
+    x = x,
+    # Formula: y = (overall_intercept + group_specific_intercept) + (overall_slope * x) + error
+    y = (pop_intercept + random_intercepts[.x]) + (pop_slope * x) + rnorm(n_obs_per_group, 0, residual_sd),
+    model_type = "Random Intercepts Model"
+  )
+})
+
+# Generate the "Random Slopes and Intercepts" dataset
+data_rs <- map_df(1:n_groups, ~{
+  tibble(
+    group = as.character(.x),
+    x = x,
+    # Formula: y = (overall_intercept + group_specific_intercept) + (overall_slope + group_specific_slope) * x + error
+    y = (pop_intercept + random_intercepts[.x]) + (pop_slope + random_slopes[.x]) * x + rnorm(n_obs_per_group, 0, residual_sd),
+    model_type = "Random Slopes + Intercepts Model"
+  )
+})
+
+# --- PLOTTING: Combine data and create the final figure ---
+
+# Combine both datasets into a single data frame for plotting
+full_data <- bind_rows(data_ri, data_rs)
+
+# Create a small data frame to hold the annotation text and arrow coordinates
+annotations <- tibble(
+  model_type = c("Random Intercepts Model", "Random Slopes + Intercepts Model"),
+  label = c("Groups differ\nin baseline (intercept)", "Groups differ in\nboth baseline & slope"),
+  x_arrow = c(0, 7),
+  y_arrow = c(10.5, 10.5),
+  x_text = c(0.5, 3),
+  y_text = c(11, 11),
+  x_arrow_end = c(0, 7),
+  y_arrow_end = c(5, 5) 
+)
+
+# Create the final plot using ggplot2
+ggplot(full_data, aes(x = x, y = y, color = group, group = group)) +
+  
+  # Add the individual group lines (dashed and now fully opaque with alpha=1)
+  geom_line(linetype = "dashed", alpha = 1) +
+  
+  # Add the individual data points (also fully opaque)
+  geom_point(alpha = 1) +
+  
+  # Add the overall "fixed effect" or population-level line
+  geom_abline(intercept = pop_intercept, slope = pop_slope, 
+              color = "black", linewidth = 1.5) +
+              
+  # Add the arrows using the annotations data frame
+  geom_segment(
+    data = annotations,
+    aes(x = x_arrow, y = y_arrow, xend = x_arrow_end, yend = y_arrow_end),
+    arrow = arrow(length = unit(0.3, "cm")),
+    inherit.aes = FALSE # This prevents ggplot from trying to color the arrows
+  ) +
+  
+  # Add the text labels using the annotations data frame
+  geom_text(
+    data = annotations,
+    aes(x = x_text, y = y_text, label = label),
+    hjust = 0, vjust = 0,
+    inherit.aes = FALSE
+  ) +
+  
+  # Use facet_wrap to create the two side-by-side plots
+  facet_wrap(~ model_type) +
+  
+  # --- Final aesthetic touches ---
+  scale_color_brewer(palette = "Set2") +
+  theme_bw() +
+  labs(x = "Predictor (X)", y = "Response (Y)") +
+  theme(
+    legend.position = "none", # Hide the legend as it's redundant
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(linetype = "dashed", color = "grey85"),
+    strip.background = element_blank(), # Remove facet title background
+    strip.text = element_text(face = "bold", size = 14), # Style facet titles
+    axis.title = element_text(size = 12)
+  )
+```
+
+**Fig. 9.2: Examples of a random intercept (left panel) and a random intercept and random slope model (right panel).The *black line* = fixed effect (population regression line). The *coloured lines* represent the various groups**
+
+The left panel in Figure 9.2 shows the situation where the slopes of the various group measurements are the same but where the intercepts differ. Look at where the lines sit on the Y axis. The panel on the right shows the situation where both the intercepts and the slopes vary. You have seen this before in week 4 where you examined the 'RIKX.csv' dataset. We will revisit those data today.
+
+### A little bit of maths
+
+We can represent these models in same mathematical way as we did with LMs and GLMs. The extra element is the addition of the grouping variable (this will be a factor class variable):
+
+**General Form (Linear Mixed Model, LMM)**
+
+$$
+y_{ij} = \beta_0 + \beta_1 x_{ij} + u_{0j} + u_{1j}x_{ij} + \varepsilon_{ij}
+$$ **Where:**
+
+-   $y_{ij}$: outcome for observation *i* in group *j*\
+-   $\beta_0, \beta_1$: fixed effects (population-level intercept and slope)\
+-   $u_{0j}, u_{1j}$: random effects (group-level deviations, e.g. each subject has its own intercept/slope)\
+-   $\varepsilon_{ij}$: residual error (within-group variability)
+
+**General Form (Generalized Linear Mixed Model, GLMM):**
+
+The model for the expected outcome $\mu_{ij} = E[y_{ij}]$ is:
+
+$$
+g(\mu_{ij}) = \beta_0 + \beta_1 x_{ij} + u_{0j} + u_{1j}x_{ij}
+$$
+
+**Where:**
+
+-   $y_{ij}$: the observed response (e.g., a count of events).
+-   $g(\cdot)$: link function (e.g., logit for binary data, log for counts).
+-   $\beta_0, \beta_1$: fixed effects (population-level intercept and slope).
+-   $u_{0j}, u_{1j}$: random effects (group-level deviations).
+
+### Take a deep breath and bookmark this
+
+I appreciate this is a little complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in week 6, with the key difference being that we place the group (factor) variable in the **random** rather than **fixed** structure of the model. Luckily this stuff is well covered in the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
+
+### A Quick Checklist
+
+-   One observation per group? → fixed effect.
+
+-   Many observations per group? → random effects might be needed.
+
+-   Do you want inference about the group itself (fixed) or about variation among groups (random)?
+
+-   How many levels do we need need in a random effect? → According to many certainly 3 or more levels, but realistically `~` 10 or more.
+
+**Remember: if you only have one replicate / measurement you cannot calculate anything!!**
+
+## Next Week
+
+Next week I will introduce you to the datasets you'll be using for your assessment for Part A of this module. There is a choice of four. The data are simulated to conform to particular hydro-ecological scenarios.
+
+## References

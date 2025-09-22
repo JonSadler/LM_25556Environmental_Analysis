@@ -1,1 +1,47 @@
-# Chapter 8:
+# Non-linear modelling: Generalised Additive Models (GAMs)
+
+## Introduction
+
+You will recall that a key assumption in the application of **Generalised Linear Models** was that the $y$ `~` $x$ relationship conformed to a linear, or, straight line fit. In the natural world there are numerous occasions/instances where this simply does not hold. In such cases, we need to apply different models. There are a number ways of doing this. We could:
+
+-   vbdffe
+
+-   fvdv
+
+-   Or apply Generalised Additive Models to the data. We will focus on this approach because it works very much like GLMs; we have the same `family =` error structures and functional calls.
+
+## What are Generalised Additive Models?
+
+### Essential Readings
+
+-   Read Chapter 7, 'Generalised Additive Models', in @Zuur2007.
+
+### Today's Session
+
+### Learning Outcomes
+
+By the end of this session you will be able to:
+
+-   Explore
+
+-   Use
+
+-   Anything approaches!
+
+### Load libraries
+
+## Follow up work
+
+-   Finish the class exercises if you have not already done so.
+
+-   Read these three introductory papers on mixed modelling:
+
+    -   Start with chapter 8 in @Zuur2007.
+
+    -   Then @Harrison2018a.
+
+    -   Finally, the classic introduction of @Bolker2009.
+
+## Next week
+
+We conclude our statistical journey next week by examining how we can deploy **mixed models**, sometimes called **random effects models**, or **hierarchical models**, to account for heterogeneity in our data caused by temporal or spatial autocorrelation, or other structural issues (usually down to sampling errors).

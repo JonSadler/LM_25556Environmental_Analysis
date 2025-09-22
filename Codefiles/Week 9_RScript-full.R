@@ -201,7 +201,7 @@ summary(M4)
 # We need a different package 
 
 require(lme4)
-# NOTICE that the code for the random terms is slighly different in this package
+# NOTICE that the code for the random terms is slightly different in this package
 # Truly infuriating I know!!!
 
 M6 <- glmer(Richness ~ NAP * fExp + (1 | fbeach), 

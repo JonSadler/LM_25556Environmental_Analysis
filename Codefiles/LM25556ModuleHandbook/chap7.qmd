@@ -1311,98 +1311,120 @@ Fig. 7.16 shows the partial slopes each variable when the other terms are held c
 
 ## Class Exercises
 
-Just one task this week. Create a GLM (of some form) with this dataset: Bham_birds.csv.
-本週只有一個任務。使用以下資料集建立一個（某種形式的）GLM：Bham_birds.csv。
+Just one task this week. Create a GLM (of some form) with this dataset: Bham_birds.csv. 本週只有一個任務。使用以下資料集建立一個（某種形式的）GLM：Bham_birds.csv。
 
 ### Data description
 
-- These unpublished data from a UoB PhD thesis by Dr Emma Rosenfeld - available as an E-thesis from the library.
-- It is one summer study of 70 sites distributed across Birmingham and Black Country conurbation in the summer of 2010-12. These data relate to the 2011 summer census period only. Reduced to 66 for this work.
-- 70 500mx500m sites across the urban gradient were surveyed for birds using methods based on the BTO’s Breeding Bird Survey.There were two 500m transects per site, which were subdivided into 100m sections. 
-- The sites were statified by landuse using data from OS master map landuse and land cover (LULC) and remote sensing data from Landsat. The LULC classification is based on the methods of @Hale2012.
+-   These unpublished data from a UoB PhD thesis by Dr Emma Rosenfeld - available as an E-thesis from the library.
 
-- 這些未發表的資料來自伯明翰大學 Emma Rosenfeld 博士的博士論文，可從圖書館取得電子論文。
-- 這是一項夏季研究，研究對象為分佈在伯明罕和黑鄉都市圈的 70 個地點，研究時間為 2010-12 年夏季。這些數據僅與 2011 年夏季人口普查期相關。本研究將樣本量縮減至 66 個。
-- 使用基於英國鳥類調查局 (BTO) 繁殖鳥類調查的方法，對城市梯度範圍內 70 個 500 公尺 x 500 公尺的地點進行了鳥類調查。每個地點設置兩條 500 公尺長的橫斷面，並細分為 100 公尺長的橫斷面。
-- 使用來自 OS 主地圖土地利用和土地覆蓋 (LULC) 的數據以及來自 Landsat 的遙感數據，按土地利用情況對地點進行了統計。 LULC 分類是基於 @Hale2012 的方法。
+-   It is one summer study of 70 sites distributed across Birmingham and Black Country conurbation in the summer of 2010-12. These data relate to the 2011 summer census period only. Reduced to 66 for this work.
+
+-   70 500mx500m sites across the urban gradient were surveyed for birds using methods based on the BTO’s Breeding Bird Survey.There were two 500m transects per site, which were subdivided into 100m sections.
+
+-   The sites were statified by landuse using data from OS master map landuse and land cover (LULC) and remote sensing data from Landsat. The LULC classification is based on the methods of @Hale2012.
+
+-   這些未發表的資料來自伯明翰大學 Emma Rosenfeld 博士的博士論文，可從圖書館取得電子論文。
+
+-   這是一項夏季研究，研究對象為分佈在伯明罕和黑鄉都市圈的 70 個地點，研究時間為 2010-12 年夏季。這些數據僅與 2011 年夏季人口普查期相關。本研究將樣本量縮減至 66 個。
+
+-   使用基於英國鳥類調查局 (BTO) 繁殖鳥類調查的方法，對城市梯度範圍內 70 個 500 公尺 x 500 公尺的地點進行了鳥類調查。每個地點設置兩條 500 公尺長的橫斷面，並細分為 100 公尺長的橫斷面。
+
+-   使用來自 OS 主地圖土地利用和土地覆蓋 (LULC) 的數據以及來自 Landsat 的遙感數據，按土地利用情況對地點進行了統計。 LULC 分類是基於 @Hale2012 的方法。
 
 #### Response variables
 
-- Abundance. Abundance/counts of bird species per 500m square.
-- SR. Species richness or the number of different bird species in each square.
+-   Abundance. Abundance/counts of bird species per 500m square.
 
-- 豐富度。每500平方公尺範圍內鳥類物種的豐富度/數量。
-- SR。物種豐富度，即每個方格內不同鳥類物種的數量。
+-   SR. Species richness or the number of different bird species in each square.
+
+-   豐富度。每500平方公尺範圍內鳥類物種的豐富度/數量。
+
+-   SR。物種豐富度，即每個方格內不同鳥類物種的數量。
 
 #### Explanatory/predictive/Covariables
 
-- Site. The site number 66 in total.
-- Site_Name, Site names / label
-- Site_type. Type of site as indicated by the prevailing landuse.  URBAN = urban, DSU = Dense suburban, LSU = Light suburban, SUB = suburban, RURAL = rural land
-- Lat. Latitude of site.
-- Long. Longitude of the site.
-- TreeCover_500. Tree cover within 500m of the site centroid (%). NOTE: this is a subset of the green landuse cover emphasising structural diversity (canopy layer above 3m).
-- Built_Cov_500. Buildcover within 500m of the site centroid (%).
-- GreenCover_500. Green cover within 500m of the site centroid (%).
+-   Site. The site number 66 in total.
 
-- Site。共 66 個站點。
-- Site_Name，網站名稱/標籤
-- Site_type。根據目前土地利用情況所確定的站點類型。 URBAN = 城市，DSU = 密集郊區，LSU = 輕度郊區，SUB = 郊區，RURAL = 鄉村土地
-- Lat。站點緯度。
-- Long。站點經度。
-- TreeCover_500。站點質心 500 公尺範圍內的樹木覆蓋率 (%)。注意：這是綠色土地利用覆蓋的子集，強調結構多樣性（冠層高度超過 3 公尺）。
-- Built_Cov_500。站點質心 500 公尺範圍內的建築覆蓋率 (%)。
-- GreenCover_500。站點質心 500 公尺範圍內的綠色覆蓋率 (%)。
+-   Site_Name, Site names / label
+
+-   Site_type. Type of site as indicated by the prevailing landuse. URBAN = urban, DSU = Dense suburban, LSU = Light suburban, SUB = suburban, RURAL = rural land
+
+-   Lat. Latitude of site.
+
+-   Long. Longitude of the site.
+
+-   TreeCover_500. Tree cover within 500m of the site centroid (%). NOTE: this is a subset of the green landuse cover emphasising structural diversity (canopy layer above 3m).
+
+-   Built_Cov_500. Buildcover within 500m of the site centroid (%).
+
+-   GreenCover_500. Green cover within 500m of the site centroid (%).
+
+-   Site。共 66 個站點。
+
+-   Site_Name，網站名稱/標籤
+
+-   Site_type。根據目前土地利用情況所確定的站點類型。 URBAN = 城市，DSU = 密集郊區，LSU = 輕度郊區，SUB = 郊區，RURAL = 鄉村土地
+
+-   Lat。站點緯度。
+
+-   Long。站點經度。
+
+-   TreeCover_500。站點質心 500 公尺範圍內的樹木覆蓋率 (%)。注意：這是綠色土地利用覆蓋的子集，強調結構多樣性（冠層高度超過 3 公尺）。
+
+-   Built_Cov_500。站點質心 500 公尺範圍內的建築覆蓋率 (%)。
+
+-   GreenCover_500。站點質心 500 公尺範圍內的綠色覆蓋率 (%)。
 
 #### Your analytical tasks
 
-- Import the data.
-- Centre the explanatory variables so the mean is zero and the SD is one.
-- Examine the data structure and summaries.
-- Do some visualisation. Create the pictures.
-- **Use Abundance as your response variable and Site_type, TreeCover_500, Built_Cov_500 and GreenCover_500 as your explanatory variables.**
-- Run an initial GLM.
-    - Check the summary.
-    - Check for multicollinearity.
-    - Check for Overdispersion.
-    - Validate the model.
-    - Select an appropriate error (model).
-    - Do some model selection.
-    - Validate your model.
-    - Create a final figure.
-    - Interpret the findings.
+-   Import the data.
+-   Centre the explanatory variables so the mean is zero and the SD is one.
+-   Examine the data structure and summaries.
+-   Do some visualisation. Create the pictures.
+-   **Use Abundance as your response variable and Site_type, TreeCover_500, Built_Cov_500 and GreenCover_500 as your explanatory variables.**
+-   Run an initial GLM.
+    -   Check the summary.
+    -   Check for multicollinearity.
+    -   Check for Overdispersion.
+    -   Validate the model.
+    -   Select an appropriate error (model).
+    -   Do some model selection.
+    -   Validate your model.
+    -   Create a final figure.
+    -   Interpret the findings.
 
 You have all the code you need with some little twists in the code snippets above.
 
-- 導入資料。
-- 將解釋變數置中，使平均值為零，標準差為一。
-- 檢查資料結構和摘要。
-- 進行可視化。建立圖片。
-- **使用 Abundance 作為反應變量，Site_type、TreeCover_500、Built_Cov_500 和 GreenCover_500 作為解釋變數。**
-- 運行初始 GLM。
-- 檢查摘要。
-- 檢查是否有多重共線性。
-- 檢查是否有過度離散。
-- 驗證模型。
-- 選擇合適的誤差（模型）。
-- 選擇模型。
-- 驗證您的模型。
-- 建立最終圖表。
-- 解釋結果。
+-   導入資料。
+-   將解釋變數置中，使平均值為零，標準差為一。
+-   檢查資料結構和摘要。
+-   進行可視化。建立圖片。
+-   **使用 Abundance 作為反應變量，Site_type、TreeCover_500、Built_Cov_500 和 GreenCover_500 作為解釋變數。**
+-   運行初始 GLM。
+-   檢查摘要。
+-   檢查是否有多重共線性。
+-   檢查是否有過度離散。
+-   驗證模型。
+-   選擇合適的誤差（模型）。
+-   選擇模型。
+-   驗證您的模型。
+-   建立最終圖表。
+-   解釋結果。
 
 您已擁有所需的所有程式碼，只需對上面的程式碼片段進行一些小改動即可。
 
 ## Follow-up Work
 
 1.  Finish the class exercise.
+
 2.  Read chapter 7 in @Zuur2007. It is an introduction Generalised Additive Models (GAMs).
 
-1. 完成課堂練習。
-2. 閱讀@Zuur2007的第7章。這是一篇關於廣義可加模型（GAM）的介紹。
+3.  完成課堂練習。
+
+4.  閱讀\@Zuur2007的第7章。這是一篇關於廣義可加模型（GAM）的介紹。
 
 ## Next Week
 
-Next week we will be looking at **Generalised Additive Models (GAMs)**.
-下週我們將研究**廣義加性模型 (GAM)**。
+Next week we will be looking at **Generalised Additive Models (GAMs)**. 下週我們將研究**廣義加性模型 (GAM)**。
 
 ## References
