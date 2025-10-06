@@ -1,12 +1,12 @@
 # Dealing with data heterogeneity using mixed models
 
-Last week we covered the application of **Generalised Additive Models (GAMs)** to data that did not fit a key assumption of GLMs, i.e. linearity or the $x$ `~` $y$ relationship. This week, for our final session, we focus how we might deal with situations where we have structural dependencies in our data that do no meet the key assumption for linear, GLM and GAM models: **independence of sample points**.
+Last week we covered the application of **Generalised Additive Models (GAMs)** to data that did not fit a key assumption of GLMs, i.e. linearity or the $x$ `~` $y$ relationship. This week, for our final session, we focus how we might deal with situations where we have structural dependencies in our data that do no meet the key assumption for linear, GLM and GAM models: **independence of sample points**. Deciding whether or not to use **mixed models** not as straightforward as it seems because it depends on the study design, objectives and data structure.
 
-Let's explore how this might come about. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We must accommodate this in our regression.
+But let's start by thinking of them as an extension to ANOVA/ANCOVA and a means of dealing with heterogeneity in our data. We'll explore how heterogeneity arises in the data. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We ought to accommodate this in our regression.
 
 [TASK: Take a few mins chatting with your neighbour thinking about why this is the case. **HINT: we know that co-located samples are much more likely to be similar to each other i.e. *within* each treatment and each treatment block than *between* treatments and blocks** (this characteristic is know as **spatial autocorrelation** \[\~ 5 min\]]{style="color:red;"}.
 
-Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal autocorrelation**).
+Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal autocorrelation**). Please note there are numerous ways of dealing with autocorrelation, such as Geographically Weighted Regression (GRWs) or Spatial Regression Models (SRMs) for spatial issues and Time Series analysis for temporal dependencies. There are is an example in the book Appendix for time series work.
 
 ```{r}
 #| label: mixed_model
@@ -14,11 +14,11 @@ Panel (B), shows the situation where we have repeated measurement at each site o
 knitr::include_graphics("images/mixed_models_examples.png")
 ```
 
-**Fig. 9.1: Mixed model example sample designs where some form of mixed model (either ANOVA or regression) is necessary**
+**Fig. 9.1: Mixed model example sample designs where some form of mixed model (either mixed model ANOVA or mixed regression models) is necessary**
 
 ## Today's Session
 
-Today's work is all about sorting out these potential analytical problems. And in doing so, hopefully supporting you in your project analyses over summer!
+Today's work is all about sorting out these potential analytical problems. And in doing so, hopefully we can support you in your project analyses over summer!
 
 ### Learning Outcomes
 
@@ -232,21 +232,119 @@ $$
 -   $\beta_0, \beta_1$: fixed effects (population-level intercept and slope).
 -   $u_{0j}, u_{1j}$: random effects (group-level deviations).
 
-### Take a deep breath and bookmark this
+## Using mixed models
 
-I appreciate this is a little complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in week 6, with the key difference being that we place the group (factor) variable in the **random** rather than **fixed** structure of the model. Luckily this stuff is well covered in the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
+### Mixed linear models
+
+We'll start with a mixed linear model (the equation for it is above) and use the RIKZ.csv data set. You should be familiar with it because we explored it in Week 3 of the module.
+
+Load the dataset. \### EDA to explore for heterogeneity in data sets
+
+```{r}
+Benthic <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/RIKZ.csv")
+```
+
+[TASK: Have a look at it to refresh yourself about its structure. Use what ever function you prefer, `glimpse()`, `str()`, and `skim()` \[\~ 5 min\]]{style="color:red;"}.
+
+The best way to tackle issues about dependencies is to facet your plots and isolate the regression lines for each element of the grouping factor. What we are looking for are different slopes and different intercepts or both. We have the code for this from Week 3. Go and find it. Your plot should look something like this.
+
+```{r, echo=FALSE}
+ggplot(Benthic, aes(x = NAP, y = Richness)) +
+  geom_point(alpha = 0.6) + # Added some transparency to the points
+  geom_smooth(
+    method = "lm", 
+    se = TRUE, # add in some confidence interval
+    color = "red",       # Change line color to red
+    linewidth = 1.2,    # Make the line slightly thicker
+    formula = 'y ~ x',
+    ) +
+  facet_wrap(
+    ~ Beach
+  ) +
+  # Set the y-axis viewing window to start at 0. You cannot have a negative count of species richness.
+  coord_cartesian(ylim = c(0, NA)) +
+  
+  theme_bw()
+```
+
+If we are interested modelling this directly in terms of interactions then we model as we did in our ANCOVA example. But when you have many levels in the factor you are using a lot of degrees of freedom. We only have 4 degrees of freedom. Remember each level in the grouping variable costs one degree of freedom. And the interactions needed for the ANCOVA adds more still. So we lose 27 degrees of freedom, over half of those that are available. Recall from Week 6 that we had a 'rule of thumb' that the number of covariates should not be **more than a 1/3** of the available degrees of freedom, as this would increase the possibility of a **type 1** error; or a false positive outcome.
+
+```{r}
+# We could try to add a covariate in for beach as a form of ANCOVA
+M1 <- lm(Richness ~ NAP * as.factor(Beach), data = Benthic)
+summary(M1)
+```
+
+Look at the summary table....
+
+```{r}
+# Plot residual - it hasn't improved that either!
+op <- par(mfrow = c(2,2))
+plot(M1)
+par(op)
+# not much better..
+```
+
+These are count data so instead of running a linear mixed, LMM (or `lmer()`) model, we go straight for a Generalised Linear Mixed Model, GLMM. We use the **lme4** package with the `glmer()` function. See we use `family = "poisson"`. Just like for the glms, we have to test for overdispersion too. If we find it we'll need a negative binomial model (we have done this before in week 7).
+
+```{r}
+# We are using lme4 here
+
+M1 <- glmer(Richness ~ NAP * Exposure + (1 | Beach), 
+	data = Benthic, family = "poisson")	# Random slope model
+# There might be an error message - it's okay! It is just pointing out that the dataframe is a tidyverse version, called a tibble.
+
+M2 <- glmer(Richness ~ NAP * Exposure + (NAP | Beach), 
+	data = Benthic, family = "poisson") # Random intercept and slope
+
+# Compare models
+AIC(M1,M2)
+
+
+# The Anova test confirms the difference is significant
+anova(M1, M2, test = "Chisq")
+
+# Now determine the best fixed structure. We tell MuMin that the we used REML.
+
+# Library
+
+
+#options(na.action=na.fail) # set options in Base R concerning missing values
+#summary(model.avg(dredge(M7), fit = TRUE, subset = TRUE), method = "REML")
+#options(na.action = "na.omit") # reset base R options
+```
+
+We use the `check_overdispersion()` test from the **performance** package because it compensates for the random effects element of the model. We could hand calculate it but it is a little more complex that the calculation for a straight glm model.
+
+```{r}
+
+check_overdispersion(M1)
+```
+
+Remember `~` 1 means no overdispersion, `>` 1.5 = overdispersed and, `<1` is underdispersed.
+
+### Take a deep breath and bookmark these blogs
+
+I appreciate this is a little complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in week 6, with the key difference being that we place the grouping (factor) variable in the **random** rather than **fixed** structure of the model. Luckily, this stuff is well covered on the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
+
+I am aware here that we are looking at random effects as a means of getting rid of nuisance heterogeneity. This is not always a useful perspective as McGill and others discuss in his [blog:](https://dynamicecology.wordpress.com/2015/11/04/is-it-a-fixed-or-random-effect/). I encourage you to read it.
 
 ### A Quick Checklist
 
 -   One observation per group? → fixed effect.
 
--   Many observations per group? → random effects might be needed.
+-   Many observations per group? → random effects might be needed. Threshold is certainly `>`3 but `~` 5-10 shows up frequently in the literature and musings on blog posts.
 
 -   Do you want inference about the group itself (fixed) or about variation among groups (random)?
 
--   How many levels do we need need in a random effect? → According to many certainly 3 or more levels, but realistically `~` 10 or more.
+-   How many levels do we need need in a random effect? → According to many certainly 3 or more levels, but realistically `~` 10 or more - see the blog discussions above.
 
 **Remember: if you only have one replicate / measurement you cannot calculate anything!!**
+
+## Follow-up work
+
+-   Read the blogs!
+-   Carry out the Dragons tutorial on the blog! Add in some more advanced visualisation - for example, some faceting using ggplot.
 
 ## Next Week
 

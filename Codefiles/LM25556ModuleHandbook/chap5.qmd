@@ -24,13 +24,13 @@ This week we will explore linear regression in R. A fundamental understanding of
 
 -   Chapter 7 @Field2012 Discovering Statistic using R. Sage Publications.
 
--   @Zuur2016a ‘A Protocol for Conducting and Presenting Results of Regression-Type Analyses’. Methods in Ecology and Evolution 7, no. 6 (2016): 636–45. <https://doi.org/10.1111/2041-210X.12577.> This paper presents an excellent framework outlining what you should present as results from regression analyses.
+-   @Zuur2016 ‘A Protocol for Conducting and Presenting Results of Regression-Type Analyses’. Methods in Ecology and Evolution 7, no. 6 (2016): 636–45. <https://doi.org/10.1111/2041-210X.12577.> This paper presents an excellent framework outlining what you should present as results from regression analyses.
 
 -   @Beckerman2017 的第 5 章。
 
 -   @Field2012 的第 7 章：使用 R 語言探索統計資料。 Sage 出版品。
 
--   @Zuur2016a：「迴歸分析結果的執行與呈現方案」。 《生態與演化方法》7，第 6 期 (2016): 636–45。 <https://doi.org/10.1111/2041-210X.12577> 本文提出了一個優秀的框架，概述了迴歸分析結果的呈現方式。
+-   @Zuur2016：「迴歸分析結果的執行與呈現方案」。 《生態與演化方法》7，第 6 期 (2016): 636–45。 <https://doi.org/10.1111/2041-210X.12577> 本文提出了一個優秀的框架，概述了迴歸分析結果的呈現方式。
 
 ### Session Aim:
 
@@ -244,7 +244,7 @@ Step 6. Validate the regression model.
 
 步骤 6. 验证回归模型（我们将在下周讨论此部分）。
 
-We have already loaded the data and decided what variables to use (so step 1 is done!). As you may recall from the discussion in the week 3 workshop, we should start our work using some **Exploratory Data Analysis (EDA)**. The steps are [@Zuur2010a]:
+We have already loaded the data and decided what variables to use (so step 1 is done!). As you may recall from the discussion in the week 3 workshop, we should start our work using some **Exploratory Data Analysis (EDA)**. The steps are [@Zuur2010]:
 
 -   Examine the raw data.
 
@@ -925,7 +925,7 @@ $$
 ,} \\ 
 0 & \text{otherwise.}
 \end{cases}
-$$ 
+$$
 
 $$
 \mathbb{D}_2 = 
@@ -933,8 +933,7 @@ $$
 1 & \text{if SEASON } x \text{ is summer,} \\ 
 0 & \text{otherwise.}
 \end{cases}
-$$ 
-So for spring $D1$ = 1, and $D2$ = 0. And, for summer $D1$ = 0, and $D2$ = 1. The regression equations for these dummy variables is shown below. Note that first dummy variable has been dropped (i.e. there is no $\beta_1$) and the intercept captures this effect.
+$$ So for spring $D1$ = 1, and $D2$ = 0. And, for summer $D1$ = 0, and $D2$ = 1. The regression equations for these dummy variables is shown below. Note that first dummy variable has been dropped (i.e. there is no $\beta_1$) and the intercept captures this effect.
 
 因此，春季 $D1$ = 1，$D2$ = 0。夏季 $D1$ = 0，$D2$ = 1。這些虛擬變數的迴歸方程式如下所示。請注意，第一個虛擬變數已被刪除（即沒有 $\beta_1$），而截距捕捉到了這一效應。
 
@@ -942,7 +941,7 @@ $$
 \begin{align*}
 \hat{y} &= \widehat{\text{EGGS}}=\beta_0 +\beta_2{D}_2
 \end{align*}
-$$ 
+$$
 
 where, $\beta_0$ is the intercept for the first level in the category (spring), and $\beta_2$ is the offset for summer.
 
@@ -1122,10 +1121,13 @@ It is important to remember the old adage that states **correlation does not equ
 
 TASKS - repeat for all the datasets:
 
--   Create plots to assess the assumptions:
-    -   
+-   
 
-        (a) On the raw data;
+    ## Create plots to assess the assumptions:
+
+    ```         
+    (a) On the raw data;
+    ```
 
     -   
 
@@ -1134,7 +1136,9 @@ TASKS - repeat for all the datasets:
     -   
 
         (c) Validate it.
+
 -   Create a final model plot with predicted data, 95% CIs, regression equation, R-squared value;
+
 -   Interpret the model output.
 
 任務 - 對所有資料集重複此操作：

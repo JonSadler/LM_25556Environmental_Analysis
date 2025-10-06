@@ -287,7 +287,7 @@ gotelli <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/
 
 #### Exploratory Data Analysis (EDA)
 
-Recall from last week that we did three exploratory steps [@Zuur2010a]:
+Recall from last week that we did three exploratory steps [@Zuur2010]:
 
 1.  Inspecting a sample of raw values.
 2.  Computing summary statistics.
@@ -371,9 +371,9 @@ First up, we'll check for multicollinearity. In week 5 we used some correlations
 
 首先，我們將檢查多重共線性。在第 5 週，我們使用了一些相關性來考察解釋變數池之間的關係，但更好的方法是使用變異膨脹因子 (VIF)，正如我們上週討論的那樣：<https://online.stat.psu.edu/stat462/node/180/>。
 
-There is a debate about the use of VIFs in data science, especially where you have large numbers of data points. This dataset is tiny and has only 44 rows (i.w. n=44). As datasets become smaller `<`100 we need to make some decisions about collinear predictor/explanatory variables. But how do we make a decision? If we are using VIFs then there is a rule of thumb that says if the values are 3 or less we retain the variables [@Zuur2016a]. Let's have a look; we use the **vif()** function from the **car** package. But even here, there is much debate. Some people suggest `<`10 for as inclusion parameter. I am minded to be more conservative, especially with small datafiles, so will apply a *rule of `<`3* for inclusion.
+There is a debate about the use of VIFs in data science, especially where you have large numbers of data points. This dataset is tiny and has only 44 rows (i.w. n=44). As datasets become smaller `<`100 we need to make some decisions about collinear predictor/explanatory variables. But how do we make a decision? If we are using VIFs then there is a rule of thumb that says if the values are 3 or less we retain the variables [@Zuur2016]. Let's have a look; we use the **vif()** function from the **car** package. But even here, there is much debate. Some people suggest `<`10 for as inclusion parameter. I am minded to be more conservative, especially with small datafiles, so will apply a *rule of `<`3* for inclusion.
 
-關於在數據科學中使用 VIF 存在爭議，尤其是在數據點數量眾多的情況下。這個資料集很小，只有 44 行（即 n=44）。隨著資料集變得越來越小（小於 100），我們需要對共線預測變數/解釋變數做出一些決策。但該如何做出決策呢？如果我們使用 VIF，那麼有一條經驗法則：如果值小於或等於 3，則保留變數 [@Zuur2016a]。讓我們來看看；我們使用 **car** 套件中的 **vif()** 函數。但即使在這裡，也存在著許多爭議。有些人建議使用小於 10 的包含參數。我傾向於更加保守，尤其是在資料檔案較小的情況下，因此將應用「小於 3」的包含規則。
+關於在數據科學中使用 VIF 存在爭議，尤其是在數據點數量眾多的情況下。這個資料集很小，只有 44 行（即 n=44）。隨著資料集變得越來越小（小於 100），我們需要對共線預測變數/解釋變數做出一些決策。但該如何做出決策呢？如果我們使用 VIF，那麼有一條經驗法則：如果值小於或等於 3，則保留變數 [@Zuur2016]。讓我們來看看；我們使用 **car** 套件中的 **vif()** 函數。但即使在這裡，也存在著許多爭議。有些人建議使用小於 10 的包含參數。我傾向於更加保守，尤其是在資料檔案較小的情況下，因此將應用「小於 3」的包含規則。
 
 To check the VIFs we run the glm regression. This is straightforward as it uses the same code as the last week except we replace the **lm** function with **glm**. The only other difference is that we need to specify what error structure we need to use with the **family =** argument. In this case it is **poisson**.
 
@@ -551,7 +551,7 @@ We need to validate the model before it can be interpreted.
 
 Poisson regression shares many of the properties of linear regression. Notwithstanding the flexibility of GLMs, we still have to validate the models by examining residual spreads (more below). @Zuur2016a provide a clear protocol to follow in respect to these steps. Note that because it is a GLM we need to use **Pearson residuals** not **standardised residuals** to do this. We will use the `autoplot()` function from the `ggfortify` package to create our validation plots. We will add a `method=` argument to specify we ran a GLM model for clarity, but the package checks for model type (Fig. 7.4).
 
-泊松迴歸與線性迴歸有許多共同的性質。儘管廣義線性模型 (GLM) 非常靈活，我們仍然需要透過檢查殘差差值來驗證模型（詳見下文）。 @Zuur2016a 提供了關於這些步驟的清晰協議。請注意，由於這是一個廣義線性模型 (GLM)，因此我們需要使用**皮爾遜殘差**而不是**標準化殘差**來執行此操作。我們將使用 `ggfortify` 套件中的 `autoplot()` 函數來建立驗證圖。為了清晰起見，我們將新增 `method=` 參數來指定我們執行的是 GLM 模型，但套件會檢查模型類型（圖 7.3）。
+泊松迴歸與線性迴歸有許多共同的性質。儘管廣義線性模型 (GLM) 非常靈活，我們仍然需要透過檢查殘差差值來驗證模型（詳見下文）。 @Zuur2016 提供了關於這些步驟的清晰協議。請注意，由於這是一個廣義線性模型 (GLM)，因此我們需要使用**皮爾遜殘差**而不是**標準化殘差**來執行此操作。我們將使用 `ggfortify` 套件中的 `autoplot()` 函數來建立驗證圖。為了清晰起見，我們將新增 `method=` 參數來指定我們執行的是 GLM 模型，但套件會檢查模型類型（圖 7.3）。
 
 ```{r}
 ## simulate residuals

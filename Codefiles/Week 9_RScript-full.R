@@ -38,9 +38,9 @@ beach$fbeach <-as.factor(beach$Beach)
 # We're are interested in Richness (the response) and NAP (explanatory) in the first instance
 
 # Draw a picture (scatterplot) and stick a linear model line through it...you've done this before
-plot(Richness ~ NAP, data = beach, 
+plot(Richness ~ NAP, data = Benthic, 
 	xlab = "NAP", ylab = "Species richness", 
-	 pch = 19, col = fbeach)
+	 pch = 19, col = beach)
 # run a linear model and stick a line through it...
 beach.lm <- lm(Richness ~ NAP, data = beach)
 abline(beach.lm)
@@ -118,7 +118,7 @@ NAPs <- sort(beach$NAP)
 plot(NAPs, F0[I], lwd=4, col = 4, type = "l", ylim = c(0,22), # plot population line
      ylab = "Richness", xlab = "NAP")
 for (i in 1:9){
-   x1 <- beach$NAP[beach$fbeach==i]
+   x1 <- beach$NAP[beach$beach==i]
    y1 <- F1[beach$fbeach==i]
    K <- order(x1)				# order and sort to avoid spaghetti plot!
    lines(sort(x1), y1[K])}		# plot beach lines

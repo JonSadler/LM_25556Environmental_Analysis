@@ -1,6 +1,6 @@
 # Data exploration strategies using R
 
-This week we are going to make a start on data visualisation and exploration. To do this we will use graphical techniques that visualize and transform to explore data in a systematic way, a task that statisticians call **exploratory data analysis**, or EDA for short. @Zuur2010a provides an excellent outline of EDA strategies. Please read the paper!
+This week we are going to make a start on data visualisation and exploration. To do this we will use graphical techniques that visualize and transform to explore data in a systematic way, a task that statisticians call **exploratory data analysis**, or EDA for short. @Zuur2010 provides an excellent outline of EDA strategies. Please read the paper!
 
 Data exploration is an important and integral part of data analysis. The process is iterative and evaluative and may take several cycles until you in a position to finalise your analytical route (Fig. 3.1). If you read around this you will find that people suggest it is appropriate to spend `~ 50%` of your analytical time engaged in exploring your datasets to identify (sometimes hidden) issues.
 
@@ -895,9 +895,9 @@ We will be introducing you to means tests (i.e. t-tests and ANOVA), techniques u
 
 - Finish the class exercises if you haven't already done so.
 - Read chapter 5 of [@Beckerman2017].
-- Read @Zuur2010a.
+- Read @Zuur2010.
 - 如果還沒有完成課堂練習，請完成。
 - 閱讀[@Beckerman2017]的第 5 章。
-- 閱讀 @Zuur2010a。
+- 閱讀 @Zuur2010。
 
 ## References
