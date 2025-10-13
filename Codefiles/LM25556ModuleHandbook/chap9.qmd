@@ -2,9 +2,9 @@
 
 Last week we covered the application of **Generalised Additive Models (GAMs)** to data that did not fit a key assumption of GLMs, i.e. linearity or the $x$ `~` $y$ relationship. This week, for our final session, we focus how we might deal with situations where we have structural dependencies in our data that do no meet the key assumption for linear, GLM and GAM models: **independence of sample points**. Deciding whether or not to use **mixed models** not as straightforward as it seems because it depends on the study design, objectives and data structure.
 
-But let's start by thinking of them as an extension to ANOVA/ANCOVA and a means of dealing with heterogeneity in our data. We'll explore how heterogeneity arises in the data. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We ought to accommodate this in our regression.
+But let's start by thinking of them as an extension to ANOVA/ANCOVA and a means of dealing with heterogeneity in our data. We'll explore how heterogeneity arises in the data. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We need to factor this into our regression.
 
-[TASK: Take a few mins chatting with your neighbour thinking about why this is the case. **HINT: we know that co-located samples are much more likely to be similar to each other i.e. *within* each treatment and each treatment block than *between* treatments and blocks** (this characteristic is know as **spatial autocorrelation** \[\~ 5 min\]]{style="color:red;"}.
+[TASK: Take a few mins chatting with your neighbour thinking about why this is the case \[\~ 5 min\]]{style="color:red;"}.
 
 Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal autocorrelation**). Please note there are numerous ways of dealing with autocorrelation, such as Geographically Weighted Regression (GRWs) or Spatial Regression Models (SRMs) for spatial issues and Time Series analysis for temporal dependencies. There are is an example in the book Appendix for time series work.
 
@@ -42,7 +42,7 @@ lapply(packages, library, character.only = TRUE)
 
 The new packages this week are **lme4**, **glmmTMB** and **DHARMa:**
 
--   **lme4** - The lme4 package provides functions to fit and analyze linear mixed models, generalized linear mixed models and nonlinear mixed models [@Bates2015].
+-   **lme4** - The lme4 package provides functions to fit and analyze linear mixed models, generalized linear mixed models and nonlinear mixed models [@Bates2015d].
 -   **glmmTMB** - An extremely powerful and complex multi-level modelling package for Generalised Linear Mixed Models (GLMMs) [@Brooks2017b]. Permits the application of zero-inflated mixed models.
 -   **DHARMa** - Provides functions that provide simulated residual diagnostics for mixed models along with numerous tests for zero-inflation, over dispersion and so [@Hartig2024].
 
@@ -200,9 +200,7 @@ ggplot(full_data, aes(x = x, y = y, color = group, group = group)) +
 
 **Fig. 9.2: Examples of a random intercept (left panel) and a random intercept and random slope model (right panel).The *black line* = fixed effect (population regression line). The *coloured lines* represent the various groups**
 
-The left panel in Figure 9.2 shows the situation where the slopes of the various group measurements are the same but where the intercepts differ. Look at where the lines sit on the Y axis. The panel on the right shows the situation where both the intercepts and the slopes vary. You have seen this before in week 4 where you examined the 'RIKX.csv' dataset. We will revisit those data today.
-
-### A little bit of maths
+The left panel in Figure 9.2 shows the situation where the slopes of the various group measurements are the same but where the intercepts differ. Look at where the lines sit on the Y axis. The panel on the right shows the situation where both the intercepts and the slopes vary. \### A little bit of maths
 
 We can represent these models in same mathematical way as we did with LMs and GLMs. The extra element is the addition of the grouping variable (this will be a factor class variable):
 
@@ -232,21 +230,59 @@ $$
 -   $\beta_0, \beta_1$: fixed effects (population-level intercept and slope).
 -   $u_{0j}, u_{1j}$: random effects (group-level deviations).
 
-## Using mixed models
+## Mixed models
 
-### Mixed linear models
+We use the 'RIKZ.csv' data set. You should be familiar with it because we explored it in Week 3 of the module.
 
-We'll start with a mixed linear model (the equation for it is above) and use the RIKZ.csv data set. You should be familiar with it because we explored it in Week 3 of the module.
-
-Load the dataset. \### EDA to explore for heterogeneity in data sets
+Load the dataset.
 
 ```{r}
 Benthic <- read_csv("~/Documents/GitHub/Teaching/LM_25556Environmental_Analysis/Data/RIKZ.csv")
 ```
 
-[TASK: Have a look at it to refresh yourself about its structure. Use what ever function you prefer, `glimpse()`, `str()`, and `skim()` \[\~ 5 min\]]{style="color:red;"}.
+[TASK: YOU MUST DO THIS. Have a look at it to refresh yourself about its structure. Use what ever function you prefer, `glimpse()`, `str()`, and `skim()` but also make sure you use `unique()` for the number of levels in the factor and `table()` to count the cases in each level \[\~ 5 min\]]{style="color:red;"}.
 
-The best way to tackle issues about dependencies is to facet your plots and isolate the regression lines for each element of the grouping factor. What we are looking for are different slopes and different intercepts or both. We have the code for this from Week 3. Go and find it. Your plot should look something like this.
+You may recall that the datafile has the following variables:
+
+| Variable      | Description                                                                                                                                    | Type              |
+|-----------------------------|-------------------------|-------------------|
+| **Sample**    | Identifier for the sample unit (1–45). Each represents a sampling station on a beach.                                                          | Integer / numeric |
+| **Richness**  | Number of species (species richness) found in the sample.                                                                                      | Numeric           |
+| **Exposure**  | Ordinal index (1–11) of beach exposure to wave action, from sheltered (1) to very exposed (11).                                                | Ordinal numeric   |
+| **NAP**       | “Normaal Amsterdams Peil” — elevation relative to Dutch datum (m). Negative values indicate lower beach positions (more frequently submerged). | Numeric           |
+| **Beach**     | Identifier for the beach (1–9). The target 'random factor'.                                                                                    | Numeric           |
+| **grainsize** | Mean sediment grain size at the sampling site. Larger values indicate coarser sand and higher energy environments.                             | Numeric           |
+| **humus**     | Percentage of organic matter in the sediment (proxy for nutrient content). Higher values may indicate more decomposed material.                | Numeric           |
+| **chalk**     | Percentage of calcium carbonate (CaCO₃) in the sediment, often related to shell fragments or calcareous sand.                                  | Numeric           |
+| **sorting1**  | Sediment sorting coefficient — lower values indicate well-sorted sediments; higher values indicate mixed grain sizes.                          | Numeric           |
+
+We want our grouping factor to be a factor. Is it currently as numeric variable. Notice also that Exposure is a numeric variable and although it could range from 0-11, we only have three values 8, 10, 11 and they are unbalanced i.e. fewer 8s (5 as opposed to 20 and 20).
+
+```{r}
+unique(Benthic$Exposure)
+table(Benthic$Exposure)
+```
+
+Our factors must be factors and we must sort out the imbalance issue. We can use `mutate()` from **dplyr** to do that. We change 'Beach' to a factor called 'fbeach'; and concatenate exposure to a new variable with 2 levels 10 and 11 but making the 8s conform to 10s and call it 'fExp'. This balances the number of cases because initially we have only a few sample points where the Exposure = 8. See the output of the two `table()` calls at the bottom of the code snippet.
+
+```{r}
+Benthic <- Benthic |>
+  mutate(
+    # Convert 'Beach' to a factor. R will now know it's a grouping variable.
+    fbeach = as.factor(Beach),
+    fExp = case_when(
+      Exposure == 8 ~ 10,   # replace 8 with 10
+      TRUE ~ Exposure       # keep other values as is
+    ),
+    fExp = factor(fExp, levels = c(10, 11)))
+
+table(Benthic$Exposure)
+table(Benthic$fExp)
+```
+
+### EDA to explore for heterogeneity in data sets
+
+The best way to tackle issues about dependencies is to facet your plots and isolate the regression lines for each element of the grouping factor. What we are looking for are different slopes and different intercepts or both. We have the code for this from Week 3. Go and find it. Your plot should look something like this (Fig. 9.3). You can see that the slopes for each beach differ as do many of the intercepts. You could also use the base R function called `coplot()`. Search the help file on this but typing: `?coplot` in the console window.
 
 ```{r, echo=FALSE}
 ggplot(Benthic, aes(x = NAP, y = Richness)) +
@@ -259,7 +295,7 @@ ggplot(Benthic, aes(x = NAP, y = Richness)) +
     formula = 'y ~ x',
     ) +
   facet_wrap(
-    ~ Beach
+    ~ fbeach
   ) +
   # Set the y-axis viewing window to start at 0. You cannot have a negative count of species richness.
   coord_cartesian(ylim = c(0, NA)) +
@@ -267,84 +303,370 @@ ggplot(Benthic, aes(x = NAP, y = Richness)) +
   theme_bw()
 ```
 
-If we are interested modelling this directly in terms of interactions then we model as we did in our ANCOVA example. But when you have many levels in the factor you are using a lot of degrees of freedom. We only have 4 degrees of freedom. Remember each level in the grouping variable costs one degree of freedom. And the interactions needed for the ANCOVA adds more still. So we lose 27 degrees of freedom, over half of those that are available. Recall from Week 6 that we had a 'rule of thumb' that the number of covariates should not be **more than a 1/3** of the available degrees of freedom, as this would increase the possibility of a **type 1** error; or a false positive outcome.
+**Fig. 9.3: Plot of the regression lines for each individual beach**
+
+### Linear model variants
+
+We will start with a basic model using just the NAP variable and ignoring the fact that the sample span 9 beaches. This will highlight some of the problems.
 
 ```{r}
-# We could try to add a covariate in for beach as a form of ANCOVA
-M1 <- lm(Richness ~ NAP * as.factor(Beach), data = Benthic)
+M1 <- beach.lm <- lm(Richness ~ NAP, data = Benthic)
+```
+
+Let's look at the output.
+
+```{r}
 summary(M1)
 ```
 
-Look at the summary table....
+We see a strong negative effect of NAP, with a decent effect size, an adjusted $R^2$ of 0.3088. What we are doing here is use one population mean to capture variability across all the samples. This isn't especially sensible because we know that the effect of the explanatory variable differs across the nine beaches (Fig. 9.3). The implications of that are visible in the validation plots.
 
-```{r}
-# Plot residual - it hasn't improved that either!
+[TASK: You should already know the code for this. Plot the R summary validation plots, 4 to one page and also the covariable residual spread. What do these plots tell you about the model \[\~ 5 min\]]{style="color:red;"}.
+
+The 4-panel plot should look like this:
+
+```{r, echo=FALSE}
+# Plot validation graph
 op <- par(mfrow = c(2,2))
 plot(M1)
 par(op)
-# not much better..
 ```
 
-These are count data so instead of running a linear mixed, LMM (or `lmer()`) model, we go straight for a Generalised Linear Mixed Model, GLMM. We use the **lme4** package with the `glmer()` function. See we use `family = "poisson"`. Just like for the glms, we have to test for overdispersion too. If we find it we'll need a negative binomial model (we have done this before in week 7).
+**Fig. 9.4: Validation plots for the single factor linear model (M1)**
+
+**Fig. 9.4: Validation plots for the `lm()` model (M1)**
+
+And here is the residual plot for the NAP covariate (Fig. 9.5).
+
+```{r, echo=FALSE}
+# strip out the residual
+E <- residuals(M1) # straight standard residuals are okay  as it is a lm() model.
+#plot against the NAP covariate
+ plot(Benthic$NAP, E)
+```
+
+**Fig. 9.5: Plot of residual spread for the covariate NAP**
+
+We can also check for outliers using Cook's $D$ (Fig. 9.6).
 
 ```{r}
-# We are using lme4 here
+plot(M1, which = 4)
+```
 
-M1 <- glmer(Richness ~ NAP * Exposure + (1 | Beach), 
-	data = Benthic, family = "poisson")	# Random slope model
+**Fig. 9.6: Cook's** $D$ for the NAP variable
+
+Maybe we can make things better by adding beach in as a covariate to create an ANCOVA model? We want the interactions because we want to allow the intercepts and slopes to vary, so we run with the full *multiplicative* model. You may recall from week 5 that when you have many levels in a (grouping) factor you lose one degree of freedom for each level in the variable. And the interactions needed for the ANCOVA adds more still. So, in total, we lose 27 degrees of freedom, over half of those that are available to us with a n = 45. Recall, also from Week 6, that we had a 'rule of thumb' that the number of covariates should not be **more than a 1/3** of the available degrees of freedom, as this would increase the possibility of a **type 1** error; i.e. a false positive outcome. We will run the model to illustrate the issues and examine the output.
+
+```{r}
+# We could try to add a covariate in for beach as a form of ANCOVA
+M2 <- lm(Richness ~ NAP * fbeach, data = Benthic)
+summary(M2)
+```
+
+We observe that there are differences across the beaches but not all of them differ significantly from the baseline (our intercept term). We can see also that some but not all of the interactions are significant. Finding coherent ecological explanations of that pattern are likely to be problematic. What do the validation plots look like?
+
+[TASK: Plot the R summary validation plots, 4 to one page and also the covariable residual spreads. What do these plots tell you about the model \[\~ 5 min\]]{style="color:red;"}.
+
+Here are the validation plots (Figs 9.7).
+
+```{r, echo=FALSE}
+# Plot residual - it hasn't improved that either!
+op <- par(mfrow = c(2,2))
+plot(M2)
+par(op)
+# not much better....
+```
+
+\***Fig. 9.7: Validation plots for the ANCOVA model (M2)**
+
+Here are the residual patterns for the two covariates (Fig. 9.8). Remember you need a boxplot for the beach variable.
+
+```{r, echo=FALSE}
+E <- resid(M2)
+op <- par(mfrow = c(1,2))
+plot(E~Benthic$NAP,
+     xlab = "NAP",
+     ylab="Standard Residuals")
+boxplot(E ~ Benthic$Beach,
+        xlab = "Beach",
+     ylab="Standard Residuals")
+par(op)
+
+```
+
+**Fig. 9.8: Residual plots for your explanatory variables from model M2**
+
+These are not great, there is a lot variabilty across the beaches. **Now use the code above to look at the Cook's** $D$.
+
+### Applying a Mixed Model
+
+We will start with a LMM (or `lmer()`) model, even though these are count data. Recall from Week 6 we should apply a Generalised Linear Mixed Model, GLMM to count data. We will come back to that to illustrate the difference in each at the end of the session.
+
+#### Linear Mixed Model (LMM)
+
+We will use the **lme4** package and the `lmer()` function to apply the model. ther packages exist, such as **nlme** but this has a different code syntax. It makes sense to use a package that can be used for both LMMs and GLMMs, with just one slight change in the function call! Following the protocol outlined by @Zuur2009a, we need to figure out what is the most appropriate random effect structure. We do this by comparing the these two models that are illustrated graphical in Figure 9.2 (above):
+
+-   Random intercept only (M3) - `lmer(Richness ~ NAP * fExp + (1 | fbeach)`
+
+-   Random intercept and slope (M4) - `lmer(Richness ~ NAP * fExp + (NAP | fbeach)`
+
+At this point we need to introduce one further bit of statistics (it's the last element - I promise). As you know from Week 5, linear models estimate their parameters (coefficients, variances, etc.) using the method of least squares — by minimising the sum of squared residuals to estimate the model parameters (eg. coefficients, variances etc). GLMs use [**Maximum Likelihood (ML)**](https://www.youtube.com/watch?v=XepXtl9YKwc) to estimate the parameters (excuse the silly song at the start of the video!) by finding the parameter values that make the observed data most probable under the model.
+
+When we move to mixed models, parameter estimation can be done using either Maximum **Likelihood (ML)** or **Restricted Maximum Likelihood (REML).** REML is very similar to ML but adjusts for the loss of degrees of freedom that occurs when estimating the fixed effects (the means) before the variances. Choosing which method to use — and when — depends on the model’s purpose.
+
+#### The Golden Rule of Model Comparison
+
+This leads to a simple rule for mixed-effects model selection:
+
+1.  If you are comparing models with **different fixed effects** (e.g., y \~ x1 vs. y \~ x1 + x2):
+
+    -   You **MUST** fit the models using **Maximum Likelihood (REML = FALSE)**.
+
+    -   You can then compare the models using AIC, BIC, or a Likelihood Ratio Test (`anova()`).
+
+2.  If you are comparing models with the **same fixed effects** but **different random effects** (e.g., y \~ x1 + (1 \| g) vs. y \~ x1 + (1 + x1 \| g)):
+
+    -   You should fit the models using **REML (REML = TRUE)**, as it gives you better estimates of the random effect variances.
+
+3.  In the case of a LMM, after you have selected your **final, best model**, you ought to re-fit that one model using **REML** to get the best, unbiased estimates for your final parameters. GLMMs default to ML methods (see below), so this is not necessary.
+
+```{r}
+# We are using the lme4 package to do this
+# The default method here is REML so do not need to tell it to use REML.
+
+M3 <- lmer(Richness ~ NAP + fExp + (1 | fbeach),
+	data = Benthic)	# Random slope model
 # There might be an error message - it's okay! It is just pointing out that the dataframe is a tidyverse version, called a tibble.
 
-M2 <- glmer(Richness ~ NAP * Exposure + (NAP | Beach), 
-	data = Benthic, family = "poisson") # Random intercept and slope
+M4 <- lmer(Richness ~ NAP * fExp + (NAP | fbeach), 
+	data = Benthic) # Random intercept and slope
 
 # Compare models
-AIC(M1,M2)
+AIC(M3,M4)
 
 
 # The Anova test confirms the difference is significant
-anova(M1, M2, test = "Chisq")
-
-# Now determine the best fixed structure. We tell MuMin that the we used REML.
-
-# Library
-
-
-#options(na.action=na.fail) # set options in Base R concerning missing values
-#summary(model.avg(dredge(M7), fit = TRUE, subset = TRUE), method = "REML")
-#options(na.action = "na.omit") # reset base R options
+anova(M3, M4, test = "Chisq")
 ```
 
-We use the `check_overdispersion()` test from the **performance** package because it compensates for the random effects element of the model. We could hand calculate it but it is a little more complex that the calculation for a straight glm model.
+These results suggest that the more complex interactive model (M4) does not confer any advantage over the model M3, which has a random intercept. I am not so sure about this because our facet plots showed variability in both terms (i.e. different slopes and intercepts) but we'll go with it. Notice the `p-value` on the ANOVA tests almost makes `P<= 0.05` with a value of 0.05659.
+
+```{r}
+summary(M3)
+```
+
+##### Interpreting the summary()
+
+We'll break it down chunk by chunk.
+
+##### Random Effects
+
+-   Beach Variation: There is meaningful variation in the average Richness from beach to beach (Std. Dev. of Intercept = 1.907. This confirms that some beaches are inherently richer than others and that using a mixed-effects model was the right approach to account for this non-independence.
+
+-   Within-Beach Variation: After accounting for all predictors and the random beach effect, the typical random, unexplained error for any given sample is about ± 3.059 units of richness (Residual Std. Dev.).
+
+##### Fixed Effects (The Main Story)
+
+-   The model found significant effects for both predictors and their interaction. Effect of NAP (at baseline exposure): There is a strong, significant negative relationship between NAP and Richness. For the baseline exposure level, every one-unit increase in NAP is associated with a decrease of approximately 2.58 in species richness.
+
+-   Effect of fExp (at average NAP): Exposure level has a significant impact. The fExp11 group has a predicted Richness that is 4.53 units lower than the baseline exposure group, holding NAP constant at its average value.
+
+Clearly, before we accept these findings we need to validate the models. Because this a mixed model the base R `plot()` function only generates the residual spread for the fits.
+
+```{r}
+plot(M3)
+```
+
+They don't look too good. Notice a quirk of the **lme4** package is that it defaults to **pearson residuals** and because this is a linear mixed model (LMM), we need standard or normalised residuals.
+
+```{r}
+# 1a. Residuals vs. Fitted Plot
+plot(
+  x = fitted(M3),
+  y = residuals(M3),
+  main = "Raw Residuals vs. Fitted Values",
+  xlab = "Fitted Values",
+  ylab = "Raw Residuals"
+)
+abline(h = 0, lty = 2, col = "red")
+
+# 1b. Q-Q Plot of Residuals (for Normality)
+qqnorm(residuals(M3))
+qqline(residuals(M3))
+
+# ======================================================================
+# --- Part 2: Outlier / Influence Detection with Cook's D ---
+# ======================================================================
+# You are checking for the impact of individual points.
+
+# 2a. Calculate Cook's Distance for your lmer model
+# The cook.distance() function works directly on lmer objects.
+cooks_d <- cooks.distance(M3)
+
+# 2b. Plot Cook's Distance
+plot(
+  cooks_d,
+  type = "h", # Use 'h' for a "histogram-like" plot of vertical lines
+  main = "Cook's Distance for Outlier Detection",
+  xlab = "Observation Number",
+  ylab = "Cook's Distance"
+)
+
+
+```
+
+#### Generalised Linear Mixed Model (GLMM)
+
+We use the same package, **lme4**, but apply the `glmer()` function, not the `lmer()` one. We specifiy `family = "poisson"` as we did for the GLMs, and we have to test for overdispersion too. If we find it, we'll need a negative binomial model (we have done this before in week 7). The first thing we need to do, following the protocol outlined by @Zuur2009a, is to figure out what is the most appropriate random effect structure. We do this by comparing the models:
+
+-   Random intercept only (M5) - `glmer(Richness ~ NAP * fExp + (1 | fbeach)`
+
+-   Random intercept and slope (M6) - `glmer(Richness ~ NAP * fExp + (NAP | fbeach)`
+
+Note the differences in the model specification!
+
+```{r}
+# We are using the lme4 package to do this
+
+M5 <- glmer(Richness ~ NAP * fExp + (1 | fbeach), 
+	data = Benthic, family = "poisson")	# Random slope model
+# There might be an error message - it's okay! It is just pointing out that the dataframe is a tidyverse version, called a tibble.
+
+M6 <- glmer(Richness ~ NAP * fExp + (NAP | fbeach), 
+	data = Benthic, family = "poisson") # Random intercept and slope
+
+# Compare models
+AIC(M5,M6)
+
+
+# The Anova test confirms the difference is significant
+anova(M5, M6, test = "Chisq")
+
+```
+
+The AIC comparision and the ANOVA model test both confirm that M4 is the best model. AIC scores differ by $>\Delta 2$ AIC and the p-value on ANOVA is 0.04276.
+
+Next we try to figure out the best fixed effects structure. We'll do this by comparing the nested models using the **MuMIn** package. This is a GLMM not a LMER so we don't need to worry about **ML (Maximum Likelihood)** and **REML (Restricted Maximum Likelihood)** as methods for estimating the parameters (coefficients, variances) in the model. Poisson GLMMs only use **ML**. So we can use **MuMIn** directly.
+
+We `dredge()` using M3 to see which fixed effect structure is best.
+
+```{r}
+options(na.action=na.fail) # set options in Base R concerning missing values
+summary(model.avg(dredge(M6), fit = TRUE, subset = TRUE), method = "ML")
+options(na.action = "na.omit") # reset base R options
+
+```
+
+The component models are listed above and the model with the lowest AIC is our full model (including variables 12) and it is $>\Delta2$ so we will select that one and rerun the model with an intercept and slope random effect and no interaction term.
+
+```{r}
+Final_M <- glmer(Richness ~ NAP + fExp + (1 | fbeach), 
+	data = Benthic, family = "poisson") 
+```
+
+GLMMs are complex beasts so we are going to use a new package called **DHARMa** to test our models for overdispersion and generate the validation plots. It provides a simulation-based approach to create standardized residuals for a wide range of statistical models, especially complex models like GLMMs. Its primary purpose is to solve a major problem: for non-linear models (like Poisson or Binomial), standard residuals are often difficult to interpret and their theoretical properties are not well-defined. This is how it works:
+
+-   Simulates: It takes your fitted model and uses it to simulate hundreds or thousands of "perfect" new datasets that follow your model's exact assumptions.
+
+-   Compares: For each observed data point, it compares its value to the distribution of the simulated values at that same point.
+
+-   Creates Standardized Residuals: It calculates a "standardized residual" for each data point, which is essentially its rank (or quantile) within its own simulated distribution. If the model is a perfect fit, these new residuals will follow a perfect uniform distribution from 0 to 1.
+
+It also has tests for overdispersion, outliers and so on.
+
+#### How to Interpret the Main DHARMa Plot
+
+-   Left Panel (Q-Q Plot): This is the most important part. It plots the observed residuals against the expected residuals from a perfect model. You want the points to fall along the red diagonal line. Deviations from this line indicate problems with the model's overall fit or distribution.
+
+-   Right Panel (Residuals vs. Predicted): This checks for heteroscedasticity (non-constant variance). You want to see a random "shotgun blast" of points. The lines for the quantiles (red lines) should be horizontal and not show a funnel shape.
+
+-   Statistical Tests: DHARMa also prints the results of formal statistical tests in the plot title. Look for the "Kolmogorov-Smirnov test" for correct distribution and the "Dispersion test". You want the p-values for these tests to be large (`p > 0.05`). A significant p-value indicates a problem.
 
 ```{r}
 
-check_overdispersion(M1)
+# Create the DHARMa simulation object
+simulation_output <- simulateResiduals(fittedModel = Final_M)
+
+
+# This one plot checks for multiple issues at once. Notice is the same as the base R function call
+plot(simulation_output)
 ```
 
-Remember `~` 1 means no overdispersion, `>` 1.5 = overdispersed and, `<1` is underdispersed.
+```{r}
+# Plot validation graph
+op <- par(mfrow = c(1,2))
+# Plot residuals against each predictor to check for non-linearity
+# You want to see no obvious patterns or trends in these plots.
+plotResiduals(simulation_output, form = Benthic$NAP)
+plotResiduals(simulation_output, form = Benthic$fExp)
+par(op)
+```
+
+Now we can run a sequence of tests for dispersion, outliers
+
+```{r}
+# Formal test for overdispersion/underdispersion
+# A significant p-value here means the dispersion is different from what's expected.
+testDispersion(simulation_output)
+
+# Test for outliers
+# A significant p-value suggests the presence of more outliers than expected.
+testOutliers(simulation_output)
+```
+
+```{r}
+M <- glmer(Richness ~ NAP * fExp + (1 | fbeach), 
+	data = Benthic, family = "poisson") 
+
+# Create the DHARMa simulation object
+simulation_output1 <- simulateResiduals(fittedModel = M)
+
+# This one plot checks for multiple issues at once. Notice is the same as the base R function call
+plot(simulation_output1)
+
+```
+
+```{r}
+# Formal test for overdispersion/underdispersion
+# A significant p-value here means the dispersion is different from what's expected.
+testDispersion(simulation_output1)
+
+# Test for outliers
+# A significant p-value suggests the presence of more outliers than expected.
+testOutliers(simulation_output1)
+
+
+# Plot validation graph
+op <- par(mfrow = c(1,2))
+# Plot residuals against each predictor to check for non-linearity
+# You want to see no obvious patterns or trends in these plots.
+plotResiduals(simulation_output1, form = Benthic$NAP)
+plotResiduals(simulation_output1, form = Benthic$fExp)
+par(op)
+```
 
 ### Take a deep breath and bookmark these blogs
 
-I appreciate this is a little complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in week 6, with the key difference being that we place the grouping (factor) variable in the **random** rather than **fixed** structure of the model. Luckily, this stuff is well covered on the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
+I appreciate this is a little complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in Week 6, with the key difference being that we place the grouping (factor) variable in the **random** rather than **fixed** structure of the model. Luckily, this stuff is well covered on the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
 
 I am aware here that we are looking at random effects as a means of getting rid of nuisance heterogeneity. This is not always a useful perspective as McGill and others discuss in his [blog:](https://dynamicecology.wordpress.com/2015/11/04/is-it-a-fixed-or-random-effect/). I encourage you to read it.
 
 ### A Quick Checklist
 
--   One observation per group? → fixed effect.
+-   If you have only one observation level per group → fixed effect.
 
--   Many observations per group? → random effects might be needed. Threshold is certainly `>`3 but `~` 5-10 shows up frequently in the literature and musings on blog posts.
+-   Where you have numerous observations levels per group → random effects might be needed.
 
--   Do you want inference about the group itself (fixed) or about variation among groups (random)?
+-   If you want inference about the group itself then go for fixed. If you want information about variation among levels within groups then random is the approach.
 
 -   How many levels do we need need in a random effect? → According to many certainly 3 or more levels, but realistically `~` 10 or more - see the blog discussions above.
 
-**Remember: if you only have one replicate / measurement you cannot calculate anything!!**
+**Remember: if you only have one replicate / measurement you cannot calculate a mean or variance!!**
 
 ## Follow-up work
 
 -   Read the blogs!
--   Carry out the Dragons tutorial on the blog! Add in some more advanced visualisation - for example, some faceting using ggplot.
+-   Carry out the Dragons tutorial in the blog! Add in some more advanced visualisation for you EDA - for example, some faceting using ggplot.
 
 ## Next Week
 

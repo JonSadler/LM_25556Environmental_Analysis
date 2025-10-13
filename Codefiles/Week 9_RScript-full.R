@@ -205,11 +205,11 @@ require(lme4)
 # Truly infuriating I know!!!
 
 M6 <- glmer(Richness ~ NAP * fExp + (1 | fbeach), 
-	data = beach, family = "poisson")	# Random slope model
+	data = Benthic, family = "poisson")	# Random slope model
 # There might be an error message - it's okay! 
 
 M7 <- glmer(Richness ~1 + NAP * fExp + (NAP | fbeach), 
-	data = beach, family = "poisson") # Random intercept and slope
+	data = Benthic, family = "poisson") # Random intercept and slope
 
 # Compare models
 AIC(M6,M7)
@@ -217,7 +217,7 @@ AIC(M6,M7)
 # The Anova test confirms the difference is significant
 anova(M6, M7, test = "Chisq")
 
-# Now determine the best fixed structure. We tell MuMin that the we used REML.
+# Now determine the best fixed structure. We tell MuMIn that the we used REML.
 
 # Library
 library(MuMIn)

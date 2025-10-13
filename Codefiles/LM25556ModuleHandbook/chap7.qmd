@@ -929,7 +929,7 @@ ggplot(eda, aes(x = value, y = TOT.N)) +
  geom_smooth(method = "loess", se = FALSE, color = "red", formula = 'y ~ x',
     span = 1.2) +
 # This creates a separate plot for each of the X-variables.
-  facet_wrap(~ variables, scales = "free") +
+  facet_wrap(~ variables, scales = "free") + # scale = free lets the Y-axis values fit the range for each variable.
   
 # Add labels and a title
   labs(
@@ -941,7 +941,7 @@ ggplot(eda, aes(x = value, y = TOT.N)) +
 # Change the theme
   theme_bw() +
   theme(
-    strip.background = element_rect(fill = "lightblue") # Adds stip labels as the facet titles, in lightblue
+    strip.background = element_rect(fill = "lightblue") # Adds strip labels as the facet titles, in light blue.
   )
 ```
 
@@ -951,7 +951,7 @@ Many of you might now be saying, "isn't that what `scatterplotMatrix()` does, bu
 
 很多人現在可能會說：「這不就是 scatterplotMatrix() 的功能嗎，只不過程式碼行數少多了！？」 是的，沒錯，但這裡的輸出更容易可視化，而且現在你對這兩種方法有了更多的了解。如果變數很多，使用 scatterplotMatrix() 的問題在於，你無法關閉圖的某一側（即對角線下方的一側），所以它會被完全壓縮。
 
-So back to the figure (Fig. 7.9). What does it show us? It indicates that most of the explanatory variables have a linear fit to the TOT.N response i.e. the loess smoother sits within the bounds of the CIs on the linear fit, so a glm model is appropriate. We'll return to non-linear approaches next week. The scatters also indicate that some variables are likely to be poorly correlated due to amount of spread of points around the regression lines. We can see also that some variables have a lot of zeros counts (see the vertical clumps of points on the $x$ axis near zero), which can cause issues in regression-based analyses.
+So back to the figure (Fig. 7.9). What does it show us? It indicates that most of the explanatory variables have a linear fit to the TOT.N response i.e. the loess smoother sits within the bounds of the CIs on the linear fit, so a glm model is appropriate. We'll return to non-linear approaches next week. The scatters also indicate that some variables are likely to be poorly correlated due to amount of spread of points around the regression lines. We can see also that some variables have a lot of zeros counts (see the vertical clumps of points on the $x$ axis near zero), which can cause issues in regression-based analyses. And lastly, we can see that some variables show likely heterogeneity due either a reduced point spread with increasing `x`, such as 'D.PARK' or an increasing spread of points along the `x` axis, 'P.EDGE'. Both might influence the regression residuals in the models.
 
 回到圖 7.9。它向我們展示了什麼？它表明大多數解釋變數與 TOT.N 響應呈線性擬合，即 Loess 平滑器位於線性擬合的置信區間 (CI) 範圍內，因此 GLM 模型是合適的。下週我們將回到非線性方法。散點圖還表明，由於迴歸線周圍點的分佈範圍較大，因此一些變數的相關性可能較差。我們也可以看到，有些變數的零點數量較多（參見 x 軸上靠近零點的垂直點群），這可能會在基於迴歸的分析中造成問題。
 
