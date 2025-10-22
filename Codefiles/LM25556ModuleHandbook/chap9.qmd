@@ -2,11 +2,17 @@
 
 Last week we covered the application of **Generalised Additive Models (GAMs)** to data that did not fit a key assumption of GLMs, i.e. linearity or the $x$ `~` $y$ relationship. This week, for our final session, we focus how we might deal with situations where we have structural dependencies in our data that do no meet the key assumption for linear, GLM and GAM models: **independence of sample points**. Deciding whether or not to use **mixed models** not as straightforward as it seems because it depends on the study design, objectives and data structure.
 
-But let's start by thinking of them as an extension to ANOVA/ANCOVA and a means of dealing with heterogeneity in our data. We'll explore how heterogeneity arises in the data. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We need to factor this into our regression, otherwise our samples are **pseudoreplicated** [@Hurlbert1984].
+上週我們討論了廣義加性模型 (GAM) 應用於不符合 GLM 關鍵假設（即線性或 $x$ \~ $y$ 關係）的資料。本週，作為我們的最後一堂課，我們將重點討論如何處理資料中存在結構依賴關係，而這些依賴關係不符合線性、GLM 和 GAM 模型的關鍵假設（即樣本點獨立性）的情況。決定是否使用混合模型並不像看起來那麼簡單，因為它取決於研究設計、目標和資料結構。
+
+But let's start by thinking of them as an extension to ANOVA/ANCOVA and a means of dealing with heterogeneity in our data. We'll explore how heterogeneity arises in the data. If you are unlucky it arises because you have messed up your sample design. Hopefully, this is not the case, rather, it is a response to dependence issues that are factored into your design. Figure 9.1. shows two simple scenarios where the application of mixed modelling (either ANOVA or regression models) is a necessity. In panel (A), we have a block experiment that mirrors our fertilizer example from Week 4 with one important difference. We have 3 subsamples from within each treatment within each block. The subsamples are nested with the treatments and not independent from each other. We need to factor this into our regression, otherwise our samples are **pseudoreplicated** [@Hurlbert1984].
+
+但是，我們首先將它們視為變異數分析/協方差分析的擴展，以及處理資料異質性的一種手段。我們將探討資料異質性是如何產生的。如果你運氣不好，異質性產生的原因是你的樣本設計搞砸了。希望情況並非如此，相反，它是對設計中考慮的依賴性問題的一種回應。圖 9.1 顯示了兩個簡單的場景，其中必須應用混合建模（變異數分析或迴歸模型）。在圖 (A) 中，我們進行了一個區組實驗，它與第 4 週的肥料範例相似，但有一個重要的區別。每個區組中，每個處理有 3 個子樣本。子樣本與處理嵌套，彼此並不獨立。我們需要將這一點納入迴歸分析中，否則我們的樣本就是偽重複的 [@Hurlbert1984]。
 
 [TASK: Take a few mins chatting with your neighbour thinking about why this is the case \[\~ 5 min\]]{style="color:red;"}.
 
-Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal autocorrelation**). Please note there are numerous ways of dealing with autocorrelation, such as Geographically Weighted Regression (GRWs) or Spatial Regression Models (SRMs) for spatial issues and Time Series analysis for temporal dependencies. There are is an example in the book Appendix for time series work.
+Panel (B), shows the situation where we have repeated measurement at each site over three time periods. Let's say we are counting bird species at each site in Spring, Summer and Autumn and we take one sample in each season. We need to account for this because repeated measurements from the individual sites are not independent. The samples across the seasons, *within* each site will be more similar to each other seasonal samples *between* the sites (a characteristic know as **temporal correlation**). Please note there are numerous ways of dealing with correlation between samples, such as Geographically Weighted Regression (GRWs) or Spatial Regression Models (SRMs) for spatial issues and Time Series analysis for temporal dependencies. I plan to add an example of both in the Appendix of this handbook.
+
+圖 (B) 顯示了我們在三個時間段內在每個站點進行重複測量的情況。假設我們在春季、夏季和秋季對每個站點的鳥類種類進行計數，並且每個季節採集一個樣本。我們需要考慮到這一點，因為各個站點的重複測量並非獨立進行。每個站點內跨季節的樣本將與站點之間的其他季節性樣本更加相似（這種特性稱為時間相關性）。請注意，處理樣本間相關性的方法有很多，例如用於空間問題的地理加權迴歸 (GRW) 或空間迴歸模型 (SRM) 以及用於時間依賴性的時間序列分析。我計劃在本手冊的附錄中添加這兩個方法的範例。
 
 ```{r}
 #| label: mixed_model
@@ -20,6 +26,8 @@ knitr::include_graphics("images/mixed_models_examples.png")
 
 Today's work is all about sorting out these potential analytical problems. And in doing so, hopefully we can support you in your project analyses over summer!
 
+今天的工作就是要理清這些潛在的分析問題。希望我們能在這個夏天為你們的專案分析提供支持！
+
 ### Learning Outcomes
 
 By the end of this session you will be able to:
@@ -29,6 +37,14 @@ By the end of this session you will be able to:
 -   Use straightforward linear mixed effects models to resolve the potential issues
 
 -   Anything more complex and we will need to discuss options and approaches!
+
+在本課程結束時，您將能夠：
+
+探索資料以尋找依賴關係和潛在的自相關結構\
+
+使用簡單的線性混合效應模型來解決潛在問題
+
+如果問題更加複雜，我們將需要討論各種方案和方法！
 
 ### Load libraries
 
@@ -45,7 +61,17 @@ The new packages this week are **lme4**, **glmmTMB** and **DHARMa:**
 -   **lme4** - The lme4 package provides functions to fit and analyze linear mixed models, generalized linear mixed models and nonlinear mixed models [@Bates2015d].
 -   **glmmTMB** - An extremely powerful and complex multi-level modelling package for Generalised Linear Mixed Models (GLMMs) [@Brooks2017b]. Permits the application of zero-inflated mixed models.
 -   **DHARMa** - Provides functions that provide simulated residual diagnostics for mixed models along with numerous tests for zero-inflation, over dispersion and so on [@Hartig2024].
--   **patchwork** - allow the multipanel composition of plots including, graphics files and ggplot objects \[Pedersen2024\].
+-   **patchwork** - allow the multipanel composition of plots including, graphics files and ggplot objects [@Pedersen2024].
+
+本週新增的軟體包包括 lme4、glmmTMB 和 DHARMa：
+
+lme4 - lme4 軟體包提供用於擬合和分析線性混合模型、廣義線性混合模型和非線性混合模型的函數 [@Bates2015d]。
+
+glmmTMB - 一個極其強大且複雜的廣義線性混合模型 (GLMM) 多層次建模軟體包 [@Brooks2017b]。允許應用零膨脹混合模型。
+
+DHARMa - 提供混合模型模擬殘差診斷的函數，以及針對零膨脹、過度離散等的多種檢定 [@Hartig2024]。
+
+patchwork - 允許多面板組合繪圖，包括圖形檔案和 ggplot 物件 [@Pedersen2024]。
 
 ## Essential Reading
 
@@ -57,6 +83,14 @@ Read these three introductory papers on mixed modelling, if you haven't already 
 
 -   Finally, the classic introduction by @Bolker2009.
 
+如果你還沒讀過這三篇關於混合模型的入門論文，不妨讀一讀（課後再讀更合適！）：
+
+- 從@Zuur2007的第八章「混合模型」開始。
+
+- 然後是@Harrison2018a。
+
+- 最後是@Bolker2009的經典介紹。
+
 ## What are mixed models?
 
 You are all familiar with applying regression models to data using **fixed effects**, the $x$ (or explanatory) components in the models. **Fixed effects** are effects of predictors that are assumed to be the same across all units (e.g. treatment, temperature, altitude). A **mixed model** is a regression model that includes both:
@@ -64,7 +98,14 @@ You are all familiar with applying regression models to data using **fixed effec
 -   **Fixed effects** and
 -   **Random effects**. **Random effects** allow certain parameters to vary across groups / clusters / units (e.g. intercepts, slopes for individual subjects, plots, regions). They model correlation or non-independence in the data.
 
+大家應該都熟悉如何使用**固定效應**（即模型中的$x$（或解釋性）成分）將迴歸模型應用於資料。 **固定效應**是指假設所有單元（例如處理、溫度、海拔）中預測因子的效應相同。 **混合模型**是一種包含下列兩種因素的迴歸模型：
+
+- **固定效應** 和
+- **隨機效應**。 **隨機效應**允許某些參數在不同組別/聚類/單元之間變化（例如，截距、個別受試者的斜率、樣地、區域）。它們對數據的相關性或非獨立性進行建模。
+
 They are useful when data are hierarchically structured (e.g. measurements nested within subjects, spatial clusters, repeated measurements over time) or when you have grouped / clustered observations.
+
+當資料具有層次結構（例如，嵌套在主題內的測量、空間聚類、隨時間重複的測量）或當您具有分組/聚類觀察結果時，它們很有用。
 
 ### Variance Partitioning
 
@@ -74,11 +115,23 @@ They are useful when data are hierarchically structured (e.g. measurements neste
 
 -   Residuals capture leftover within-group variation.
 
+- 固定效應解釋系統性的、群體範圍內的變異。
+
+- 隨機效應解釋聚集/嵌套現象，以及
+
+- 殘差捕捉的是組內剩餘的變異。
+
 So the model partitions variance into:
 
 -   Between-groups (random effects)
 
 -   Within-groups (residuals).
+
+因此，該模型將變異數劃分為：
+
+- 組間（隨機效應）
+
+- 組內（殘差）。
 
 ### Visualising a mixed model
 
@@ -87,6 +140,12 @@ You will remember from numerous sessions that a regression generates two coeffic
 -   a **random intercept model** - where we allow the intercepts of our explanatory variables to vary, or
 
 -   a **random intercept and slope model** - where both the intercept and slopes can vary (Fig. 9.2).
+
+您可能還記得，在許多課程中，迴歸會產生兩個係數：截距和斜率（針對所有解釋變數）。混合模型利用模型中的隨機結構，以兩種方式捕捉變異性。您可以使用它們來產生：
+
+- **隨機截距模型** - 允許解釋變數的截距變化；或
+
+- **隨機截距斜率模型** - 截距和斜率皆可變化（圖 9.2）。
 
 ```{r, echo=FALSE}
 # SIMULATION PARAMETERS: Define the rules for our data 
@@ -205,9 +264,13 @@ ggplot(full_data, aes(x = x, y = y, color = group, group = group)) +
 
 The left panel in Figure 9.2 shows the situation where the slopes of the various group measurements are the same but where the intercepts differ. Look at where the lines sit on the Y axis. The panel on the right shows the situation where both the intercepts and the slopes vary.
 
+圖 9.2 左側面板顯示了各組測量值的斜率相同但截距不同的情況。查看直線在 Y 軸上的位置。右側面板顯示了截距和斜率均不同的情況。
+
 ### A little bit of maths
 
 We can represent these models in same mathematical way as we did with LMs and GLMs. The extra element is the addition of the grouping variable (this will be a factor class variable):
+
+我們可以用與 LM 和 GLM 相同的數學方法來表示這些模型。額外的
 
 **General Form (Linear Mixed Model, LMM)**
 
@@ -239,6 +302,8 @@ $$
 
 We use the 'RIKZ.csv' data set. You should be familiar with it because we explored it in Week 3 of the module. This has been extensively used by the books authored by Alain Zuur (see readings). This first bit of code comes from @Zuur2009a.
 
+我們使用“RIKZ.csv”資料集。您應該對它很熟悉，因為我們在本模組的第三週已經探討過它。 Alain Zuur 所寫的書籍（請參閱閱讀資料）廣泛使用了此資料集。第一段代碼來自 @Zuur2009a。
+
 Load the dataset.
 
 ```{r}
@@ -252,7 +317,7 @@ You may recall that the datafile has the following variables (Table 9.1):
 **Table 9.1: Description of variables in the 'RIKZ.csv' data set**
 
 | Variable      | Description                                                                                                                                    | Type              |
-|---------------|------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+|--------------|--------------------------------------------|--------------|
 | **Sample**    | Identifier for the sample unit (1–45). Each represents a sampling station on a beach.                                                          | Integer / numeric |
 | **Richness**  | Number of species (species richness) found in the sample.                                                                                      | Numeric           |
 | **Exposure**  | Ordinal index (1–11) of beach exposure to wave action, length of surf zone, from sheltered (1) to very exposed (11).                           | Ordinal numeric   |
@@ -265,13 +330,14 @@ You may recall that the datafile has the following variables (Table 9.1):
 
 We want our grouping factor to be a factor. Is it currently as numeric variable. Notice also that Exposure is a numeric variable and although it could range from 0-11, we only have three values 8, 10, 11 and they are unbalanced i.e. fewer 8s (5 as opposed to 20 and 20).
 
+我們希望分組因子是一個因子。它目前是數值變數嗎？另請注意，曝光量是一個數值變量，雖然它的值範圍是 0-11，但我們只有三個值：8、10、11，而且它們不平衡，即 8 的個數較少（5 個，而不是 20 和 20）。
 ```{r}
 unique(Benthic$Exposure)
 table(Benthic$Exposure)
 ```
-
 Our factors must be factors and we must sort out the imbalance issue. We can use `mutate()` from **dplyr** to do that. We change 'Beach' to a factor called 'fbeach'; and concatenate exposure to a new variable with 2 levels 10 and 11 but making the 8s conform to 10s and call it 'fExp'. This balances the number of cases because initially we have only a few sample points where the Exposure = 8. See the output of the two `table()` calls at the bottom of the code snippet.
 
+我們的因子必須是因子，並且必須解決不平衡問題。我們可以使用 dplyr 中的 `mutate()` 來實現這一點。我們將“Beach”更改為名為“fbeach”的因子；並將暴露量連接到一個包含兩個級別（10 和 11）的新變量，但使 8 級與 10 級保持一致，並將其命名為“fExp”。這可以平衡案例數量，因為最初我們只有幾個暴露量 = 8 的樣本點。請參閱程式碼片段底部兩個 `table()` 呼叫的輸出。
 ```{r}
 # Code from Zuur et al. 2009.
 Benthic <- Benthic |>
@@ -291,9 +357,10 @@ table(Benthic$fExp)
 
 ### EDA to explore for heterogeneity in data sets
 
-First up we ought to look at the variability in our response across the 9 beaches. We will use boxplots to do that (Fig. 9.3). You have the code for this in Week 3's workshop!
+First up we ought to look at the variability in our response across the 9 beaches. We will use boxplots to do that. You have the code for this in Week 3's workshop! Your plot should look like this (Fig. 9.3).
 
-```{r}
+首先，我們應該觀察9個海灘的反應差異。我們將使用箱線圖來做到這一點。你可以在第三週的研討會上找到這部分程式碼！你的圖表應該看起來像這樣（圖9.3）。
+```{r, echo = FALSE}
 ggplot(Benthic, aes(x = factor(Beach), y = Richness)) +
 
 geom_boxplot(
@@ -318,8 +385,11 @@ geom_boxplot(
 
 We see a lot of variability both between and within individual beaches. This means we need capture this in our analyses. We'll explore how below.
 
-The best way to tackle issues about dependencies is to facet your plots and isolate the regression lines for each element of the grouping factor. The code for this is also in Week 3. What we are looking for are different slopes and different intercepts or both. Go and find it. Your plot should look something like this (Fig. 9.4). You can see that the slopes for each beach differ as do many of the intercepts. You could also use the base R function called `coplot()`. Search the help file on this but typing: `?coplot` in the console window. We also note that we have 5 observations per level. This is enough for calculating a slope. (you need 3 or more) but it isn't a huge sample.
+我們發現，各個海灘之間以及海灘內部都存在著很大的差異。這意味著我們需要在分析中捕捉這些差異。以下將探討如何做到這一點。
 
+The best way to tackle issues about dependencies is to facet your plots and isolate the regression lines for each element of the grouping factor. The code for this is also in Week 3. What we are looking for are different slopes and different intercepts or both. Go and find it. Your plot should look something like Fig. 9.4. You can see that the slopes for each beach differ as do many of the intercepts. You could also use the base R function called `coplot()`. Search the help file on this but typing: `?coplot` in the console window. We also note that we have 5 observations per level. This is enough for calculating a slope. (you need 3 or more) but it isn't a huge sample.
+
+解決依賴關係問題的最佳方法是對圖表進行分面處理，並分離出分組因素中每個元素的迴歸線。這部分程式碼也在第3週。我們想要的是不同的斜率和截距，或者兩者兼而有之。去找到它吧。你的圖表應該類似圖9.4。你可以看到每個海灘的斜率和許多截距都不同。你也可以使用名為「coplot()」的基本R函數。在說明文件中搜尋相關信息，但在控制台視窗中輸入“?coplot”。我們也注意到，每個等級有5個觀測值。這足以計算斜率。 （你需要3個或更多）但樣本量並不大。
 ```{r, echo=FALSE}
 ggplot(Benthic, aes(x = NAP, y = Richness)) +
   geom_point(alpha = 0.6) + # Added some transparency to the points
@@ -345,6 +415,7 @@ ggplot(Benthic, aes(x = NAP, y = Richness)) +
 
 We will start with a basic model using just the NAP variable and ignoring the fact that the sample spans 9 beaches. This will highlight some of the problems. Approach is based on @Zuur2009a (Chapter 5).
 
+我們將從一個僅使用NAP變數的基本模型開始，並忽略樣本涵蓋9個海灘的事實。這將凸顯一些問題。方法基於@Zuur2009a（第五章）。
 ```{r}
 M1 <- beach.lm <- lm(Richness ~ NAP, data = Benthic)
 ```
@@ -389,10 +460,13 @@ plot(M1, which = 4)
 
 **Fig. 9.7: Cook's** $D$ for the NAP variable
 
-Maybe we can make things better by adding beach in as a covariate to create an ANCOVA model? We want the interactions because we want to allow the intercepts and slopes to vary, so we run with the full *multiplicative* model. You may recall from week 5 that when you have many levels in a (grouping) factor you lose one degree of freedom for each level in the variable. And the interactions needed for the ANCOVA adds more still. So, in total, we lose 27 degrees of freedom, over half of those that are available to us with a n = 45.
+Maybe we can make things better by adding beach in as a covariate to create an ANCOVA model? We want the interactions because we want to allow the intercepts and slopes to vary, so we run with the full *multiplicative* model. You may recall from Week 5 that when you have many levels in a (grouping) factor you lose one degree of freedom for each level in the variable. And the interactions needed for the ANCOVA adds more still. So, in total, we lose 27 degrees of freedom, over half of those that are available to us with a n = 45.
+
+也許我們可以把海灘當作協變量，創建一個變異數分析（ANCOVA）模型，這樣效果會更好？我們需要交互作用，因為我們希望截距和斜率可以變化，所以我們使用了完整的*乘法*模型。你可能還記得，在第5週，當一個（分組）因子有多個水準時，變數的每個水準都會失去一個自由度。而變異數分析所需的交互作用也會增加自由度。所以，我們總共損失了27個自由度，超過了n = 45時可用自由度的一半。
 
 Recall, also from Week 6, that we had a 'rule of thumb' that the number of covariates should not be **more than a 1/3** of the available degrees of freedom, as this would increase the possibility of a **type 1** error; i.e. a false positive outcome. We will run the model to illustrate the issues and examine the output.
 
+回想一下，同樣在第6週，我們有一個“經驗法則”，即協變量的數量不應超過可用自由度的1/3，因為這會增加發生**1類**錯誤（即假陽性結果）的可能性。我們將運行模型來說明問題並檢查輸出。
 ```{r}
 # We could try to add a covariate in for beach as a form of ANCOVA
 M2 <- lm(Richness ~ NAP * fbeach, data = Benthic)
@@ -400,6 +474,8 @@ summary(M2)
 ```
 
 We observe that there are differences across the beaches but not all of them differ significantly from the baseline (our intercept term). We can see also that some but not all of the interactions are significant. Finding coherent ecological explanations of that pattern are likely to be problematic. What do the validation plots look like (Fig. 9.8)?
+
+我們觀察到，不同海灘之間存在差異，但並非所有差異都與基線（我們的截距項）有顯著差異。我們也可以看到，部分交互作用顯著，但並非所有交互作用都顯著。找到對這種模式的連貫生態解釋可能存在困難。驗證圖是什麼樣的（圖 9.8）？
 
 [TASK: Plot the R summary validation plots, 4 to one page and also the covariable residual spreads. What do these plots tell you about the model \[\~ 5 min\]]{style="color:red;"}.
 
@@ -436,12 +512,17 @@ These are not great, there is a lot of variability across the beaches. **Now use
 
 ### Applying a Mixed Model
 
-As mentioned above these data were analysed in @Zuur2009a (Chapter 5)nand we are following that analysis but with some differences. In their workflow, they first estimated the best random effects structure with a GLS model (with an appropriate variance structure) and a LMM with a random intercept, then a random intercept and random slope (using the **nlme** package), *before* they sorted out the best fixed effects. They do not provide validation for the model. You could use the **lme4** package and the `lmer()` function to apply a similar model. The beauty of lme4 is that you can fit both LMMs and GLMMs, with just a time modification in the code: i.e. `glmer()` for the GLMM.
+As mentioned above these data were analysed in @Zuur2009a (Chapter 5) and we are following that analysis but with some differences. In their workflow, they first estimated the best random effects structure with a GLS model (with an appropriate variance structure) and a LMM with a random intercept, then a random intercept and random slope (using the **nlme** package), *before* they sorted out the best fixed effects. They do not provide validation for the model. You could use the **lme4** package and the `lmer()` function to apply a similar model. The beauty of lme4 is that you can fit both LMMs and GLMMs, with just a time modification in the code: i.e. `glmer()` for the GLMM.
+
+如上所述，這些數據已在@Zuur2009a（第五章）中進行了分析，我們遵循該分析方法，但略有不同。在他們的工作流程中，他們首先使用 GLS 模型（具有適當的變異數結構）和具有隨機截距的 LMM 估計最佳隨機效應結構，然後使用 **nlme** 套件估計隨機截距和隨機斜率，*然後*才整理出最佳固定效應。他們沒有提供模型驗證。您可以使用 **lme4** 套件和 `lmer()` 函數來套用類似的模型。 lme4 的優點在於，您可以同時擬合 LMM 和 GLMM，只需在程式碼中稍作修改即可：例如，GLMM 的 `glmer()`。
 
 But we'll use a more recent and flexible called **glmmTMB** today and start with a GLMM because we are using count data. We will loosely follow the protocol outlined by @Zuur2009a though. So our first task is to figure out what is the most appropriate random effect structure. The protocol asks that we establish the best random effect element first and then fit the best fixed structure in the second step. We compare the random structures by selecting a maximal fixed effects structure (a saturated model). We need to be careful here because we do not have a lot of samples, so we need to be choosy about what variables to include. We make our decisions on ecological grounds, after a little more EDA.
 
-We'll adapt the code from Week 7 to look at the variables. We don't need 'Exposure' because we factorised it earlier to fExp.Here is the plot (Fig. 9.10).
+如上所述，這些數據已在@Zuur2009a（第五章）中進行了分析，我們遵循該分析方法，但已有不同。在他們的工作流程中，他們首先使用GLS模型（適當的變異數結構）和具有隨機截距的LMM估計最佳隨機效應結構，然後使用**nlme**估計隨機截距和隨機斜率，*然後*才得出最佳固定效應。他們沒有提供具有模型。您可以使用**lme4**套件和套件`lmer()` 函數來套用類似的模型。 lme4 的優點是，您可以同時產生 LMM 和 GLMM，只需在程式碼中稍作修改即可：例如，GLMM 的 `glmer()`。
 
+We'll adapt the code from Week 7 to look at the variables. We don't need 'Exposure' because we factorised it earlier to fExp. Here is the plot (Fig. 9.10).
+
+我們將調整第 7 週的程式碼來查看變數。我們不需要“Exposure”，因為我們之前已經將其分解為 fExp。如下圖所示（圖 9.10）。
 ```{r}
 # Reshape the data for plotting
 # We select the response variable (Richness) and all the numerical predictors
@@ -496,7 +577,9 @@ ggplot(benthic_long, aes(x = predictor_value, y = Richness)) +
 
 **Fig. 9.10: linear and curvilinear regressions for the model covariates**
 
-The data are patchy and clumped, especially those for 'chalk' and there is a hint of a possible outlier (extreme values) in 'humus' and 'sorting'. It seems likely that sorting and 'grain size' will be linked as they are part of the fluvial processes on the beachand looking at the patterns we might have multicollinearity issues with the particle variables and NAP, so we run with NAP alone. We will retain 'humus' because this provides a good indicator of food availability in benthic communities.
+The data are patchy and clumped, especially those for 'chalk' and there is a hint of a possible outliers (extreme values) in 'humus' and 'sorting'. It seems likely that sorting and 'grain size' will be linked as they are part of the fluvial processes on the beach and looking at the patterns we might have multicollinearity issues with the particle variables and NAP, so we run with NAP alone. We will retain 'humus' because this provides a good indicator of food availability in benthic communities.
+
+數據不完整且聚集，尤其是「白堊」的數據，且「腐殖質」和「排序」中可能存在異常值（極端值）。排序和“粒度”似乎存在關聯，因為它們是海灘河流過程的一部分。從模式來看，我們可能在粒子變數和NAP之間存在多重共線性問題，因此我們僅使用NAP進行分析。我們將保留“腐殖質”，因為它可以很好地指示底棲生物群落的食物供應。
 
 We specify a maximal model with interactions `glmmTMB(Richness NAP * fExp * humus)`.
 
@@ -504,28 +587,51 @@ We specify a maximal model with interactions `glmmTMB(Richness NAP * fExp * humu
 
 -   Random intercept and slope (M4) - `lmer(Richness ~ NAP * fExp * humus + (NAP | fbeach)`
 
+我們指定一個包含交互作用「glmmTMB(Richness NAP * fExp * humus)」的最大模型。
+
+- 僅隨機截距 (M3) - “glmmTMB(Richness NAP * fExt * humus + (1 | fbeach)”
+
+- 隨機截距與斜率 (M4) - “lmer(Richness ~ NAP * fExp * humus + (NAP | fbeach)”
+
 At this point we need to introduce one further bit of statistics (it's the last element - I promise). As you know from Week 5, linear models estimate their parameters (coefficients, variances, etc.) using the method of least squares — by minimising the sum of squared residuals to estimate the model parameters (eg. coefficients, variances etc). GLMs use [**Maximum Likelihood (ML)**](https://www.youtube.com/watch?v=XepXtl9YKwc) to estimate the parameters (excuse the silly song at the start of the video!) by finding the parameter values that make the observed data most probable under the model.
+
+現在我們需要再介紹一點統計知識（我保證這是最後一個要素）。如你在第5週所了解的，線性模型使用最小平方法估計其參數（係數、變異數等）－透過最小化殘差平方和來估計模型參數（例如係數、變異數等）。廣義線性模型（GLM）使用[**最大似然法 (ML)**](https://www.youtube.com/watch?v=XepXtl9YKwc) 來估計參數（請原諒影片開頭那首傻乎乎的歌！），方法是找到讓觀測資料在模型下最有可能出現的參數值。
 
 When we move to mixed models, parameter estimation can be done using either Maximum **Likelihood (ML)** or **Restricted Maximum Likelihood (REML).** REML is very similar to ML but adjusts for the loss of degrees of freedom that occurs when estimating the fixed effects (the means) before the variances. In then uses the non-fixed factor variances to more accurately estimate the random effects. Choosing which method to use — and when — depends on the model’s purpose.
 
+當我們轉向混合模型時，參數估計可以使用最大似然法 (ML) 或限制最大似然法 (REML)。 REML 與 ML 非常相似，但它會調整在估計變異數之前估計固定效應（平均值）時出現的自由度損失。然後，它會使用非固定因子變異數來更準確地估計隨機效應。選擇使用哪種方法以及何時使用取決於模型的目的。
+
 #### Rules Model Component Comparisons
 
-1.  If you are comparing models with **different fixed effects** with a LMM using the **lme4** package (e.g., y \~ x1 vs. y \~ x1 + x2):
+- If you are comparing models with **different fixed effects** with a LMM using the **lme4** package (e.g., y \~ x1 vs. y \~ x1 + x2):
 
     -   You **MUST** fit the models using **Maximum Likelihood (REML = FALSE)**.
 
     -   You can then compare the models using AIC, BIC, or a Likelihood Ratio Test (`anova()`).
 
-2.  If you are comparing models with the **same fixed effects** but **different random effects** (e.g., y \~ x1 + (1 \| g) vs. y \~ x1 + (1 + x1 \| g)):
+- If you are comparing models with the **same fixed effects** but **different random effects** (e.g., y \~ x1 + (1 \| g) vs. y \~ x1 + (1 + x1 \| g)):
 
     -   You should fit the models using **REML (REML = TRUE)**, as it gives you better estimates of the random effect variances.
 
-3.  In the case of a LMM, after you have selected your final, best model, you ought to re-fit that one model using **REML** to get the best, unbiased estimates for your final parameters. GLMMs default to ML methods (see below), so this is not necessary.
+- In the case of a LMM, after you have selected your final, best model, you ought to re-fit that one model using **REML** to get the best, unbiased estimates for your final parameters. GLMMs default to ML methods (see below), so this is not necessary.
+
+- 如果您使用 **lme4** 套件的 LMM 比較具有**不同固定效應**的模型（例如，y \~ x1 vs. y \~ x1 + x2）：
+
+- 您**必須**使用**最大似然法 (REML = FALSE)** 來擬合模型。
+
+- 然後，您可以使用 AIC、BIC 或似然比檢定 (`anova()`) 比較模型。
+
+- 如果您比較具有**相同固定效應**但**不同隨機效應**的模型（例如，y \~ x1 + (1 \| g) vs. y \~ x1 + (1 + x1 \| g)）：
+
+- 您應該使用 **REML (REML = TRUE)** 來擬合模型，因為它可以更好地估計隨機效應變異數。
+
+- 對於 LMM，在選擇了最終的最佳模型後，您應該使用 **REML** 重新擬合該模型，以獲得最終參數的最佳、無偏估計。 GLMM 預設使用 ML 方法（見下文），因此無需進行此操作。
 
 #### Applying a GLMM using glmmTMB
 
 We will use **glmmTMB** to fit the mixed model due to it's flexibility for fitting various error terms. We compare the random effects first and assess which is the best model by using AIC. The best model will have the lowest AIC. Any model with $\delta <2$ AIC is equally likely to be a best model.
 
+我們將使用 **glmmTMB** 來擬合混合模型，因為它能夠靈活地擬合各種誤差項。我們先比較隨機效應，然後使用 AIC 評估哪個模型是最佳模型。最佳模型的 AIC 值最低。任何 AIC 值小於 2 的模型都有可能成為最佳模型。
 ```{r}
 # We are using the glmmTMB package to do this
 # The default method here is REML so do not need to tell it to use REML.
@@ -541,32 +647,37 @@ aicM4 <- AIC(M4)
 AIC(M3,M4)
 # Compare models with AIC
 
-aicM4-aicM3
+aicM4-aicM3 # difference is 3.254359
 ```
 
-These results suggest that the more complex interactive model (M4) confers no advantage over M3, which only has a random intercept. Our exploration suggested otherwise but we'll go with the simpler model.
+These results suggest that the more complex interactive model (M4) confers an advantage over M3, which only has a random intercept.
 
+這些結果表明，更複雜的交互模型（M4）比僅具有隨機截距的 M3 更具優勢。
 ```{r}
-summary(M3)
+summary(M4)
 ```
 
-Now we need to establish the best fixed effects structure for the model. We could do this by backward selection, dropping the terms that are not significant but this flies in the face of the rationale for using AIC in the first place [@WHITTINGHAM2006]. So we go for some model averaging and compare the nested models. We'll use **MuMIN** for this task.
+Now we need to establish the best fixed effects structure for the model. We could do this by backward selection, dropping the terms that are not significant but this flies in the face of the rationale for using AIC in the first place [@Whittingham2006]. So we go for some model averaging and compare the nested models. We'll use **MuMIN** for this task.
 
+現在我們需要為模型建立最佳的固定效應結構。我們可以透過後向選擇來實現，刪除不顯著的項，但這違背了使用AIC的初衷[@Whittingham2006]。因此，我們進行一些模型平均，並比較嵌套模型。我們將使用**MuMIN**來完成這項任務。
 ```{r}
 # for reference library(MuMIn)
 options(na.action=na.fail) # set options in Base R concerning missing values
-summary(model.avg(dredge(M3), fit = TRUE, subset = TRUE), method = "ML")
+summary(model.avg(dredge(M4), fit = TRUE, subset = TRUE), method = "ML")
 options(na.action = "na.omit") # reset base R options
 ```
 
-MuMIn indicates that the models with 'fExp\` + 'humus' + 'NAP' (variables 1,2 and 3 in the models list) and 'fExp' and 'NAP' are equally likely, so we go with most simple of the two. We refit the model with two variables.
+MuMIn indicates that the models with 'fExp' + 'humus' + 'NAP' and 'humus:NAP' (variables 1,2, 3 and 6 ) in the models list) is the best model i.e. $\delta>2$ AIC points lower than the next one in the list.
 
+MuMIn 表示具有「fExp\」+「humus」+「NAP」和「humus:NAP」（模型清單中的變數 1、2、3 和 6）的模型是最佳模型，即比清單中的下一個模型低 $\delta>2$ AIC 點。
+
+We rerun the final model.
 ```{r}
-Final_M <- glmmTMB(Richness ~ fExp + humus + NAP  + humus: NAP + (1 | fbeach), data = Benthic, family = poisson)
-performance(Final_M)
+Final_M <- glmmTMB(Richness ~ NAP + humus + fExp + humus:NAP + (NAP | fbeach), family=poisson,
+	data = Benthic) # Random intercept and slope
 ```
 
-# You need to explain the above!
+#### Model Validation
 
 GLMMs are complex beasts so we are going to use a new package called **DHARMa** to test our models for overdispersion and generate the validation plots. It uses simulations to create standardized residuals for a wide range of statistical models, especially complex models like GLMMs. It is a major problem solving tool for non-linear models (like Poisson or Binomial), where standard residuals are often difficult to interpret cannot be used. This is how it works:
 
@@ -578,6 +689,16 @@ GLMMs are complex beasts so we are going to use a new package called **DHARMa** 
 
 -   It also has tests for overdispersion, outliers, zero-inflation and so on.
 
+廣義相對論混合模型 (GLMM) 非常複雜，因此我們將使用一個名為 **DHARMa** 的新軟體包來測試我們的模型是否有過度離散並產生驗證圖。它使用模擬為各種統計模型（尤其是像 GLMM 這樣的複雜模型）創建標準化殘差。它是非線性模型（例如泊鬆或二項式）的主要問題解決工具，因為這些模型中的標準殘差通常難以解釋，無法使用。它的工作原理如下：
+
+- 它採用擬合模型，並用它來模擬數百或數千個完全符合模型規格和假設的新資料集。
+
+- 對於每個觀測資料點，它會將其值與同一點的模擬值分佈進行比較。
+
+- 它為每個數據點計算一個“標準化殘差”，這本質上是它在其自身模擬分佈中的秩（或分位數）。如果模型完美擬合，這些新的殘差將遵循從 0 到 1 的完美均勻分佈（即，它們的散佈中不會出現任何模式）。
+
+- 它還可以檢驗過度離散、異常值、零膨脹等。
+
 #### Interpreting the DHARMa Plot
 
 -   Left Panel (Q-Q Plot): This is the most important part. It plots the observed residuals against the expected residuals from a perfectly fitted model. You want to see the points sitting along the red diagonal line, with only limited deviations. This is a judgment call, as with base R's `plot()` function. Deviations from this line indicate problems with the model's overall fit or distribution.
@@ -588,11 +709,19 @@ GLMMs are complex beasts so we are going to use a new package called **DHARMa** 
 
 We create the simulated residuals using the `simulateResiduals()` function and then use the `plot()` function get the basic plots (Fig. 9.11).
 
+- 左圖（Q-Q 圖）：這是最重要的部分。它將觀測到的殘差與完美擬合模型的預期殘差繪製在一起。您希望看到點位於紅色對角線上，且偏差較小。這與 R 語言的 `plot()` 函數類似，需要根據實際情況進行判斷。偏離這條線表示模型的整體擬合度或分佈有問題。
+
+- 右面板（殘差與預測值）：這部分用於檢查異方差性。您希望看到點的隨機“星夜”分佈。分位數線（紅線）應為水平線，而非漏斗形或駝峰狀。
+
+- 統計檢定：DHARMa 也會在圖表標題中顯示正式統計檢定的結果。尋找「Kolmogorov-Smirnov 檢定」以確認分佈正確，以及「離散度檢定」（用於過度離散和欠離散）。您希望這些檢定的 p 值較大（p > 0.05）。顯著的 p 值表示有問題。
+
+我們使用 `simulateResiduals()` 函數建立模擬殘差，然後使用 `plot()` 函數繪製基本圖（圖 9.11）。
+
 ```{r}
 # Create the DHARMa simulation object
 simulation_output <- simulateResiduals(fittedModel = Final_M)
 # This one plot checks for multiple issues at once. Notice is the same as the base R function call
-plot(simulation_output)
+plot(simulation_output, rank=FALSE) # DHARMa ranks the residuals but this can obscure the real residual patterns, so we'll turn it off
 ```
 
 **Fig. 9.11: The DHARMa base residual plots**
@@ -601,6 +730,9 @@ This all looks good the KS normality test is not significant nor is the dispersi
 
 Now we test for dispersion issues to get the plot (Fig. 9.12).
 
+一切看起來都很好，KS常態性檢定和離散度檢定都不顯著。
+
+現在我們來檢驗離散度問題，得到以下圖表（圖9.12）。
 ```{r}
 # add tests for dispersion 
 # A significant p-value here means the dispersion is different from what's expected.
@@ -609,10 +741,13 @@ testDispersion(simulation_output)
 
 **Fig. 9.12: The dispersion test plot**
 
-This shows that there are no dispersion issues. The dispersion parameter is 1.26, perhaps a little high, but DHARMa does not generate a significant finding. We can use the poisson model.
+This shows that there are no dispersion issues. The dispersion parameter is 0.96, a little underdispersed but we can use the poisson model.
 
 And finally for outliers to generate the plot (Fig. 9.13).
 
+這顯示不存在彌散問題。彌散參數為 0.96，略微欠彌散，但我們可以使用泊松模型。
+
+最後，針對異常值產生圖表（圖 9.13）。
 ```{r}
 # Test for outliers
 # A significant p-value suggests the presence of more outliers than expected.
@@ -629,168 +764,190 @@ Our final validation tests relate to examining the residual spreads of the covar
 # Plot validation graph
 op <- par(mfrow = c(2, 2))
 
-plotResiduals(simulation_output, form = Benthic$NAP)
-plotResiduals(simulation_output, form = Benthic$fExp)
-plotResiduals(simulation_output, form = Benthic$humus)
+plotResiduals(simulation_output, form = Benthic$NAP, rank=FALSE)
+plotResiduals(simulation_output, form = Benthic$fExp, rank=FALSE)
+plotResiduals(simulation_output, form = Benthic$humus, rank=FALSE)
 # Reset the plotting parameters
 par(op)
 ```
 
 **Fig. 9.14: Residual spreads for the covariates in the 'Final_M' model**
 
-# Figures correct to here
+These are all fine and suggest we can validate the model.
 
-We see an issue with the variances on the 'fExp' factor (top left); everything else is fine. Let's try and see why. We'll use boxplots, scatterplots and the `table()` function to explore the issue.
+這些都很好，表明我們可以驗證該模型。
 
-```{r}
-# boxplot of the errant factor fExp
-ggplot(Benthic, aes(fExp, Richness)) +
-  geom_boxplot(fill = "lightblue", outlier.shape = NA) +
-  geom_point(alpha = 0.5) +
-  theme_bw()
-```
-
-We can see an issue here. There is a much greater spread in level 10 that 11 and fewer values in 11 too. The `table()` function can help here.
-
-```{r}
-table(Benthic$fExp, Benthic$Richness)
-```
-
-Here we see the likely culprit. The rows on top are the unique values for species richness and the first column is the factor fExp. The number in the cells (or rows) are the number of cases of counts of each species richness level. You can see a lot of zeros in the level (11). Most of the counts are species richness levels of 6 or below. So in effect the counts for level 11 are heavily zero inflated. This is what is causing the problem.
-
-There might also be interactions between 'fExp' and other variables in the model notable 'NAP'. We can visualise this with a scatterplot.
-
-```{r}
-ggplot(Benthic, aes(x = NAP, y = Richness, colour = fExp)) + # colour plots lines for each level of the fExp factor.
-  geom_point(alpha = 0.6, size = 2) +
-  geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x', linewidth = 1.1) +
-  labs(
-    x = "NAP (continuous variable)",
-    y = "Species richness",
-    colour = "Exposure level"
-  ) +
-  theme_classic()
-```
-
-We can see the lines converge indicating an interaction between the variables. Species richness declines along the NAP variable are much greater at exposure level 10 than 11.
-
-This is a complex fix because glmmTMB's more esoteric options for different error structure, i.e. Negative Binomial (`family =nbinom2`), Conway-Maxwell-Poisson (`family = compois`), Zeroinflated and Hurdle models operate on the response variable, not subsets of it. The only route we have is to use the `dispformula()` function which allows us to model the dispersion parameter directly. The rub is that it doesn't work with a straight Poisson model because these do not have a dispersion parameter; variance is meant to be equal to the mean. This is why Poisson models can be over or under dispersed (Table 9.1).
-
-**Table 9.1: Causes of overdispersion**
-
-| Case                | Condition   | Explanation                        | Possible causes                                                                           |
-|---------------------|-------------|------------------------------------|-------------------------------------------------------------------------------------------|
-| **Equidispersion**  | Var(Y) = μ  | Ideal Poisson behaviour            | Random, independent counts                                                                |
-| **Overdispersion**  | Var(Y) \> μ | More variable than Poisson expects | Unmodelled heterogeneity, clustering, zero-inflation, temporal/spatial dependence         |
-| **Underdispersion** | Var(Y) \< μ | Less variable than Poisson expects | Constrained counts, regular spacing, or strong limiting processes (e.g. extreme toxicity) |
-
-We need to use one of the other families to effect a fix. You already know that the dispersion test was not significant, but the parameter was 1.26, tending towards overdispersion. Our suspicion is that our fExp factor is the cause of that. Look at the table above. We have unmodelled heterogeneity so use Conway-Maxwell-Poisson (`family = compois`) as it also flexible enough to deal with over- and under-dispersion. We combine this with a component that models the dispersion term directly. Our exploration of 'fExp' leads us to believe it might interact with 'NAP'. This makes sense as both are indirectly related beach geomorphology. We add an interaction term into the model - `dispformula = ~NAP * fExp`. This is akin to running an ANCOVA directly on 'fExp' factor allowing different slopes for each factor level. Our new model looks like this.
-
-```{r}
-compois_M <- glmmTMB(Richness ~ fExp + humus + NAP  + humus: NAP + (1 | fbeach), data = Benthic, family = compois, dispformula = ~NAP * fExp)
-```
-
-Well go through most of the validation steps but only show the residual spreads for 'fExp'. First we simulate the residuals and run the standard plots.
-
-```{r}
-# Create the DHARMa simulation object
-simulation_output <- simulateResiduals(fittedModel = compois_M)
-# This one plot checks for multiple issues at once. Notice is the same as the base R function call
-plot(simulation_output, rank=FALSE) # we have turned off the ranking here so we see the true patterns of the residuals
-```
-
-Our dispersion test is still not significant but it would be interesting to know what the parameter is; and it is a little smaller at 1.1624.
-
-```{r}
-testDispersion(simulation_output)
-```
-
-Test for outliers. None found.
-
-```{r}
-testOutliers(simulation_output)
-```
-
-Now we just need to confirm that the `dispformula = ~NAP * fExp` has actually sorted out the heterogeneity in the 'fExp' variable (Fig. ). **If you have time add in the other covariates by using the code provided above**. There are no problems so we can go forward and interpret the model and create some supporting pictures.
-
-```{r}
-plotResiduals(simulation_output, form = Benthic$fExp, rank=FALSE)
-```
-
-**Fig: The residual spreads for the fExp factor**
-
-##### Interpreting the summary()
+#### Interpreting the summary()
 
 The model summary looks like this.
 
 ```{r}
-summary(compois_M)
+summary(Final_M)
 ```
 
 Looks complex, so we'll break it down chunk by chunk.
 
-##### Random Effects
+#### Random Effects
 
-**fbeach (Intercept):** There is a limited amount of variation in baseline Richness between beaches (Std. Dev. = 0.11) which confirms the mixed-effects structure is useful.
+-   Intercept Variation (Intercept): There is a small amount of variation in baseline Richness from beach to beach (Std. Dev. = 0.17). That's around 0.2 species richness units.
 
-##### Fixed Effects
+-   Slope Variation (NAP): There is also a small amount of variation in the NAP-Richness slope from beach to beach (Std. Dev. = 0.19). Same again.
 
-The conditional model predicts the effects on 'Richness' showing what drives the average species richness.
+-   Correlation (Corr = -0.27): This shows a weak negative correlation between the random intercepts and slopes. So there is a tendency for beaches with a higher baseline 'Richness' to have a more negative 'NAP' slope, but this effect is not strong.
 
--   **fExp11:** Exposure level has a strong, significant effect (Estimate = -0.797). Exponentiating the coefficient to understand its multiplicative effect (exp(-0.797) ≈ 0.45). This means that, holding NAP and humus constant, the predicted species Richness at exposure level "11" is only 45% of the richness at the baseline exposure level. Or more simply, the higher exposure level (fExp11) is associated with a **55% decrease** in the expected number of species.
+- 截距變異 (Intercept)：不同海灘的基線豐富度有少量變異（標準差 = 0.17）。約 0.2 個物種豐富度單位。
 
--   **NAP:** This effect is more complicated because of the significant interaction with humus (humus:NAP term, p = 0.0211). This means the effect of NAP is **not constant**; it changes depending on the amount of humus ( or vice versa).
+- 斜率變異 (NAP)：不同海灘的 NAP-豐富度斜率也存在少量變異（標準差 = 0.19）。同樣如此。
 
-    The total effect (slope) of NAP is captured by the equation: Slope_of_NAP = -0.628 + (3.172 \* humus).
+- 相關性 (Corr = -0.27)：隨機截距與斜率之間存在微弱的負相關性，這表明基線豐富度較高的海灘的 NAP 斜率略有下降趨勢，但這種影響並不強烈。
 
-    -   **When humus is low (e.g., humus = 0)**
+#### Fixed Effects
 
-        -   **Effect:** The humus:NAP term becomes zero, and the effect of NAP is just its main effect coefficient, -0.628. After exponentiating (exp(-0.628) ≈ 0.53), we see that a one-unit increase in NAP multiplies the expected Richness by 0.53. So for samples with very low humus, a one-unit increase in NAP is associated with a **47% decrease** in species richness.
+-   fExp11 (Estimate = -0.725, `p < 0.001`): Exposure level has a strong, significant effect. Holding other variables at their average, the predicted Richness at exposure level "11" is only exp(-0.725) ≈ 30% of the richness at the baseline level (a 70% decrease).
 
-    -   **When humus is higher (e.g., humus = 0.2)**
+-   NAP and humus (Interaction Effect, `p = 0.002`): You cannot interpret 'NAP' or 'humus' on their own because their interaction is significant. The effect of 'NAP' depends on the level of 'humus'. When 'humus' is low (e.g., humus = 0) the effect of 'NAP' is strongly negative (Estimate = -0.779). A one-unit increase in 'NAP' is associated with a 1 - exp(-0.779) or a 54% decrease in 'Richness'. When humus is higher the 'humus:NAP' interaction term is positive (Estimate = 4.67). This means that as 'humus' increases, the negative effect of 'NAP' becomes weaker. This indicates that 'humus' might mitigate the negative impact of 'NAP' for benthic species. Perhaps due to increased food availability.
 
-        -   **Effect:** The NAP slope becomes -0.628 + (3.172 \* 0.2) = -0.628 + 0.634 = +0.006. The effect is now slightly positive and very close to zero. NAP has a strong negative impact on species richness, but only in environments with low humus. As humus levels increase, this negative effect is buffered and disappears, suggesting that high humus may provide a mitigating effect against the pressures associated with NAP.
+- fExp11（估計值 = -0.725，p < 0.001）：暴露程度有顯著的顯著影響。保持其他變數的平均值，暴露水準「11」下的預測豐富度僅為基線水準豐富度的 exp(-0.725) ≈ 30%（下降 70%）。
 
-##### Generating pictures to support analysis
+- NAP 和腐殖質（交互作用效應，p = 0.002）：由於 NAP 和腐殖質之間存在顯著的相互作用，因此無法單獨解釋 NAP 或腐殖質的影響。 NAP 的影響取決於腐植質的含量。當腐殖質含量較低時（例如，腐植質 = 0），NAP 的影響為顯著的負值（估計值 = -0.779）。 NAP 每增加一個單位，豐富度就會下降 1 - exp(-0.779)，即 54%。當腐植質含量較高時，「腐植質：NAP」交互作用項為正（估計值 = 4.67）。這意味著隨著「腐植質」含量的增加，「NAP」的負面影響逐漸減弱。這顯示「腐植質」可能減輕「NAP」對底棲生物的負面影響。這可能是由於食物供應增加所致。
 
-Now we have our story, we need some pictures to support it. As we have done in previous workshops we need to generate predictions from the models and plot some figures with these, such as partials (see Week 7). We have generate these manually in the past by holding the means for competing variables at zero and then calculating the partial slopes. It is more complicated with mixed models so we will use the **ggeffects** package to do this as it can handle models from GLMs and also mixed models such as GLMMs. It also involves a lot less code.
+##### Model performance
 
-The beauty of this package is that the points of plotted on the count not log scale for you! Because **ggeffects** uses **ggplot2** as the plotting tool we can layer and modify the plot extensively. The 95% CIs and lines are provided as standard by **ggeffects** but not the data points, we need to add those. And as **ggeffects** works with **ggplot2** we cannot use `par(mfrow = c(1,2))` to generate a panel plot but we can use the **patchwork** package to arrange a panel plot. We'll start with the single factor partials and the basic plot.
+We can check how the model performs using the **performance** package. We focus on the $R^2$ values, ICC and RMSE.
 
+我們可以使用**performance**套件來檢查模型的效能。我們重點關注$R^2$值、ICC和RMSE。
+```{r}
+performance(Final_M)
+```
+
+-   **R2 (marg.)** is the variance explained by the fixed effects only. The fixed predictors (NAP, fExp, etc.) alone explain approximately 78.3% of the variance in the response variable.
+
+- **R2（邊際效應）** 是僅由固定效應解釋的變異數。固定預測因子（NAP、fExp 等）單獨解釋了反應變數中約 78.3% 的變異數。
+
+-   **R2 (cond.)** is the total amount of variation in the data accounted for my both the fixed and random effects parts of the model. It explains approximately 84.8% of the variance in the response variable.
+
+- **R2 (條件)** 是模型中固定效應和隨機效應部分解釋的資料總變異量。它解釋了反應變數中約 84.8% 的變異數。
+
+-   **Intraclass Correlation Coefficient**, or ICC, is the proportion of the total variance that is accounted for by the grouping structure (the random effects). It is 0.3 so shows that 30% of the total variance in Richness is due to differences between the beaches. This means that samples within the beaches are much more likely to be similar to each other, so the use of random effects was a good plan.
+
+- **組內相關係數**，簡稱 ICC，是指分組結構（隨機效應）在總變異數中所佔的比例。此係數為 0.3，表示豐富度總變異數的 30% 是由海灘之間的差異造成的。這意味著海灘內的樣本更有可能彼此相似，因此使用隨機效應是一個不錯的選擇
+
+-   **Root Mean Squared Error**, or RMSE , indicates the model error in units of the original measurements. It is 2.174 so shows the predictions include an error of 2.2 richness units. For count data it is okay. If we compare the RMSE to the standard deviation (sd) of 'Richness' we get a sense of what this means. If RMSE `<` sd, the model is performing better than a simple "null" model that just predicts the average for every observation. The `skim()` function, if you ran it, shows the sd of 'Richness' is 5.00. The RMSE of 2.511 is smaller than the sd of 5.00 so our model has reduced the "average error" from 5.0 (what you'd get by just guessing the mean) to 2.5.
+
+- **均方根誤差**（RMSE）表示以原始測量值為單位的模型誤差。該值為 2.174，表示預測結果包含 2.2 個豐富度單位的誤差。對於計數資料來說，這個誤差是可以接受的。如果我們將 RMSE 與「豐富度」的標準差 (sd) 進行比較，就能大致了解其意義。如果 RMSE < sd，則模型的表現優於僅預測每個觀測值平均值的簡單「空」模型。執行 `skim()` 函數，會顯示「豐富度」的標準差為 5.00。 RMSE 為 2.511，小於標準差 5.00，因此我們的模型將「平均誤差」從 5.0（僅透過猜測平均值即可獲得）降低到了 2.5。
+
+We can depict this graphically by plotting the model predictions against the measured richness values (Fig. 9.15). We'll use the `as.data.frame()` function to pull out the predictions and `select()` to snatch the raw values. We combine them using `cbind()`.
+
+我們可以透過繪製模型預測值與測量的豐富度值的關係來圖形化地描述這一點（圖 9.15）。我們將使用 `as.data.frame()` 函數來提取預測值，並使用 `select()` 函數來取得原始值。最後，我們使用 `cbind()` 函數將它們組合起來。
+```{r}
+# we will the predictions from the glmmTMB model not the corrected ones created by ggeffects as that is what performance used for the indices
+RMSE_preds <- as.data.frame(predict(Final_M, type = "response")) %>%
+  rename(Predictions = 1) # Rename the first column to 'predictions'
+# pull out the raw values using select()
+Raw <- Benthic %>% dplyr::select("Richness")
+# combine for ggplot....
+df <- as.data.frame(cbind(RMSE_preds,Raw))
+
+# we want to paste in the RMSE to the plot so we create the label
+rmse_label <- paste("RMSE = 2.174")
+ggplot(df, aes(x=Predictions, y=Richness)) +
+  geom_point(colour = "darkblue",
+             alpha = 0.6) +
+  # This is the one-to- one line. If our RMSE was 0 all the points would sit on the line
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed", linewidth = 1) +
+  # this is our regression line. It sits close to the one-to-one line.....shows a good fit
+  geom_smooth(method = "lm",formula = 'y ~ x', se = FALSE, color = "blue") +
+  #Add the annotation of RMSE
+  annotate(
+    "text",
+    x = -Inf,      # Fix to the far left
+    y = Inf,       # Fix to the very top
+    label = rmse_label, # add label
+    hjust = -0.2,  # add spaces right from the left edge
+    vjust = 2,     # add spaces down from the top edge
+    size = 3,
+    color = "black"
+  ) +
+  
+  # Add labels and a title
+  labs(
+    title = "Model Predictions vs. Actual Observed Values",
+    x = "Predicted Richness",
+    y = "Observed Richness"
+  ) +
+  
+  # Ensure the axes are scaled equally for a fair comparison
+  coord_equal() +
+  
+  theme_bw()
+```
+
+**Fig. 9.15: plot of predicted v observed values. Red line is the one-to-one fit and the blue line the linear fit from the model**
+
+We can infer that our model predicts pretty well overall, but it a little poorer at higher values.
+我們可以推斷，我們的模型整體預測效果很好，但在較高值時預測效果稍差。
+
+#### Generating pictures to support analysis
+
+Now we have our story, we need some pictures to support it. As we have done in previous workshops we need to generate predictions from the models and plot some figures, such as partials (see Week 7). We have generated these manually in previous workshops by holding the means for competing variables at zero and then calculating the partial slopes. It is more complicated with mixed models, so we will use the **ggeffects** package to do this as it can handle models from GLMs and also mixed models such as GLMMs. It also involves a lot less code.
+
+現在我們的故事已經講完了，我們需要一些圖片來佐證。正如我們在先前的研討會中所做的那樣，我們需要根據模型產生預測並繪製一些圖表，例如偏函數（請參閱第 7 週）。在先前的研討會中，我們手動產生了這些圖表，方法是將競爭變數的平均值保持在零，然後計算偏函數斜率。混合模型的操作會更加複雜，因此我們將使用 **ggeffects** 套件來完成這項工作，因為它可以處理來自廣義線性模型 (GLM) 的模型以及諸如 GLMM 之類的混合模型。而且它所需的程式碼也少得多。
+
+The beauty of this package is that the points of plotted on the count not log scale for you! Because **ggeffects** uses **ggplot2** as the plotting tool we can layer and modify the plot extensively. The 95% CIs and lines are provided as standard by **ggeffects** but not the data points, we need to add those. And as **ggeffects** works with **ggplot2** we cannot use `par(mfrow = c(1,2))` to generate a panel plot but we can use the **patchwork** package to arrange a panel plot.
+
+這個包的妙處在於，它繪製的點是按計數而不是對數尺度繪製的！因為 **ggeffects** 使用 **ggplot2** 作為繪圖工具，所以我們可以對圖進行廣泛的分層和修改。 **ggeffects** 標配了 95% 信賴區間和直線，但沒有提供資料點，我們需要自行加入。而且，由於 **ggeffects** 與 **ggplot2** 相容，我們無法使用 `par(mfrow = c(1,2))` 來產生面板圖，但可以使用 **patchwork** 套件來排列面板圖。
+
+We'll start with the single factor partials and the basic plot (Fig. 9.16). Because this is a mixed model, we need to add the `bias_correction = TRUE` argument to the `ggpredict()` to suppress an error message about **Jensen's Inequality**. This is because when you average on the "log" scale and then transform back, the result is not the same as averaging on the "real" scale, which introduces a small bias into the population-level predictions.
+
+我們將從單因子偏函數和基本圖開始（圖 9.16）。由於這是一個混合模型，我們需要在 `ggpredict()` 中加入 `bias_correction = TRUE` 參數，以抑制關於**Jensen 不等式**的錯誤訊息。這是因為，當你在「對數」尺度上取平均值，然後再轉換回來時，結果與在「實數」尺度上取平均值不同，這會在總體水準的預測中引入一個小的偏差。
 ```{r}
 # Uses library(ggeffects)
 # single effects
 # Effect of NAP
-p1 <- plot(ggeffects::ggpredict(compois_M, terms = "NAP")) 
+p1 <- plot(ggeffects::ggpredict(Final_M, terms = "NAP", bias_correction = TRUE)) 
 
 # Effect of fExp
-p2 <- plot(ggeffects::ggpredict(compois_M, terms = "fExp"))
+p2 <- plot(ggeffects::ggpredict(Final_M, terms = "fExp",bias_correction = TRUE))
 
 # Effects of humus
-p3 <- plot(ggeffects::ggpredict(compois_M, terms = "humus"))
+p3 <- plot(ggeffects::ggpredict(Final_M, terms = "humus", bias_correction = TRUE))
 
 # arrange using patchwork. Check the help file for examples of how to do this.
 p1 + p2 / p3   
 ```
 
+**Fig. 9.16: The partials plots from the ggeffects package**
+
+The partial plots show the marginal effects of each predictor variable when the others are held at their mean. Had we centred the variables then the mean would have been set at zero.
+
+部分圖顯示了當其他預測變數保持其平均值時，每個預測變數的邊際效應。如果我們將變數置於中心，則平均值將設為零。
+
+The interactions can be shown in a similar manner (Fig. 9.17).
 ```{r}
 # interactive effects
-p4 <- plot(ggeffects::ggpredict(compois_M, terms = c("NAP", "fExp")))
-p5 <- plot(ggeffects::ggpredict(compois_M, terms = c("NAP", "humus")))
+p4 <- plot(ggeffects::ggpredict(Final_M, terms = c("NAP", "fExp"),bias_correction = TRUE))
+p5 <- plot(ggeffects::ggpredict(Final_M, terms = c("NAP", "humus"),bias_correction = TRUE))
 
 p4 / p5
 ```
 
-We can jazz the plots up by saving the predictions from `ggpredict()` to an object then layering up in the **ggplot2** as we normally would. We will use p4 for this. We already have the object.
+**Fig. 9.17: The partial plots showing the interactions between variables**
 
+The upper panel shows how richness varies in relation to NAP stratified by exposure. We see that larger richness values are predicted with lower NAP for level 10 than 11. The bottom panel shows that the influence of humus is greater at higher NAP values.
+
+We can jazz the plots up by saving the predictions from `ggpredict()` to an object then layering up in the **ggplot2** as we normally would. The key thing here is that we are using two dataframes, the raw data (Benthic) for the points and the predictions (preds) for the regression lines and CIs. Otherwise, you have seen the code before (Fig. 9.18).
+
+上圖顯示了豐富度隨 NAP 變化的情況，並按暴露程度分層。我們發現，在 NAP 較低的 10 級下，預測的豐富度值比 NAP 較低的 11 級下更大。下圖顯示，在 NAP 值較高的情況下，腐植質的影響更大。
+
+我們可以將 `ggpredict()` 的預測結果儲存到一個物件中，然後像往常一樣在 **ggplot2** 中分層，從而讓繪圖更加生動。這裡的關鍵在於我們使用了兩個資料框：原始資料（Benthic）用於點，預測值（preds）用於迴歸線和信賴區間。另外，您之前已經看過這段程式碼（圖 9.18）。
 ```{r}
 # create predictions instead of plot them directly. Preds is dataframe not a graphics object
-pred <- ggpredict(compois_M, terms = c("NAP", "fExp"))
+pred <- ggpredict(Final_M, terms = c("NAP", "fExp"))
 
 # We need to rename the groups in the preds df otherwise we'll get two legends
 pred$fExp <- pred$group
 
-# The key thing here is that we use two dataframes, the raw data (Benthic) for the points and the predictions (preds) for the regression lines and CIs
+# plot
 ggplot() +
   geom_point(data = Benthic, aes(x = NAP, y = Richness, color = fExp), # raw data 
              alpha = 0.5, size = 2) +
@@ -802,11 +959,17 @@ ggplot() +
 
 ```
 
+**Fig. 9.18: The predicted values of NAP v Richness and the affect of exposure**
+
 ### Take a deep breath and bookmark these blogs
 
-I appreciate this is complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in Week 6, with the key difference being that we place the grouping (factor) variable in the **random** rather than **fixed** structure of the model. Luckily, this stuff is well covered on the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
+PHEW!!!!! I appreciate this is complex, but it is very similar to the ANCOVA examples we covered earlier in the module, in Week 6, with the key difference being that we place the grouping (factor) variable in the **random** rather than **fixed** structure of the model. Luckily, this stuff is well covered on the web. Check out the code driven example of how to use these models using the made up example of [dragons on mountain tops](https://ourcodingclub.github.io/tutorials/mixed-models/). This site is a superb resource, please explore.
 
 I am aware here that we are looking at random effects as a means of getting rid of nuisance heterogeneity. This is not always a useful perspective as McGill and others discuss in his [blog](https://dynamicecology.wordpress.com/2015/11/04/is-it-a-fixed-or-random-effect/). I encourage you to read it.
+
+呼！ ！ ！我知道這很複雜，但它與我們之前在第六週模組中介紹的變異數分析（ANCOVA）範例非常相似，關鍵區別在於我們將分組（因子）變數置於模型的**隨機**結構中，而不是**固定**結構中。幸運的是，這方面的內容在網路上已經有了詳盡的介紹。您可以查看程式碼驅動的範例，了解如何使用虛構的[山頂上的龍](https://ourcodingclub.github.io/tutorials/mixed-models/)範例來使用這些模型。這個網站資源豐富，歡迎探索。
+
+我知道我們在這裡將隨機效應視為消除乾擾異質性的一種手段。正如 McGill 和其他人在[部落格](https://dynamicecology.wordpress.com/2015/11/04/is-it-a-fixed-or-random-effect/) 中討論的那樣，這並不總是有用的視角。我鼓勵您閱讀這篇文章。
 
 ### A Quick Checklist
 
@@ -818,13 +981,26 @@ I am aware here that we are looking at random effects as a means of getting rid 
 
 -   How many levels do we need need in a random effect? → According to many certainly 3 or more levels, but realistically `~` 10 or more - see the blog discussions above.
 
+- 如果每組只有一個觀察水平，則採用固定效應。
+
+- 如果每組有多個觀察水平，則可能需要採用隨機效應。
+
+- 如果要推論組本身，則選擇固定效應。如果要了解組內不同程度之間的差異，則選擇隨機效應。
+
+- 隨機效應需要多少個水平？ → 許多人認為肯定需要 3 個或更多水平，但實際上需要 10 個或更多——請參閱上面的博客討論。
+
 ## Follow-up work
 
 -   Read the blogs!
 -   Carry out the Dragons tutorial in the blog! Add in some more advanced visualisation for you EDA - for example, some faceting using ggplot.
 
+- 閱讀部落格！
+- 執行部落格中的 Dragons 教學！為您的 EDA 添加一些更高級的視覺化功能 - 例如，使用 ggplot 進行分面。
+
 ## Next Week
 
 Next week I will introduce you to the datasets you'll be using for your assessment for Part A of this module. There is a choice of four. The data are simulated to conform to particular hydro-ecological scenarios.
+
+下週我將向大家介紹本模組A部分評估所需的資料集。共有四個資料集可供選擇。這些數據是根據特定的水文生態情境進行模擬的。
 
 ## References
